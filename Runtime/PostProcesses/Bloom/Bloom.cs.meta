@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: bfb89648a10345d4eb375d57f5adc55f
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - brightnessExtractionShader: {fileID: 4800000, guid: eee4db575f0c0054eaa2c3a761f02777,
+      type: 3}
+  - gaussianBlurShader: {fileID: 4800000, guid: a69198b8db09f1a4f8c2084e92ba2f9c,
+      type: 3}
+  - combineShader: {fileID: 4800000, guid: 015a48998999473468ec144128b861fe, type: 3}
+  - compositionShader: {fileID: 4800000, guid: 5329855aa0786bc42b211137210ea52e, type: 3}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

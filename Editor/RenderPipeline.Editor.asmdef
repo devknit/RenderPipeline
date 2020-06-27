@@ -1,0 +1,17 @@
+{
+    "name": "RenderPipeline.Editor",
+    "references": [
+        "GUID:922065e65a6dff949ad066e17390e1e8"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 913ce51924fdd8b43bc47176f166d5f0
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - depthOfFieldShader: {fileID: 4800000, guid: 58f0f56bd24af6b408c57c3929fdc426,
+      type: 3}
+  - focalTransform: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
