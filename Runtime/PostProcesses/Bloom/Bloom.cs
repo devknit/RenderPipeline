@@ -205,6 +205,10 @@ namespace RenderPipeline
 				RenderBufferStoreAction.Store,
 				RenderBufferLoadAction.DontCare,	
 				RenderBufferStoreAction.DontCare);
+			if( SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
+			{
+				commandBuffer.ClearRenderTarget( false, true, Color.black, 0);
+			}
 			commandBuffer.SetGlobalTexture( kShaderPropertyMainTex, context.source0);
 			commandBuffer.DrawMesh( brightnessExtractionMesh, Matrix4x4.identity, brightnessExtractionMaterial);
 		
@@ -217,6 +221,10 @@ namespace RenderPipeline
 				RenderBufferStoreAction.Store,
 				RenderBufferLoadAction.DontCare,	
 				RenderBufferStoreAction.DontCare);
+			if( SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
+			{
+				commandBuffer.ClearRenderTarget( false, true, Color.black, 0);
+			}
 			commandBuffer.SetGlobalTexture( kShaderPropertyMainTex, brightnessExtractionTarget);
 			commandBuffer.DrawMesh( blurHorizontalMesh, Matrix4x4.identity, gaussianBlurMaterial);
 			
@@ -229,6 +237,10 @@ namespace RenderPipeline
 				RenderBufferStoreAction.Store,
 				RenderBufferLoadAction.DontCare,	
 				RenderBufferStoreAction.DontCare);
+			if( SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
+			{
+				commandBuffer.ClearRenderTarget( false, true, Color.black, 0);
+			}
 			commandBuffer.SetGlobalTexture( kShaderPropertyMainTex, kShaderPropertyGaussianBlurHorizontalTarget);
 			commandBuffer.DrawMesh( blurVerticalMesh, Matrix4x4.identity, gaussianBlurMaterial);
 			
@@ -242,6 +254,10 @@ namespace RenderPipeline
 					RenderBufferStoreAction.Store,
 					RenderBufferLoadAction.DontCare,	
 					RenderBufferStoreAction.DontCare);
+				if( SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
+				{
+					commandBuffer.ClearRenderTarget( false, true, Color.black, 0);
+				}
 				commandBuffer.SetGlobalTexture( kShaderPropertyMainTex, gaussianBlurVerticalTarget);
 				commandBuffer.DrawMesh( combineMesh, Matrix4x4.identity, combineMaterial);
 			}
