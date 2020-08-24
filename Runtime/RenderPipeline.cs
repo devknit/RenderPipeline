@@ -11,6 +11,15 @@ namespace RenderPipeline
 	[RequireComponent( typeof( Camera))]
 	public sealed class RenderPipeline : MonoBehaviour
 	{
+		public bool FlipAxisY
+		{
+			get{ return flipAxisY; }
+			set
+			{
+				flipAxisY = value;
+				isRebuildCommandBuffers = true;
+			}
+		}
 		void Awake()
 		{
 			fillMesh = new Mesh();
@@ -33,6 +42,27 @@ namespace RenderPipeline
 				new int[]{ 0, 1, 2, 3 }, MeshTopology.Quads, 0, false);
 			fillMesh.Optimize();
 			fillMesh.UploadMeshData( true);
+			
+			flipMesh = new Mesh();
+			flipMesh.SetVertices(
+				new Vector3[]{
+					new Vector3( 0, 0, 0),
+					new Vector3( 0, 1, 0),
+					new Vector3( 1, 1, 0),
+					new Vector3( 1, 0, 0)
+				});
+			flipMesh.SetUVs( 
+				0,
+				new Vector2[]{
+					new Vector2( 1, 0),
+					new Vector2( 1, 1),
+					new Vector2( 0, 1),
+					new Vector2( 0, 0)
+				});
+			flipMesh.SetIndices(
+				new int[]{ 0, 1, 2, 3 }, MeshTopology.Quads, 0, false);
+			flipMesh.Optimize();
+			flipMesh.UploadMeshData( true);
 			
 			if( shaderCopy != null && materialCopy == null)
 			{
@@ -122,6 +152,11 @@ namespace RenderPipeline
 				Destroy( fillMesh);
 				fillMesh = null;
 			}
+			if( flipMesh != null)
+			{
+				Destroy( flipMesh);
+				flipMesh = null;
+			}
 			if( cacheCamera != null)
 			{
 				cacheCamera.forceIntoRenderTexture = false;
@@ -129,8 +164,6 @@ namespace RenderPipeline
 		}
 		void OnPreRender()
 		{
-			bool isRebuildCommandBuffers = false;
-			
 		#if UNITY_EDITOR
 			if( cacheSelfIntoRenderTexture != selfIntoRenderTexture)
 			{
@@ -140,6 +173,11 @@ namespace RenderPipeline
 			if( cacheForceUpdateDepthTexture != forceUpdateDepthTexture)
 			{
 				cacheForceUpdateDepthTexture = forceUpdateDepthTexture;
+				isRebuildCommandBuffers = true;
+			}
+			if( cacheFlipAxisY != flipAxisY)
+			{
+				cacheFlipAxisY = flipAxisY;
 				isRebuildCommandBuffers = true;
 			}
 		#endif
@@ -265,13 +303,14 @@ namespace RenderPipeline
 					{
 						context.SetBuffers();
 						context.SetSource0( BuiltinRenderTextureType.CameraTarget);
+						context.SetTarget0( BuiltinRenderTextureType.CameraTarget);
 					}
 					else
 					{
 						context.SetBuffers( colorBuffer, depthBuffer);
 						context.SetSource0( colorBuffer);
+						context.SetTarget0( colorBuffer);
 					}
-					context.SetTarget0( BuiltinRenderTextureType.CameraTarget);
 					int temporaryCount = 0;
 					
 					for( int i0 = 0; i0 < enabledProcesses.Count; ++i0)
@@ -307,7 +346,14 @@ namespace RenderPipeline
 						}
 						if( i0 == enabledProcesses.Count - 1)
 						{
-							context.SetTarget0( BuiltinRenderTextureType.CameraTarget);
+							if( selfIntoRenderTexture == false)
+							{
+								context.SetTarget0( BuiltinRenderTextureType.CameraTarget);
+							}
+							else
+							{
+								context.SetTarget0( colorBuffer);
+							}
 						}
 						enabledProcesses[ i0].BuildCommandBuffer( 
 							commandBufferPostProcesses, context, 
@@ -333,17 +379,26 @@ namespace RenderPipeline
 							});
 						context.Next();
 					}
-					foreach( var userdTemporaryId in usedTemporaries.Keys)
-					{
-						commandBufferPostProcesses.ReleaseTemporaryRT( userdTemporaryId);
-					}
 					if( selfIntoRenderTexture != false)
 					{
+						commandBufferPostProcesses.SetRenderTarget( 
+							BuiltinRenderTextureType.CameraTarget, 
+							RenderBufferLoadAction.DontCare,
+							RenderBufferStoreAction.Store,
+							RenderBufferLoadAction.DontCare,
+							RenderBufferStoreAction.DontCare);
+						commandBufferPostProcesses.SetGlobalTexture( kShaderPropertyMainTex, colorBuffer);
+						commandBufferPostProcesses.DrawMesh( (flipAxisY == false)? fillMesh : flipMesh, Matrix4x4.identity, materialCopy, 0, 0);
+						
 						if( (depthTextureMode & DepthTextureMode.Depth) != 0)
 						{
 							commandBufferPostProcesses.ReleaseTemporaryRT( kShaderPropertyDepthTextureId);
 							depthTextureMode &= ~DepthTextureMode.Depth;
 						}
+					}
+					foreach( var userdTemporaryId in usedTemporaries.Keys)
+					{
+						commandBufferPostProcesses.ReleaseTemporaryRT( userdTemporaryId);
 					}
 					cacheCamera.AddCommandBuffer( CameraEvent.BeforeImageEffects, commandBufferPostProcesses);
 				}
@@ -407,12 +462,16 @@ namespace RenderPipeline
 		[SerializeField]
 		bool forceUpdateDepthTexture = false;
 		[SerializeField]
+		bool flipAxisY = false;
+		[SerializeField]
 		GameObject postProcessesTarget = default;
 		
 		Mesh fillMesh;
+		Mesh flipMesh;
 		Material materialCopy;
 		RenderTexture colorBuffer;
 		RenderTexture depthBuffer;
+		bool isRebuildCommandBuffers;
 		
 		PostProcess[] postProcesses;
 		CommandBuffer commandBufferDepthTexture;
@@ -424,6 +483,7 @@ namespace RenderPipeline
 	#if UNITY_EDITOR
 		bool? cacheSelfIntoRenderTexture;
 		bool? cacheForceUpdateDepthTexture;
+		bool? cacheFlipAxisY;
 	#endif
 	}
 }
