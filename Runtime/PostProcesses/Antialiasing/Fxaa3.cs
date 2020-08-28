@@ -24,7 +24,7 @@ namespace RenderPipeline
 		}
 		internal override bool Valid()
 		{
-			return enabled != false && materialFxaa3 != null;
+			return Properties.Enabled != false && materialFxaa3 != null;
 		}
 		internal override DepthTextureMode GetDepthTextureMode()
 		{
@@ -36,32 +36,7 @@ namespace RenderPipeline
 		}
 		internal override bool CheckParameterChange()
 		{
-			bool rebuild = false;
-			
-			if( cacheEnabled != enabled)
-			{
-				rebuild = true;
-				cacheEnabled = enabled;
-			}
-			if( enabled != false)
-			{
-				if( cacheEdgeThresholdMin != edgeThresholdMin)
-				{
-					materialFxaa3.SetFloat( kShaderPropertyEdgeThresholdMin, edgeThresholdMin);
-					cacheEdgeThresholdMin = edgeThresholdMin;
-				}
-				if( cacheEdgeThreshold != edgeThreshold)
-				{
-					materialFxaa3.SetFloat( kShaderPropertyEdgeThreshold, edgeThreshold);
-					cacheEdgeThreshold = edgeThreshold;
-				}
-				if( cacheEdgeSharpness != edgeSharpness)
-				{
-					materialFxaa3.SetFloat( kShaderPropertyEdgeSharpness, edgeSharpness);
-					cacheEdgeSharpness = edgeSharpness;
-				}
-			}
-			return rebuild;
+			return Properties.CheckParameterChange( materialFxaa3);
 		}
 		protected override bool OnDuplicate()
 		{
@@ -100,20 +75,30 @@ namespace RenderPipeline
 		static readonly int kShaderPropertyEdgeThreshold = Shader.PropertyToID( "_EdgeThreshold");
 		static readonly int kShaderPropertyEdgeSharpness = Shader.PropertyToID( "_EdgeSharpness");
 		
+		Fxaa3Properties Properties
+		{
+			get{ return (sharedSettings != null)? sharedSettings.properties : properties; }
+		}
 		[SerializeField]
         Shader shaderFxaa3 = default;
+        [SerializeField]
+        Fxaa3Settings sharedSettings = default;
+        [SerializeField]
+        Fxaa3Properties properties = default;
+        
+	#if false
 		[SerializeField]
 		float edgeThresholdMin = 0.05f;
 		[SerializeField]
         float edgeThreshold = 0.1f;//0.2f;
         [SerializeField]
         float edgeSharpness = 4.0f;
-		
-		Material materialFxaa3;
-		
-		bool? cacheEnabled;
+        
+        bool? cacheEnabled;
 		float? cacheEdgeThresholdMin = 0.05f;
         float? cacheEdgeThreshold = 0.2f;
         float? cacheEdgeSharpness = 4.0f;
+	#endif
+		Material materialFxaa3;
 	}
 }
