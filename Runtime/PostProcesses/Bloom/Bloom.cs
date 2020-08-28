@@ -80,7 +80,7 @@ namespace RenderPipeline
 		}
 		internal override bool Valid()
 		{
-			return enabled != false 
+			return Properties.Enabled != false 
 				&& brightnessExtractionMaterial != null
 				&& gaussianBlurMaterial != null
 				&& combineMaterial != null
@@ -97,87 +97,34 @@ namespace RenderPipeline
 		internal override bool CheckParameterChange()
 		{
 			int updateFlags = 0;
-			bool rebuild = false;
 			
-			if( cacheEnabled != enabled)
+		#if UNITY_EDITOR
+			if( cacheSharedSettings != sharedSettings)
 			{
-				rebuild = true;
-				cacheEnabled = enabled;
+				cacheSharedSettings = sharedSettings;
+				updateFlags |= BloomProperties.kChangeAll;
 			}
-			if( enabled != false)
+		#endif
+			updateFlags |= Properties.CheckParameterChange();
+			
+			if( (updateFlags & BloomProperties.kChangeDescriptors) != 0)
 			{
-				if( cacheThresholds != thresholds)
-				{
-					cacheThresholds = thresholds;
-					updateFlags |= kMaterialUpdateThresholds;
-				}
-				if( cacheSigmaInPixel != sigmaInPixel)
-				{
-					cacheSigmaInPixel = sigmaInPixel;
-					updateFlags |= kMaterialUpdateSigmaInPixel;
-				}
-				if( cacheIntensity != intensity)
-				{
-					cacheIntensity = intensity;
-					updateFlags |= kMaterialUpdateIntensity;
-				}
-				if( cacheIntensityMultiplier != intensityMultiplier)
-				{
-					cacheIntensityMultiplier = intensityMultiplier;
-					updateFlags |= kMaterialUpdateIntensityMultiplier;
-				}
-				if( cacheDownSampleLevel != downSampleLevel)
-				{
-					if( downSampleLevel < 0)
-					{
-						downSampleLevel = 0;
-					}
-					if( downSampleLevel > 4)
-					{
-						downSampleLevel = 4;
-					}
-					cacheDownSampleLevel = downSampleLevel;
-					cacheWidth = null;
-					cacheHeight = null;
-				}
-				if( cacheDownSampleCount != downSampleCount)
-				{
-					if( downSampleCount < 1)
-					{
-						downSampleCount = 1;
-					}
-					if( downSampleCount > 7)
-					{
-						downSampleCount = 7;
-					}
-					cacheDownSampleCount = downSampleCount;
-					cacheWidth = null;
-					cacheHeight = null;
-				}
-				if( cacheCombineStartLevel != combineStartLevel)
-				{
-					if( combineStartLevel < 0)
-					{
-						combineStartLevel = 0;
-					}
-					if( combineStartLevel > 6)
-					{
-						combineStartLevel = 6;
-					}
-					cacheCombineStartLevel = combineStartLevel;
-					updateFlags |= kMaterialUpdateCombineStartLevel;
-				}
+				cacheWidth = null;
+				cacheHeight = null;
+			}
+			if( properties.Enabled != false)
+			{
 				if( UpdateDescriptors( Screen.width, Screen.height) != false)
 				{
-					rebuild = true;
-					updateFlags |= kMaterialUpdateResetTargets;
+					updateFlags |= BloomProperties.kRebuild;
+					updateFlags |= BloomProperties.kChangeDescriptors;
 				}
 				if( updateFlags != 0)
 				{
 					UpdateResources( updateFlags);
 				}
 			}
-			return rebuild;
+			return (updateFlags & BloomProperties.kRebuild) != 0;
 		}
 		protected override bool OnDuplicate()
 		{
@@ -316,8 +263,8 @@ namespace RenderPipeline
 			{
 				renderTextureFormat = RenderTextureFormat.DefaultHDR;
 			}
-			int topBloomWidth = width >> downSampleLevel;
-			int topBloomHeight = height >> downSampleLevel;
+			int topBloomWidth = width >> Properties.DownSampleLevel;
+			int topBloomHeight = height >> Properties.DownSampleLevel;
 			
 			brightnessExtractionDescriptor = new RenderTextureDescriptor(
 				TextureUtil.ToPow2RoundUp( topBloomWidth), 
@@ -325,8 +272,8 @@ namespace RenderPipeline
 				renderTextureFormat, 0);
 			brightnessExtractionDescriptor.useMipMap = true;
 			brightnessExtractionDescriptor.autoGenerateMips = true;
-			brightnessNetWidth = width >> downSampleLevel;
-			brightnessNetHeight = height >> downSampleLevel;
+			brightnessNetWidth = width >> Properties.DownSampleLevel;
+			brightnessNetHeight = height >> Properties.DownSampleLevel;
 			brightnessOffsetX = (brightnessExtractionDescriptor.width - brightnessNetWidth) / 2;
 			brightnessOffsetY = (brightnessExtractionDescriptor.height - brightnessNetHeight) / 2;
 				
@@ -338,7 +285,7 @@ namespace RenderPipeline
 				topBloomWidth,
 				topBloomHeight,
 				16,
-				downSampleCount);
+				Properties.DownSampleCount);
 			
 			blurDescriptor = new RenderTextureDescriptor(
 				bloomWidth, bloomHeight, renderTextureFormat, 0);
@@ -450,21 +397,6 @@ namespace RenderPipeline
 			}
 			return Mathf.Exp( -(x * x) / (sigma * sigma * 2.0f));
 		}
-		const int kMaterialUpdateThresholds = 1 << 0;
-		const int kMaterialUpdateSigmaInPixel = 1 << 1;
-		const int kMaterialUpdateIntensity = 1 << 2;
-		const int kMaterialUpdateIntensityMultiplier = 1 << 3;
-		const int kMaterialUpdateCombineStartLevel = 1 << 6;
-		const int kMaterialUpdateResetTargets = 1 << 7;
-		const int kMaterialUpdateCombinePassCount = 
-			kMaterialUpdateThresholds | //なぜかマテリアルプロパティがクリアされる場合があるため
-			kMaterialUpdateResetTargets |
-			kMaterialUpdateCombineStartLevel;
-		const int kMaterialUpdateCombineComposition = 
-			kMaterialUpdateCombinePassCount |
-			kMaterialUpdateIntensity |
-			kMaterialUpdateIntensityMultiplier;
-		const int kMaterialUpdateAll = 0x7fffffff;
 		
 		const string kShaderKeywordLDR = "LDR";
 		const string kShaderKeywordSample1 = "SAMPLE1";
@@ -505,6 +437,10 @@ namespace RenderPipeline
 		static readonly int kShaderPropertyBloomWeightCombined = Shader.PropertyToID( "_BloomWeightCombined");
 		static readonly int kShaderPropertyBloomUvTransformCombined = Shader.PropertyToID( "_BloomUvTransformCombined");
 		
+		BloomProperties Properties
+		{
+			get{ return (sharedSettings != null)? sharedSettings.properties : properties; }
+		}
 		[SerializeField]
         Shader brightnessExtractionShader = default;
 		[SerializeField]
@@ -513,21 +449,11 @@ namespace RenderPipeline
 		Shader combineShader = default;
         [SerializeField]
         Shader compositionShader = default;
-		[SerializeField]
-		float thresholds = 1.0f;
-		[SerializeField]
-		float sigmaInPixel = 3.0f;
-		[SerializeField]
-		float intensity = 5.0f;
-		[SerializeField] 
-		float intensityMultiplier = 1.5f;
-		[SerializeField, Range( 0, 4)] 
-		int downSampleLevel = 2;
-		[SerializeField, Range( 1, 7)] 
-		int downSampleCount = 7;
-		[SerializeField, Range( 0, 6)]
-		int combineStartLevel = 0;
-		
+        [SerializeField]
+        BloomSettings sharedSettings = default;
+        [SerializeField]
+        BloomProperties properties = default;
+	
 		RenderTextureDescriptor brightnessExtractionDescriptor;
 		RenderTextureDescriptor blurDescriptor;
 		RenderTextureDescriptor combineDescriptor;
@@ -552,20 +478,14 @@ namespace RenderPipeline
 		int brightnessOffsetY;
 		int brightnessNetWidth;
 		int brightnessNetHeight;
-		
-		bool? cacheEnabled;
-		int? cacheWidth;
-		int? cacheHeight;
-		float? cacheThresholds;
-		float? cacheSigmaInPixel;
-		float? cacheIntensity;
-		float? cacheIntensityMultiplier;
-		int? cacheDownSampleLevel;
-		int? cacheDownSampleCount;
-		int? cacheCombineStartLevel;
-		
 		int combinePassCount;
 		int bloomRectCount;
+		
+		int? cacheWidth;
+		int? cacheHeight;
+	#if UNITY_EDITOR
+		BloomSettings cacheSharedSettings;
+	#endif
 	}
 	class BloomRect
 	{

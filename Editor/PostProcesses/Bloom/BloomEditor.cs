@@ -10,48 +10,24 @@ namespace RenderPipeline.Editor
 	{
 		public override void OnInspectorGUI()
 		{
-			serializedObject.Update();
+			SerializedProperty sharedSettings = serializedObject.FindProperty( "sharedSettings");
+			SerializedProperty properties = serializedObject.FindProperty( "properties");
 			
-			SerializedProperty enabled = serializedObject.FindProperty( "m_Enabled");
-			if( enabled != null)
+			if( sharedSettings == null || properties == null)
 			{
-				EditorGUILayout.PropertyField( enabled, false);
+				base.OnInspectorGUI();
 			}
-			SerializedProperty iterator = serializedObject.GetIterator();
-			int currentDepth = 0;
-			
-			while( iterator.NextVisible( true) != false)
+			else
 			{
-				if( iterator.editable == false
-				||	currentDepth < iterator.depth)
-				{
-					continue;
-				}
-				if( iterator.propertyType == SerializedPropertyType.ObjectReference)
-				{
-					if( iterator.name == "m_Script" && iterator.type == "PPtr<MonoScript>")
-					{
-						continue;
-					}
-					else if( iterator.objectReferenceValue is Shader)
-					{
-						continue;
-					}
-				}
+				serializedObject.Update();
+				EditorGUILayout.PropertyField( sharedSettings, true);
 				
-				EditorGUI.indentLevel = iterator.depth;
-				EditorGUILayout.PropertyField( iterator, false);
-				
-				if( iterator.isExpanded != false)
-	            {
-	                currentDepth = iterator.depth + 1;
-	            }
-	            else
-	            {
-	                currentDepth = iterator.depth;
-	            }
+				if( sharedSettings.objectReferenceValue == null)
+				{
+					EditorGUILayout.PropertyField( properties, true);
+				}
+				serializedObject.ApplyModifiedProperties();
 			}
-			serializedObject.ApplyModifiedProperties();
 		}
 	}
 }

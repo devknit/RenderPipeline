@@ -7,7 +7,7 @@ namespace RenderPipeline
 	{
 		void UpdateResources( int updateFlags)
 		{
-			if( (updateFlags & kMaterialUpdateThresholds) != 0)
+			if( (updateFlags & BloomProperties.kChangeThresholds) != 0)
 			{
 				Material material = brightnessExtractionMaterial;
 
@@ -17,7 +17,7 @@ namespace RenderPipeline
 					{
 						material.DisableKeyword( kShaderKeywordLDR);
 					}
-					material.SetFloat( kShaderPropertyThresholds, thresholds);
+					material.SetFloat( kShaderPropertyThresholds, Properties.Thresholds);
 				}
 				else
 				{
@@ -27,29 +27,29 @@ namespace RenderPipeline
 					}
 					var colorTransform = new Vector4();
 					
-					if( thresholds >= 1.0f)
+					if( Properties.Thresholds >= 1.0f)
 					{
 						colorTransform.x = 0.0f;
 						colorTransform.y = 0.0f;
 					}
 					else
 					{
-						colorTransform.x = 1.0f / (1.0f - thresholds);
-						colorTransform.y = -thresholds / (1.0f - thresholds);
+						colorTransform.x = 1.0f / (1.0f - Properties.Thresholds);
+						colorTransform.y = -Properties.Thresholds / (1.0f - Properties.Thresholds);
 					}
 					material.SetVector( kShaderPropertyColorTransform, colorTransform);
 				}
 			}
-			if( (updateFlags & kMaterialUpdateSigmaInPixel) != 0)
+			if( (updateFlags & BloomProperties.kChangeSigmaInPixel) != 0)
 			{
-				CalculateGaussianSamples( sigmaInPixel);
+				CalculateGaussianSamples( Properties.SigmaInPixel);
 				float diff = blurSample0.offset - blurSample1.offset;
 				float scale = (diff != 0.0f) ? (blurSample0.offset * 2.0f) / Mathf.Abs( diff) : 0.0f;
 				gaussianBlurMaterial.SetFloat( kShaderPropertyInvertOffsetScale01, scale);
 			}
-			if( (updateFlags & kMaterialUpdateCombinePassCount) != 0)
+			if( (updateFlags & BloomProperties.kChangeCombinePassCount) != 0)
 			{
-				combinePassCount = (bloomRects.Length + downSampleLevel) - combineStartLevel;
+				combinePassCount = (bloomRects.Length + Properties.DownSampleLevel) - Properties.CombineStartLevel;
 				combinePassCount = Mathf.Clamp( combinePassCount, 0, bloomRects.Length);
 				bloomRectCount = bloomRects.Length - combinePassCount;
 				bloomRectCount = Mathf.Clamp( bloomRectCount, 0, bloomRects.Length - 1);
@@ -151,7 +151,7 @@ namespace RenderPipeline
 					UpdateCombineMesh();
 				}
 			}
-			if( (updateFlags & kMaterialUpdateCombineComposition) != 0)
+			if( (updateFlags & BloomProperties.kChangeCombineComposition) != 0)
 			{
 				/* Combine */
 				Material material = combineMaterial;
@@ -163,7 +163,7 @@ namespace RenderPipeline
 				for( int i0 = 0; i0 < combinePassCount; ++i0)
 				{
 					combinedStrengthSum += combinedStrength;
-					combinedStrength *= intensityMultiplier;
+					combinedStrength *= Properties.IntensityMultiplier;
 				}
 				float normalizeFactor = 1.0f / combinedStrengthSum;
 				combinedStrength = 1.0f;
@@ -183,7 +183,7 @@ namespace RenderPipeline
 					uvTransform.z = ((float)fromRect.x - ((float)toRect.x * uvTransform.x)) / (float)blurDescriptor.width;
 					uvTransform.w = ((float)fromRect.y - ((float)toRect.y * uvTransform.y)) / (float)blurDescriptor.height;
 					material.SetVector( kShaderPropertyUvTransforms[ i0], uvTransform);
-					combinedStrength *= intensityMultiplier;
+					combinedStrength *= Properties.IntensityMultiplier;
 				}
 				
 				/* Composition */
@@ -195,9 +195,9 @@ namespace RenderPipeline
 				for( int i0 = 0; i0 < bloomRects.Length; ++i0)
 				{
 					compositeStrengthSum += compositeStrength;
-					compositeStrength *= intensityMultiplier;
+					compositeStrength *= Properties.IntensityMultiplier;
 				}
-				compositeStrength = intensity / compositeStrengthSum;
+				compositeStrength = Properties.Intensity / compositeStrengthSum;
 				
 				for( int i0 = 0; i0 < bloomRectCount; ++i0)
 				{
@@ -210,7 +210,7 @@ namespace RenderPipeline
 							(float)rect.height / (float)blurDescriptor.height,
 							(float)rect.x / (float)blurDescriptor.width,
 							(float)rect.y / (float)blurDescriptor.height));
-					compositeStrength *= intensityMultiplier;
+					compositeStrength *= Properties.IntensityMultiplier;
 				}
 				if( combinePassCount > 0)
 				{
