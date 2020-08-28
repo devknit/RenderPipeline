@@ -14,6 +14,7 @@ namespace RenderPipeline
 		internal abstract void Dispose();
 		internal abstract bool Valid();
 		internal abstract DepthTextureMode GetDepthTextureMode();
+		internal abstract bool IsHighDynamicRange();
 		internal abstract bool CheckParameterChange();
 		internal bool DuplicateMRT()
 		{

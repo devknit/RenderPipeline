@@ -90,6 +90,10 @@ namespace RenderPipeline
 		{
 			return DepthTextureMode.None;
 		}
+		internal override bool IsHighDynamicRange()
+		{
+			return true;
+		}
 		internal override bool CheckParameterChange()
 		{
 			int updateFlags = 0;
@@ -308,9 +312,9 @@ namespace RenderPipeline
 			}
 			var renderTextureFormat = RenderTextureFormat.ARGB32;
 			
-			if( SystemInfo.SupportsRenderTextureFormat( RenderTextureFormat.RGB111110Float) != false)
+			if( SystemInfo.SupportsRenderTextureFormat( RenderTextureFormat.DefaultHDR) != false)
 			{
-				renderTextureFormat = RenderTextureFormat.RGB111110Float;
+				renderTextureFormat = RenderTextureFormat.DefaultHDR;
 			}
 			int topBloomWidth = width >> downSampleLevel;
 			int topBloomHeight = height >> downSampleLevel;

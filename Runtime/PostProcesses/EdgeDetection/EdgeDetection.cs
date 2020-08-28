@@ -35,6 +35,10 @@ namespace RenderPipeline
 		{
 			return DepthTextureMode.Depth;
 		}
+		internal override bool IsHighDynamicRange()
+		{
+			return false;
+		}
 		internal override bool CheckParameterChange()
 		{
 			bool rebuild = false;

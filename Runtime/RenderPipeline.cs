@@ -185,16 +185,6 @@ namespace RenderPipeline
 				{
 					isRebuildCommandBuffers = true;
 				}
-				if( cacheCamera.allowHDR != false)
-				{
-					cacheCamera.allowHDR = false;
-					isRebuildCommandBuffers = true;
-				}
-			}
-			else if( cacheCamera.allowHDR == false)
-			{
-				cacheCamera.allowHDR = true;
-				isRebuildCommandBuffers = true;
 			}
 			if( cacheCamera.allowMSAA != false)
 			{
@@ -221,6 +211,7 @@ namespace RenderPipeline
 			var enabledProcesses = new List<PostProcess>();
 			var depthTextureMode = (forceUpdateDepthTexture != false)? 
 				DepthTextureMode.Depth : DepthTextureMode.None;
+			bool highDynamicRange = false;
 			bool forceIntoRenderTexture = false;
 			PostProcess process, prevProcess = null;
 			
@@ -335,6 +326,10 @@ namespace RenderPipeline
 				
 				for( int i0 = 0; i0 < enabledProcesses.Count; ++i0)
 				{
+					if( enabledProcesses[ i0].IsHighDynamicRange() != false)
+					{
+						highDynamicRange = true;
+					}
 					depthTextureMode |= enabledProcesses[ i0].GetDepthTextureMode();
 				}
 				if( overrideTargetBuffers != false && (depthTextureMode & DepthTextureMode.Depth) != 0)
@@ -422,6 +417,7 @@ namespace RenderPipeline
 				}
 				cacheCamera.AddCommandBuffer( CameraEvent.BeforeImageEffects, commandBufferPostProcesses);
 			}
+			cacheCamera.allowHDR = highDynamicRange;
 			cacheCamera.depthTextureMode = depthTextureMode;
 			cacheCamera.forceIntoRenderTexture = forceIntoRenderTexture;
 			isRebuildCommandBuffers = false;
