@@ -243,7 +243,6 @@ namespace RenderPipeline
 				cacheCamera.RemoveCommandBuffer( CameraEvent.BeforeImageEffects, commandBufferPostProcesses);
 				commandBufferPostProcesses = null;
 			}
-#if true
 			if( enabledProcesses.Count == 0 && overrideTargetBuffers == false)
 			{
 			#if UNITY_EDITOR
@@ -251,7 +250,6 @@ namespace RenderPipeline
 			#endif
 			}
 			else
-#endif
 			{
 				if( overrideTargetBuffers == false)
 				{
@@ -478,13 +476,22 @@ namespace RenderPipeline
 		static readonly int kShaderPropertyDepthTextureId = Shader.PropertyToID( "CameraPipeline::DepthTexture");
 		static readonly int kShaderPropertyCameraDepthTexture = Shader.PropertyToID( "_CameraDepthTexture");
 		
+		const string kTipsOverrideTargetBuffers = 
+			"レンダリングパスでUpdateDepthTextureが処理されていない状態でも_CameraDepthTextureに深度情報が書き込まれるようになります。\n\n" +
+			"この機能を有効にした場合、UpdateDepthTextureで行われるDrawCallが無駄になるため、UpdateDepthTextureが発生しない様にする必要があります。\n\n" +
+			"UpdateDepthTextureが発生しない様にするにはModeがRealtimeに設定されているLightのShadowTypeにNoShadowsが設定されている必要があります。\n\n" +
+			"※この機能はUpdateDepthTextureで_CameraDepthTextureが利用可能になる場合と異なり、ForwardOpaque中に使用することが出来ません。\n\n" +
+			"※ポストプロセスの使用状況によって_CameraDepthTextureに書き込まれない場合があるため、強制する場合は ForceUpdateDepthTexture を有効にしてください。";
+		const string kTipsForceUpdateDepthTexture = "この機能を有効にした場合、_CameraDepthTextureに深度情報が書き込まれる状態を強制します。";
+		const string kTipsFlipHorizontal = "この機能を有効にした場合、水平方向に画面を反転させます。";
+		
 		[SerializeField]
 		Shader shaderCopy = default;
-		[SerializeField]
+		[SerializeField, TooltipAttribute( kTipsOverrideTargetBuffers)]
 		bool overrideTargetBuffers = false;
-		[SerializeField]
+		[SerializeField, TooltipAttribute( kTipsForceUpdateDepthTexture)]
 		bool forceUpdateDepthTexture = false;
-		[SerializeField]
+		[SerializeField, TooltipAttribute( kTipsFlipHorizontal)]
 		bool flipHorizontal = false;
 		[SerializeField]
 		GameObject postProcessesTarget = default;
