@@ -34,6 +34,13 @@ namespace RenderPipeline
 			get{ return edgeSharpness; }
 			set{ edgeSharpness = value; }
 		}
+		internal override void ClearCache()
+		{
+			cacheEnabled = null;
+			cacheEdgeThresholdMin = null;
+			cacheEdgeThreshold = null;
+			cacheEdgeSharpness = null;
+		}
 		internal bool CheckParameterChange( Material material)
 		{
 			bool rebuild = false;

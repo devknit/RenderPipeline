@@ -9,5 +9,6 @@ namespace RenderPipeline
 	}
 	public abstract class Properties
 	{
+		internal abstract void ClearCache();
 	}
 }

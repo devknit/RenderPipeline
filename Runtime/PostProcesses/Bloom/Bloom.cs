@@ -94,10 +94,17 @@ namespace RenderPipeline
 		{
 			return true;
 		}
-		internal override bool CheckParameterChange()
+		internal override bool CheckParameterChange( bool clearCache)
 		{
 			int updateFlags = 0;
 			
+			if( clearCache != false)
+			{
+				Properties.ClearCache();
+			#if UNITY_EDITOR
+				cacheSharedSettings = null;
+			#endif
+			}
 		#if UNITY_EDITOR
 			if( cacheSharedSettings != sharedSettings)
 			{

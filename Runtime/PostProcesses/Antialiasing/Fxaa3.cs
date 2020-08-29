@@ -34,8 +34,12 @@ namespace RenderPipeline
 		{
 			return false;
 		}
-		internal override bool CheckParameterChange()
+		internal override bool CheckParameterChange( bool clearCache)
 		{
+			if( clearCache != false)
+			{
+				Properties.ClearCache();
+			}
 			return Properties.CheckParameterChange( materialFxaa3);
 		}
 		protected override bool OnDuplicate()

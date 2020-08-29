@@ -39,10 +39,20 @@ namespace RenderPipeline
 		{
 			return false;
 		}
-		internal override bool CheckParameterChange()
+		internal override bool CheckParameterChange( bool clearCache)
 		{
 			bool rebuild = false;
 			
+			if( clearCache != false)
+			{
+				cacheEnabled = null;
+				cacheDetectType = null;
+				cacheColor = null;
+				cacheSampleDistance = null;
+				cacheStencilReference = null;
+				cacheStencilReadMask = null;
+				cacheStencilCompare = null;
+			}
 			if( cacheEnabled != enabled)
 			{
 				rebuild = true;

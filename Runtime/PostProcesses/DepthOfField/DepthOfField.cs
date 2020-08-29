@@ -41,10 +41,22 @@ namespace RenderPipeline
 		{
 			return false;
 		}
-		internal override bool CheckParameterChange()
+		internal override bool CheckParameterChange( bool clearCache)
 		{
 			bool rebuild = false;
 			
+			if( clearCache != false)
+			{
+				cacheEnabled = null;
+				cacheWidth = null;
+				cacheHeight = null;
+				cacheFocalSize = null;
+				cacheAperture = null;
+				cacheMaxBlurSize = null;
+				cacheBlurQuality = null;
+				cacheHighResolution = null;
+				cacheVisualizeFocus = null;
+			}
 			if( cacheEnabled != enabled)
 			{
 				rebuild = true;
@@ -267,7 +279,6 @@ namespace RenderPipeline
 		bool? cacheEnabled;
 		int? cacheWidth;
 		int? cacheHeight;
-		Transform cacheFocalTransform;
 		float? cacheFocalSize;
 		float? cacheAperture;
 		float? cacheMaxBlurSize;

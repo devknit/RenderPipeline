@@ -53,7 +53,18 @@ namespace RenderPipeline
 		{
 			get{ return combineStartLevel; }
 			set{ combineStartLevel = value; }
-		}		
+		}
+		internal override void ClearCache()
+		{
+			cacheEnabled = null;
+			cacheThresholds = null;
+			cacheSigmaInPixel = null;
+			cacheIntensity = null;
+			cacheIntensityMultiplier = null;
+			cacheDownSampleLevel = null;
+			cacheDownSampleCount = null;
+			cacheCombineStartLevel = null;
+		}
 		internal int CheckParameterChange()
 		{
 			int updateFlags = 0;

@@ -103,7 +103,7 @@ namespace RenderPipeline
 			{
 				postProcesses[ i0].Initialize( this);
 				postProcesses[ i0].Create();
-				postProcesses[ i0].CheckParameterChange();
+				postProcesses[ i0].CheckParameterChange( true);
 			}
 			cacheCamera = GetComponent<Camera>();
 			RebuildCommandBuffers();
@@ -195,7 +195,7 @@ namespace RenderPipeline
 			{
 				for( int i0 = 0; i0 < postProcesses.Length; ++i0)
 				{
-					if( postProcesses[ i0].CheckParameterChange() != false)
+					if( postProcesses[ i0].CheckParameterChange( false) != false)
 					{
 						isRebuildCommandBuffers = true;
 					}
@@ -243,20 +243,24 @@ namespace RenderPipeline
 				cacheCamera.RemoveCommandBuffer( CameraEvent.BeforeImageEffects, commandBufferPostProcesses);
 				commandBufferPostProcesses = null;
 			}
-			if( enabledProcesses.Count == 0)
+#if true
+			if( enabledProcesses.Count == 0 && overrideTargetBuffers == false)
 			{
+			#if UNITY_EDITOR
 				cacheCamera.SetTargetBuffers( Display.main.colorBuffer, Display.main.depthBuffer);
+			#endif
 			}
 			else
+#endif
 			{
 				if( overrideTargetBuffers == false)
 				{
 					forceIntoRenderTexture = true;
 				#if UNITY_EDITOR
 					/* [2019.4.1f1]
-					   Win64 環境で forceIntoRenderTexture に true が設定されている状態で
-					   SetTargetBuffers に Display.main.*****Buffer を設定すると、本来であれば
-					   TempBuffer ターゲットになるはずが、ディスプレイバッファになってしまう。
+					   SetTargetBuffers の引数に Display.main.*****Buffer を渡しても実機では正しく動作しない。
+					   エディタ上でのみ、SetTargetBuffers を呼び出す前と同じ状態に戻る。
+					   実機では現状元に戻す方法が存在しない。
 					 */
 					cacheCamera.SetTargetBuffers( Display.main.colorBuffer, Display.main.depthBuffer);
 				#endif
@@ -326,9 +330,12 @@ namespace RenderPipeline
 				
 				for( int i0 = 0; i0 < enabledProcesses.Count; ++i0)
 				{
-					if( enabledProcesses[ i0].IsHighDynamicRange() != false)
+					if( overrideTargetBuffers == false)
 					{
-						highDynamicRange = true;
+						if( enabledProcesses[ i0].IsHighDynamicRange() != false)
+						{
+							highDynamicRange = true;
+						}
 					}
 					depthTextureMode |= enabledProcesses[ i0].GetDepthTextureMode();
 				}

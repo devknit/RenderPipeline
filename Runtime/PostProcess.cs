@@ -15,7 +15,7 @@ namespace RenderPipeline
 		internal abstract bool Valid();
 		internal abstract DepthTextureMode GetDepthTextureMode();
 		internal abstract bool IsHighDynamicRange();
-		internal abstract bool CheckParameterChange();
+		internal abstract bool CheckParameterChange( bool clearCache);
 		internal bool DuplicateMRT()
 		{
 			if( SystemInfo.supportedRenderTargetCount > 1)
