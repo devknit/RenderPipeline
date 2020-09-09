@@ -8,6 +8,26 @@ namespace RenderPipeline
 	[CreateAssetMenu( menuName="RenderPipeline/Bloom", fileName="PostProcessBloom", order=1200)]
 	public sealed class BloomSettings : Settings
 	{
+		public static BloomSettings Instance
+		{
+			get;
+			private set;
+		}
+		void OnEnable()
+		{
+			if( Instance == null)
+			{
+				Instance = this;
+			}
+		}
+		void OnDisable()
+		{
+			if( Instance == this)
+			{
+				Instance = null;
+			}
+		}
+		
 		[SerializeField]
 		public BloomProperties properties = default;
 	}
