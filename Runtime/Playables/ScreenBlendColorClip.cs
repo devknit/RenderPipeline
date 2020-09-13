@@ -6,9 +6,9 @@ using UnityEngine.Timeline;
 namespace RenderPipeline
 {
 	[System.Serializable]
-	public sealed class BloomSharedThresholdsClip : PlayableAsset, ITimelineClipAsset
+	public sealed class ScreenBlendColorClip : PlayableAsset, ITimelineClipAsset
 	{
-		public BloomSharedThresholdsBehaviour bloom = new BloomSharedThresholdsBehaviour();
+		public ScreenBlendColorBehaviour screenBlend = new ScreenBlendColorBehaviour();
 		
 		public ClipCaps clipCaps
 	    {
@@ -16,7 +16,7 @@ namespace RenderPipeline
 	    }
 	    public override Playable CreatePlayable( PlayableGraph graph, GameObject owner)
 	    {
-	        return ScriptPlayable<BloomSharedThresholdsBehaviour>.Create( graph, bloom);
+	        return ScriptPlayable<ScreenBlendColorBehaviour>.Create( graph, screenBlend);
 	    }
 	}
 }

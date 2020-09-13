@@ -444,7 +444,7 @@ namespace RenderPipeline
 		static readonly int kShaderPropertyBloomWeightCombined = Shader.PropertyToID( "_BloomWeightCombined");
 		static readonly int kShaderPropertyBloomUvTransformCombined = Shader.PropertyToID( "_BloomUvTransformCombined");
 		
-		BloomProperties Properties
+		public BloomProperties Properties
 		{
 			get{ return (sharedSettings != null)? sharedSettings.properties : properties; }
 		}

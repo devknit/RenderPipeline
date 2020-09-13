@@ -6,7 +6,7 @@ using UnityEngine.Timeline;
 namespace RenderPipeline
 {
 	[System.Serializable]
-	public sealed class BloomSharedThresholdsBehaviour : PlayableBehaviour
+	public sealed class BloomThresholdsBehaviour : PlayableBehaviour
 	{
 		public AnimationCurve thresholds = new AnimationCurve
 	    (

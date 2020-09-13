@@ -23,6 +23,16 @@ namespace RenderPipeline
 				}
 			}
 		}
+		public Color ScreenBlendColor
+		{
+			get{ return screenBlendColor; }
+			set{ screenBlendColor = value; }
+		}
+		public Bloom Bloom
+		{
+			get;
+			private set;
+		}
 		void Awake()
 		{
 			fillMesh = new Mesh();
@@ -71,6 +81,10 @@ namespace RenderPipeline
 			{
 				materialCopy = new Material( shaderCopy);
 			}
+			if( shaderColor != null && materialColor == null)
+			{
+				materialColor = new Material( shaderColor);
+			}
 			var processes = new List<PostProcess>();
 			
 			if( postProcessesTarget == null)
@@ -83,6 +97,7 @@ namespace RenderPipeline
 			}
 			if( postProcessesTarget.GetComponent<Bloom>() is Bloom bloom)
 			{
+				Bloom = bloom;
 				processes.Add( bloom);
 			}
 			if( postProcessesTarget.GetComponent<DepthOfField>() is DepthOfField depthOfField)
@@ -143,6 +158,11 @@ namespace RenderPipeline
 				depthBuffer.Release();
 				depthBuffer = null;
 			}
+			if( materialColor != null)
+			{
+				Destroy( materialColor);
+				materialColor = null;
+			}
 			if( materialCopy != null)
 			{
 				Destroy( materialCopy);
@@ -200,6 +220,11 @@ namespace RenderPipeline
 						isRebuildCommandBuffers = true;
 					}
 				}
+			}
+			if( cacheScreenBlendColor != screenBlendColor)
+			{
+				materialColor.SetColor( kShaderPropertyColor, screenBlendColor);
+				cacheScreenBlendColor = screenBlendColor;
 			}
 			if( isRebuildCommandBuffers != false)
 			{
@@ -408,7 +433,7 @@ namespace RenderPipeline
 						RenderBufferLoadAction.DontCare,
 						RenderBufferStoreAction.DontCare);
 					commandBufferPostProcesses.SetGlobalTexture( kShaderPropertyMainTex, colorBuffer);
-					commandBufferPostProcesses.DrawMesh( (flipHorizontal == false)? fillMesh : flipMesh, Matrix4x4.identity, materialCopy, 0, 0);
+					commandBufferPostProcesses.DrawMesh( (flipHorizontal == false)? fillMesh : flipMesh, Matrix4x4.identity, materialColor, 0, 0);
 					
 					if( (depthTextureMode & DepthTextureMode.Depth) != 0)
 					{
@@ -473,6 +498,7 @@ namespace RenderPipeline
 		}
 		
 		static readonly int kShaderPropertyMainTex = Shader.PropertyToID( "_MainTex");
+		static readonly int kShaderPropertyColor = Shader.PropertyToID( "_Color");
 		static readonly int kShaderPropertyDepthTextureId = Shader.PropertyToID( "CameraPipeline::DepthTexture");
 		static readonly int kShaderPropertyCameraDepthTexture = Shader.PropertyToID( "_CameraDepthTexture");
 		
@@ -487,6 +513,8 @@ namespace RenderPipeline
 		
 		[SerializeField]
 		Shader shaderCopy = default;
+		[SerializeField]
+		Shader shaderColor = default;
 		[SerializeField, TooltipAttribute( kTipsOverrideTargetBuffers)]
 		bool overrideTargetBuffers = false;
 		[SerializeField, TooltipAttribute( kTipsForceUpdateDepthTexture)]
@@ -494,11 +522,14 @@ namespace RenderPipeline
 		[SerializeField, TooltipAttribute( kTipsFlipHorizontal)]
 		bool flipHorizontal = false;
 		[SerializeField]
+		Color screenBlendColor = Color.clear;
+		[SerializeField]
 		GameObject postProcessesTarget = default;
 		
 		Mesh fillMesh;
 		Mesh flipMesh;
 		Material materialCopy;
+		Material materialColor;
 		RenderTexture colorBuffer;
 		RenderTexture depthBuffer;
 		bool isRebuildCommandBuffers;
@@ -510,6 +541,7 @@ namespace RenderPipeline
 		Camera cacheCamera;
 		int? cacheWidth;
 		int? cacheHeight;
+		Color? cacheScreenBlendColor;
 	#if UNITY_EDITOR
 		bool? cacheOverrideTargetBuffers;
 		bool? cacheForceUpdateDepthTexture;
