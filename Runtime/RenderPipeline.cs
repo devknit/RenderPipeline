@@ -187,9 +187,9 @@ namespace RenderPipeline
 				cacheOverrideTargetBuffers = overrideTargetBuffers;
 				isRebuildCommandBuffers = true;
 			}
-			if( cacheForceUpdateDepthTexture != forceUpdateDepthTexture)
+			if( cacheDefaultDepthTextureMode != defaultDepthTextureMode)
 			{
-				cacheForceUpdateDepthTexture = forceUpdateDepthTexture;
+				cacheDefaultDepthTextureMode = defaultDepthTextureMode;
 				isRebuildCommandBuffers = true;
 			}
 			if( cacheFlipHorizontal != flipHorizontal)
@@ -234,8 +234,7 @@ namespace RenderPipeline
 		void RebuildCommandBuffers()
 		{
 			var enabledProcesses = new List<PostProcess>();
-			var depthTextureMode = (forceUpdateDepthTexture != false)? 
-				DepthTextureMode.Depth : DepthTextureMode.None;
+			var depthTextureMode = defaultDepthTextureMode;
 			bool highDynamicRange = false;
 			bool forceIntoRenderTexture = false;
 			PostProcess process, prevProcess = null;
@@ -507,18 +506,17 @@ namespace RenderPipeline
 			"この機能を有効にした場合、UpdateDepthTextureで行われるDrawCallが無駄になるため、UpdateDepthTextureが発生しない様にする必要があります。\n\n" +
 			"UpdateDepthTextureが発生しない様にするにはModeがRealtimeに設定されているLightのShadowTypeにNoShadowsが設定されている必要があります。\n\n" +
 			"※この機能はUpdateDepthTextureで_CameraDepthTextureが利用可能になる場合と異なり、ForwardOpaque中に使用することが出来ません。\n\n" +
-			"※ポストプロセスの使用状況によって_CameraDepthTextureに書き込まれない場合があるため、強制する場合は ForceUpdateDepthTexture を有効にしてください。";
-		const string kTipsForceUpdateDepthTexture = "この機能を有効にした場合、_CameraDepthTextureに深度情報が書き込まれる状態を強制します。";
+			"※ポストプロセスの使用状況によって_CameraDepthTextureに書き込まれない場合があるため、強制する場合は DefaultDepthTextureMode の Depth を有効にしてください。";
 		const string kTipsFlipHorizontal = "この機能を有効にした場合、水平方向に画面を反転させます。";
 		
 		[SerializeField]
 		Shader shaderCopy = default;
 		[SerializeField]
 		Shader shaderColor = default;
+		[SerializeField]
+		DepthTextureMode defaultDepthTextureMode = default;
 		[SerializeField, TooltipAttribute( kTipsOverrideTargetBuffers)]
 		bool overrideTargetBuffers = false;
-		[SerializeField, TooltipAttribute( kTipsForceUpdateDepthTexture)]
-		bool forceUpdateDepthTexture = false;
 		[SerializeField, TooltipAttribute( kTipsFlipHorizontal)]
 		bool flipHorizontal = false;
 		[SerializeField]
@@ -543,8 +541,8 @@ namespace RenderPipeline
 		int? cacheHeight;
 		Color? cacheScreenBlendColor;
 	#if UNITY_EDITOR
+		DepthTextureMode? cacheDefaultDepthTextureMode;
 		bool? cacheOverrideTargetBuffers;
-		bool? cacheForceUpdateDepthTexture;
 		bool? cacheFlipHorizontal;
 	#endif
 	}
