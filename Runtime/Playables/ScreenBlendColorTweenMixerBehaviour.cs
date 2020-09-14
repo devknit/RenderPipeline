@@ -5,7 +5,7 @@ using UnityEngine.Timeline;
 
 namespace RenderPipeline
 {
-	public sealed class ScreenBlendColorMixerBehaviour : PlayableBehaviour
+	public sealed class ScreenBlendColorTweenMixerBehaviour : PlayableBehaviour
 	{
 		public override void ProcessFrame( Playable playable, FrameData info, object playerData)
 	    {
@@ -23,11 +23,12 @@ namespace RenderPipeline
 				
 				for( int i0 = 0; i0 < inputCount; ++i0)
 		        {
-					var playableInput = (ScriptPlayable<ScreenBlendColorBehaviour>)playable.GetInput( i0);
-		            ScreenBlendColorBehaviour input = playableInput.GetBehaviour();
+					var playableInput = (ScriptPlayable<ScreenBlendColorTweenBehaviour>)playable.GetInput( i0);
+		            ScreenBlendColorTweenBehaviour input = playableInput.GetBehaviour();
 		            float inputWeight = playable.GetInputWeight( i0);
 
-					blendedColor += input.color * inputWeight;
+					float normalisedTime = (float)(playableInput.GetTime() / playableInput.GetDuration());
+					blendedColor += Color.Lerp( input.startColor, input.endColor, input.transition.Evaluate( normalisedTime)) * inputWeight;
 		            totalWeight += inputWeight;
 		        }
 		        blendedColor += defaultColor * (1.0f - totalWeight);

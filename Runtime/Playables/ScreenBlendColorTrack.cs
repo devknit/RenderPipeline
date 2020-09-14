@@ -5,7 +5,7 @@ using UnityEngine.Timeline;
 
 namespace RenderPipeline
 {
-	[TrackColor( 0.855f, 0.8623f, 0.87f)]
+	[TrackColor( 0.9f, 0.3f, 0.1f)]
 	[TrackClipType( typeof( ScreenBlendColorClip))]
 	[TrackBindingType( typeof( RenderPipeline))]
 	public sealed class ScreenBlendColorTrack : TrackAsset
