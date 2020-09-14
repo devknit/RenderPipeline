@@ -10,5 +10,10 @@ namespace RenderPipeline
 	{
 		public Color startColor = Color.clear;
 		public Color endColor = Color.clear;
+		public AnimationCurve transition = new AnimationCurve
+	    (
+	        new Keyframe( 0.0f, 0.0f, 0.0f, 0.0f),
+	        new Keyframe( 1.0f, 1.0f, 0.0f, 0.0f)
+	    );
 	}
 }

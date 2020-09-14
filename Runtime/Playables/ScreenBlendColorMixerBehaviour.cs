@@ -28,7 +28,7 @@ namespace RenderPipeline
 		            float inputWeight = playable.GetInputWeight( i0);
 
 					float normalisedTime = (float)(playableInput.GetTime() / playableInput.GetDuration());
-					blendedColor += Color.Lerp( input.startColor, input.endColor, normalisedTime) * inputWeight;
+					blendedColor += Color.Lerp( input.startColor, input.endColor, input.transition.Evaluate( normalisedTime)) * inputWeight;
 		            totalWeight += inputWeight;
 		        }
 		        blendedColor += defaultColor * (1.0f - totalWeight);
