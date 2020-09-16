@@ -6,7 +6,7 @@ using System.Collections.Generic;
 //CameraPipeline
 namespace RenderPipeline
 {
-//	[ExecuteInEditMode]
+	[ExecuteInEditMode]
 	[DisallowMultipleComponent]
 	[RequireComponent( typeof( Camera))]
 	public sealed class RenderPipeline : MonoBehaviour
@@ -28,10 +28,35 @@ namespace RenderPipeline
 			get{ return screenBlendColor; }
 			set{ screenBlendColor = value; }
 		}
+		public EdgeDetection EdgeDetection
+		{
+			get{ return postProcesses[ 0] as EdgeDetection; }
+			private set{ ApplyProcess( ref postProcesses[ 0], value); }
+		}
 		public Bloom Bloom
 		{
-			get;
-			private set;
+			get{ return postProcesses[ 1] as Bloom; }
+			private set{ ApplyProcess( ref postProcesses[ 1], value); }
+		}
+		public DepthOfField DepthOfField
+		{
+			get{ return postProcesses[ 2] as DepthOfField; }
+			private set{ ApplyProcess( ref postProcesses[ 2], value); }
+		}
+		public Mosaic Mosaic
+		{
+			get{ return postProcesses[ 3] as Mosaic; }
+			private set{ ApplyProcess( ref postProcesses[ 3], value); }
+		}
+		public Fxaa3 Fxaa3
+		{
+			get{ return postProcesses[ 4] as Fxaa3; }
+			private set{ ApplyProcess( ref postProcesses[ 4], value); }
+		}
+		public AlphaBlend AlphaBlend
+		{
+			get{ return postProcesses[ 5] as AlphaBlend; }
+			private set{ ApplyProcess( ref postProcesses[ 5], value); }
 		}
 		void Awake()
 		{
@@ -85,43 +110,118 @@ namespace RenderPipeline
 			{
 				materialColor = new Material( shaderColor);
 			}
-			var processes = new List<PostProcess>();
-			
-			if( postProcessesTarget == null)
-			{
-				postProcessesTarget = gameObject;
-			}
-			if( postProcessesTarget.GetComponent<EdgeDetection>() is EdgeDetection edgeDetection)
-			{
-				processes.Add( edgeDetection);
-			}
-			if( postProcessesTarget.GetComponent<Bloom>() is Bloom bloom)
-			{
-				Bloom = bloom;
-				processes.Add( bloom);
-			}
-			if( postProcessesTarget.GetComponent<DepthOfField>() is DepthOfField depthOfField)
-			{
-				processes.Add( depthOfField);
-			}
-			if( postProcessesTarget.GetComponent<Mosaic>() is Mosaic mosaic)
-			{
-				processes.Add( mosaic);
-			}
-			if( postProcessesTarget.GetComponent<Fxaa3>() is Fxaa3 fxaa3)
-			{
-				processes.Add( fxaa3);
-			}
-			postProcesses = processes.ToArray();
-			
-			for( int i0 = 0; i0 < postProcesses.Length; ++i0)
-			{
-				postProcesses[ i0].Initialize( this);
-				postProcesses[ i0].Create();
-				postProcesses[ i0].CheckParameterChange( true);
-			}
+			CollectionProcesses();
+
 			cacheCamera = GetComponent<Camera>();
 			RebuildCommandBuffers();
+		}
+		void ApplyProcess( ref PostProcess prevProcess, PostProcess newProcess)
+		{
+			if( object.ReferenceEquals( prevProcess, null) == false)
+			{
+				prevProcess.Dispose();
+			}
+			if( newProcess != null)
+			{
+				newProcess.Initialize( this);
+				newProcess.Create();
+				newProcess.CheckParameterChange( true);
+			}
+			prevProcess = newProcess;
+		}
+		bool CollectionProcesses()
+		{
+			GameObject targetObject = (postProcessesTarget != null)? postProcessesTarget : gameObject;
+			bool rebuild = false;
+			
+			var edgeDetection = targetObject.GetComponent<EdgeDetection>() as EdgeDetection;
+			if( IsMissing( edgeDetection) != false)
+			{
+				EdgeDetection = null;
+				rebuild = true;
+			}
+			else if( EdgeDetection != edgeDetection)
+			{
+				EdgeDetection = edgeDetection;
+				rebuild = true;
+			}
+			var bloom = targetObject.GetComponent<Bloom>() as Bloom;
+			if( IsMissing( bloom) != false)
+			{
+				Bloom = null;
+				rebuild = true;
+			}
+			else if( Bloom != bloom)
+			{
+				Bloom = bloom;
+				rebuild = true;
+			}
+			var depthOfField = targetObject.GetComponent<DepthOfField>() as DepthOfField;
+			if( IsMissing( depthOfField) != false)
+			{
+				DepthOfField = null;
+				rebuild = true;
+			}
+			else if( DepthOfField != depthOfField)
+			{
+				DepthOfField = depthOfField;
+				rebuild = true;
+			}
+			var mosaic = targetObject.GetComponent<Mosaic>() as Mosaic;
+			if( IsMissing( mosaic) != false)
+			{
+				Mosaic = null;
+				rebuild = true;
+			}
+			else if( Mosaic != mosaic)
+			{
+				Mosaic = mosaic;
+				rebuild = true;
+			}
+			var fxaa3 = targetObject.GetComponent<Fxaa3>() as Fxaa3;
+			if( IsMissing( fxaa3) != false)
+			{
+				Fxaa3 = null;
+				rebuild = true;
+			}
+			else if( Fxaa3 != fxaa3)
+			{
+				Fxaa3 = fxaa3;
+				rebuild = true;
+			}
+			var alphaBlend = targetObject.GetComponent<AlphaBlend>() as AlphaBlend;
+			if( IsMissing( alphaBlend) != false)
+			{
+				AlphaBlend = null;
+				rebuild = true;
+			}
+			else if( AlphaBlend != alphaBlend)
+			{
+				AlphaBlend = alphaBlend;
+				rebuild = true;
+			}
+			return rebuild;
+		}
+		static bool IsMissing<T>( T obj) where T : class
+		{
+			if( obj == null)
+			{
+				return object.ReferenceEquals( obj, null);
+			}
+			return false;
+		}
+		void Release( Object obj)
+		{
+		#if UNITY_EDITOR
+			if( UnityEditor.EditorApplication.isPlaying == false)
+			{
+				DestroyImmediate( obj);
+			}
+			else
+		#endif
+			{
+				Destroy( obj);
+			}
 		}
 		void OnDestroy()
 		{
@@ -139,7 +239,7 @@ namespace RenderPipeline
 			{
 				for( int i0 = 0; i0 < postProcesses.Length; ++i0)
 				{
-					postProcesses[ i0].Dispose();
+					postProcesses[ i0]?.Dispose();
 				}
 			}
 			cacheCamera.allowHDR = false;
@@ -160,31 +260,35 @@ namespace RenderPipeline
 			}
 			if( materialColor != null)
 			{
-				Destroy( materialColor);
+				Release( materialColor);
 				materialColor = null;
 			}
 			if( materialCopy != null)
 			{
-				Destroy( materialCopy);
+				Release( materialCopy);
 				materialCopy = null;
 			}
 			if( fillMesh != null)
 			{
-				Destroy( fillMesh);
+				Release( fillMesh);
 				fillMesh = null;
 			}
 			if( flipMesh != null)
 			{
-				Destroy( flipMesh);
+				Release( flipMesh);
 				flipMesh = null;
 			}
 		}
 		void OnPreRender()
 		{
 		#if UNITY_EDITOR
-			if( cacheOverrideTargetBuffers != overrideTargetBuffers)
+			if( CollectionProcesses() != false)
 			{
-				cacheOverrideTargetBuffers = overrideTargetBuffers;
+				isRebuildCommandBuffers = true;
+			}
+			if( cacheOverrideTargetBuffers != OverrideTargetBuffers)
+			{
+				cacheOverrideTargetBuffers = OverrideTargetBuffers;
 				isRebuildCommandBuffers = true;
 			}
 			if( cacheDefaultDepthTextureMode != defaultDepthTextureMode)
@@ -198,7 +302,7 @@ namespace RenderPipeline
 				isRebuildCommandBuffers = true;
 			}
 		#endif
-			if( overrideTargetBuffers != false)
+			if( OverrideTargetBuffers != false)
 			{
 				if( cacheWidth != Screen.width
 				||	cacheHeight != Screen.height)
@@ -215,7 +319,7 @@ namespace RenderPipeline
 			{
 				for( int i0 = 0; i0 < postProcesses.Length; ++i0)
 				{
-					if( postProcesses[ i0].CheckParameterChange( false) != false)
+					if( (postProcesses[ i0]?.CheckParameterChange( false) ?? false) != false)
 					{
 						isRebuildCommandBuffers = true;
 					}
@@ -242,7 +346,8 @@ namespace RenderPipeline
 			for( int i0 = 0; i0 < postProcesses.Length; ++i0)
 			{
 				process = postProcesses[ i0];
-				if( process.Valid() != false)
+				
+				if( (process?.Valid() ?? false) != false)
 				{
 					enabledProcesses.Add( process);
 					
@@ -267,7 +372,7 @@ namespace RenderPipeline
 				cacheCamera.RemoveCommandBuffer( CameraEvent.BeforeImageEffects, commandBufferPostProcesses);
 				commandBufferPostProcesses = null;
 			}
-			if( enabledProcesses.Count == 0 && overrideTargetBuffers == false)
+			if( enabledProcesses.Count == 0 && OverrideTargetBuffers == false)
 			{
 			#if UNITY_EDITOR
 				cacheCamera.SetTargetBuffers( Display.main.colorBuffer, Display.main.depthBuffer);
@@ -275,7 +380,7 @@ namespace RenderPipeline
 			}
 			else
 			{
-				if( overrideTargetBuffers == false)
+				if( OverrideTargetBuffers == false)
 				{
 					forceIntoRenderTexture = true;
 				#if UNITY_EDITOR
@@ -336,7 +441,7 @@ namespace RenderPipeline
 				var recycleTemporaries = new Dictionary<int, TemporaryTarget>();
 				var context = new TargetContext();
 				
-				if( overrideTargetBuffers == false)
+				if( OverrideTargetBuffers == false)
 				{
 					context.SetBuffers();
 					context.SetSource0( BuiltinRenderTextureType.CameraTarget);
@@ -352,7 +457,7 @@ namespace RenderPipeline
 				
 				for( int i0 = 0; i0 < enabledProcesses.Count; ++i0)
 				{
-					if( overrideTargetBuffers == false)
+					if( OverrideTargetBuffers == false)
 					{
 						if( enabledProcesses[ i0].IsHighDynamicRange() != false)
 						{
@@ -361,7 +466,7 @@ namespace RenderPipeline
 					}
 					depthTextureMode |= enabledProcesses[ i0].GetDepthTextureMode();
 				}
-				if( overrideTargetBuffers != false && (depthTextureMode & DepthTextureMode.Depth) != 0)
+				if( OverrideTargetBuffers != false && (depthTextureMode & DepthTextureMode.Depth) != 0)
 				{
 					commandBufferDepthTexture = new CommandBuffer();
 					commandBufferDepthTexture.name = "CameraPipeline::DepthTexture";
@@ -390,14 +495,7 @@ namespace RenderPipeline
 					}
 					if( i0 == enabledProcesses.Count - 1)
 					{
-						if( overrideTargetBuffers == false)
-						{
-							context.SetTarget0( BuiltinRenderTextureType.CameraTarget);
-						}
-						else
-						{
-							context.SetTarget0( colorBuffer);
-						}
+						context.SetTarget0( BuiltinRenderTextureType.CameraTarget);
 					}
 					enabledProcesses[ i0].BuildCommandBuffer( 
 						commandBufferPostProcesses, context, 
@@ -423,8 +521,9 @@ namespace RenderPipeline
 						});
 					context.Next();
 				}
-				if( overrideTargetBuffers != false)
+				if( OverrideTargetBuffers != false)
 				{
+				#if false
 					commandBufferPostProcesses.SetRenderTarget( 
 						BuiltinRenderTextureType.CameraTarget, 
 						RenderBufferLoadAction.DontCare,
@@ -433,7 +532,7 @@ namespace RenderPipeline
 						RenderBufferStoreAction.DontCare);
 					commandBufferPostProcesses.SetGlobalTexture( kShaderPropertyMainTex, colorBuffer);
 					commandBufferPostProcesses.DrawMesh( (flipHorizontal == false)? fillMesh : flipMesh, Matrix4x4.identity, materialColor, 0, 0);
-					
+				#endif	
 					if( (depthTextureMode & DepthTextureMode.Depth) != 0)
 					{
 						commandBufferPostProcesses.ReleaseTemporaryRT( kShaderPropertyDepthTextureId);
@@ -495,6 +594,19 @@ namespace RenderPipeline
 		{
 			get => cacheCamera;
 		}
+		internal bool OverrideTargetBuffers
+		{
+			get
+			{
+			#if UNITY_EDITOR
+				if( Application.isPlaying == false)
+				{
+					return false;
+				}
+			#endif
+				return overrideTargetBuffers;
+			}
+		}
 		
 		static readonly int kShaderPropertyMainTex = Shader.PropertyToID( "_MainTex");
 		static readonly int kShaderPropertyColor = Shader.PropertyToID( "_Color");
@@ -532,7 +644,7 @@ namespace RenderPipeline
 		RenderTexture depthBuffer;
 		bool isRebuildCommandBuffers;
 		
-		PostProcess[] postProcesses;
+		PostProcess[] postProcesses = new PostProcess[ 6];
 		CommandBuffer commandBufferDepthTexture;
 		CommandBuffer commandBufferPostProcesses;
 		

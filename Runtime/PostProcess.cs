@@ -10,6 +10,19 @@ namespace RenderPipeline
 		{
 			this.pipeline = pipeline;
 		}
+		internal void Release( Object obj)
+		{
+		#if UNITY_EDITOR
+			if( UnityEditor.EditorApplication.isPlaying == false)
+			{
+				DestroyImmediate( obj);
+			}
+			else
+		#endif
+			{
+				Destroy( obj);
+			}
+		}
 		internal abstract void Create();
 		internal abstract void Dispose();
 		internal abstract bool Valid();
@@ -28,7 +41,10 @@ namespace RenderPipeline
 		internal abstract void BuildCommandBuffer( 
 			CommandBuffer commandBuffer, TargetContext context, 
 			System.Func<int, int, int, FilterMode, RenderTextureFormat, int> GetTemporaryRT);
-			
+		
+		protected static readonly int kShaderPropertyMainTex = Shader.PropertyToID( "_MainTex");
+		protected static readonly int kShaderPropertyColor = Shader.PropertyToID( "_Color");
+		
 		protected RenderPipeline pipeline;
 		internal PostProcess nextProcess;
 	}

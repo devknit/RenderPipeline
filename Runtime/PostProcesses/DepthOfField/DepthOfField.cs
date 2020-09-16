@@ -25,7 +25,7 @@ namespace RenderPipeline
 		{
 			if( depthOfFieldMaterial != null)
 			{
-				Destroy( depthOfFieldMaterial);
+				Release( depthOfFieldMaterial);
 				depthOfFieldMaterial = null;
 			}
 		}
@@ -248,7 +248,6 @@ namespace RenderPipeline
 		
 		static readonly int kShaderPropertyCurveParams = Shader.PropertyToID( "_CurveParams");
 		static readonly int kShaderPropertyOffsets = Shader.PropertyToID( "_Offsets");
-		static readonly int kShaderPropertyMainTex = Shader.PropertyToID( "_MainTex");
 		static readonly int kShaderPropertyAlphaDepthTarget = Shader.PropertyToID( "_AlphaDepthTarget");
 		static readonly int kShaderPropertyLowBlurTarget = Shader.PropertyToID( "_LowBlurTarget");
 		static readonly int kShaderPropertyLowDiscTarget = Shader.PropertyToID( "_LowDiscTarget");

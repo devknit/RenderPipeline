@@ -18,7 +18,7 @@ namespace RenderPipeline
 		{
 			if( mosaicMaterial != null)
 			{
-				Destroy( mosaicMaterial);
+				Release( mosaicMaterial);
 				mosaicMaterial = null;
 			}
 		}
@@ -157,7 +157,6 @@ namespace RenderPipeline
 			context.duplicated = false;
 		}
 		
-		static readonly int kShaderPropertyMainTex = Shader.PropertyToID( "_MainTex");
 		static readonly int kShaderPropertyPixelation = Shader.PropertyToID( "_Pixelation");
 		static readonly int kShaderPropertyStencilRef = Shader.PropertyToID( "_StencilRef");
 		static readonly int kShaderPropertyStencilReadMask = Shader.PropertyToID( "_StencilReadMask");

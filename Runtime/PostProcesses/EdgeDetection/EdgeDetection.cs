@@ -23,7 +23,7 @@ namespace RenderPipeline
 		{
 			if( edgeDetectMaterial != null)
 			{
-				Destroy( edgeDetectMaterial);
+				Release( edgeDetectMaterial);
 				edgeDetectMaterial = null;
 			}
 		}
@@ -160,8 +160,6 @@ namespace RenderPipeline
 			context.duplicated = false;
 		}
 		
-		static readonly int kShaderPropertyMainTex = Shader.PropertyToID( "_MainTex");
-		static readonly int kShaderPropertyColor = Shader.PropertyToID( "_Color");
 		static readonly int kShaderPropertySampleDistance = Shader.PropertyToID( "_SampleDistance");
 		static readonly int kShaderPropertyStencilRef = Shader.PropertyToID( "_StencilRef");
 		static readonly int kShaderPropertyStencilReadMask = Shader.PropertyToID( "_StencilReadMask");

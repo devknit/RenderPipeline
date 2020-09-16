@@ -39,52 +39,62 @@ namespace RenderPipeline
 		{
 			if( brightnessExtractionMaterial != null)
 			{
-				Destroy( brightnessExtractionMaterial);
+				Release( brightnessExtractionMaterial);
 				brightnessExtractionMaterial = null;
 			}
 			if( gaussianBlurMaterial != null)
 			{
-				Destroy( gaussianBlurMaterial);
+				Release( gaussianBlurMaterial);
 				gaussianBlurMaterial = null;
 			}
 			if( combineMaterial != null)
 			{
-				Destroy( combineMaterial);
+				Release( combineMaterial);
 				combineMaterial = null;
 			}
 			if( compositionMaterial != null)
 			{
-				Destroy( compositionMaterial);
+				Release( compositionMaterial);
 				compositionMaterial = null;
 			}
 			if( brightnessExtractionMesh != null)
 			{
-				Mesh.Destroy( brightnessExtractionMesh);
+				Release( brightnessExtractionMesh);
 				brightnessExtractionMesh = null;
 			}
 			if( blurHorizontalMesh != null)
 			{
-				Mesh.Destroy( blurHorizontalMesh);
+				Release( blurHorizontalMesh);
 				blurHorizontalMesh = null;
 			}
 			if( blurVerticalMesh != null)
 			{
-				Mesh.Destroy( blurVerticalMesh);
+				Release( blurVerticalMesh);
 				blurVerticalMesh = null;
 			}
 			if( combineMesh != null)
 			{
-				Mesh.Destroy( combineMesh);
+				Release( combineMesh);
 				combineMesh = null;
 			}
 		}
 		internal override bool Valid()
 		{
-			return Properties.Enabled != false 
+			if( Properties.Enabled != false 
 				&& brightnessExtractionMaterial != null
 				&& gaussianBlurMaterial != null
 				&& combineMaterial != null
-				&& compositionMaterial != null;
+				&& compositionMaterial != null)
+			{
+				if( cacheWidth.HasValue != false && cacheHeight.HasValue != false)
+				{
+					if( cacheWidth.Value > 0 && cacheHeight.Value > 0)
+					{
+						return true;
+					}
+				}
+			}
+			return false;
 		}
 		internal override DepthTextureMode GetDepthTextureMode()
 		{
@@ -126,7 +136,7 @@ namespace RenderPipeline
 					updateFlags |= BloomProperties.kRebuild;
 					updateFlags |= BloomProperties.kChangeDescriptors;
 				}
-				if( updateFlags != 0)
+				if( updateFlags != 0 && bloomRects != null)
 				{
 					UpdateResources( updateFlags);
 				}
@@ -264,46 +274,48 @@ namespace RenderPipeline
 			{
 				return false;
 			}
-			var renderTextureFormat = RenderTextureFormat.ARGB32;
-			
-			if( SystemInfo.SupportsRenderTextureFormat( RenderTextureFormat.DefaultHDR) != false)
+			if( width > 0 && height > 0)
 			{
-				renderTextureFormat = RenderTextureFormat.DefaultHDR;
-			}
-			int topBloomWidth = width >> Properties.DownSampleLevel;
-			int topBloomHeight = height >> Properties.DownSampleLevel;
-			
-			brightnessExtractionDescriptor = new RenderTextureDescriptor(
-				TextureUtil.ToPow2RoundUp( topBloomWidth), 
-				TextureUtil.ToPow2RoundUp( topBloomHeight), 
-				renderTextureFormat, 0);
-			brightnessExtractionDescriptor.useMipMap = true;
-			brightnessExtractionDescriptor.autoGenerateMips = true;
-			brightnessNetWidth = width >> Properties.DownSampleLevel;
-			brightnessNetHeight = height >> Properties.DownSampleLevel;
-			brightnessOffsetX = (brightnessExtractionDescriptor.width - brightnessNetWidth) / 2;
-			brightnessOffsetY = (brightnessExtractionDescriptor.height - brightnessNetHeight) / 2;
+				var renderTextureFormat = RenderTextureFormat.ARGB32;
 				
-			int bloomWidth, bloomHeight;
-			
-			bloomRects = CalculateBloomRenderTextureArrangement(
-				out bloomWidth,
-				out bloomHeight,
-				topBloomWidth,
-				topBloomHeight,
-				16,
-				Properties.DownSampleCount);
-			
-			blurDescriptor = new RenderTextureDescriptor(
-				bloomWidth, bloomHeight, renderTextureFormat, 0);
-			blurDescriptor.useMipMap = false;
-			blurDescriptor.autoGenerateMips = false;
-			
-			combineDescriptor = new RenderTextureDescriptor(
-				bloomWidth, bloomHeight, renderTextureFormat, 0);
-			combineDescriptor.useMipMap = false;
-			combineDescriptor.autoGenerateMips = false;
-			
+				if( SystemInfo.SupportsRenderTextureFormat( RenderTextureFormat.DefaultHDR) != false)
+				{
+					renderTextureFormat = RenderTextureFormat.DefaultHDR;
+				}
+				int topBloomWidth = width >> Properties.DownSampleLevel;
+				int topBloomHeight = height >> Properties.DownSampleLevel;
+				
+				brightnessExtractionDescriptor = new RenderTextureDescriptor(
+					TextureUtil.ToPow2RoundUp( topBloomWidth), 
+					TextureUtil.ToPow2RoundUp( topBloomHeight), 
+					renderTextureFormat, 0);
+				brightnessExtractionDescriptor.useMipMap = true;
+				brightnessExtractionDescriptor.autoGenerateMips = true;
+				brightnessNetWidth = width >> Properties.DownSampleLevel;
+				brightnessNetHeight = height >> Properties.DownSampleLevel;
+				brightnessOffsetX = (brightnessExtractionDescriptor.width - brightnessNetWidth) / 2;
+				brightnessOffsetY = (brightnessExtractionDescriptor.height - brightnessNetHeight) / 2;
+					
+				int bloomWidth, bloomHeight;
+				
+				bloomRects = CalculateBloomRenderTextureArrangement(
+					out bloomWidth,
+					out bloomHeight,
+					topBloomWidth,
+					topBloomHeight,
+					16,
+					Properties.DownSampleCount);
+				
+				blurDescriptor = new RenderTextureDescriptor(
+					bloomWidth, bloomHeight, renderTextureFormat, 0);
+				blurDescriptor.useMipMap = false;
+				blurDescriptor.autoGenerateMips = false;
+				
+				combineDescriptor = new RenderTextureDescriptor(
+					bloomWidth, bloomHeight, renderTextureFormat, 0);
+				combineDescriptor.useMipMap = false;
+				combineDescriptor.autoGenerateMips = false;
+			}
 			cacheWidth = width;
 			cacheHeight = height;
 			
@@ -415,7 +427,6 @@ namespace RenderPipeline
 		static readonly int kShaderPropertyGaussianBlurHorizontalTarget = Shader.PropertyToID( "_GaussianBlurHorizontalTarget");
 		static readonly int kShaderPropertyGaussianBlurVerticalTarget = Shader.PropertyToID( "_GaussianBlurVerticalTarget");
 		static readonly int kShaderPropertyCombineTarget = Shader.PropertyToID( "_CombineTarget");
-		static readonly int kShaderPropertyMainTex = Shader.PropertyToID( "_MainTex");
 		static readonly int kShaderPropertyBloomTex = Shader.PropertyToID( "_BloomTex");
 		static readonly int kShaderPropertyBloomCombinedTex = Shader.PropertyToID( "_BloomCombinedTex");
 		static readonly int kShaderPropertyThresholds = Shader.PropertyToID( "_Thresholds");

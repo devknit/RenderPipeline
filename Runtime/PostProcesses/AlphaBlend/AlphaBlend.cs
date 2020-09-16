@@ -5,26 +5,26 @@ using UnityEngine.Rendering;
 namespace RenderPipeline
 {
 	[System.Serializable]
-	public sealed partial class Fxaa3 : PostProcess
+	public sealed partial class AlphaBlend : PostProcess
 	{
 		internal override void Create()
 		{
-			if( shaderFxaa3 != null && materialFxaa3 == null)
+			if( alphaBlendShader != null && alphaBlendMaterial == null)
 			{
-				materialFxaa3 = new Material( shaderFxaa3);
+				alphaBlendMaterial = new Material( alphaBlendShader);
 			}
 		}
 		internal override void Dispose()
 		{
-			if( materialFxaa3 != null)
+			if( alphaBlendMaterial != null)
 			{
-				Release( materialFxaa3);
-				materialFxaa3 = null;
+				Release( alphaBlendMaterial);
+				alphaBlendMaterial = null;
 			}
 		}
 		internal override bool Valid()
 		{
-			return Properties.Enabled != false && materialFxaa3 != null;
+			return enabled != false && alphaBlendMaterial != null;
 		}
 		internal override DepthTextureMode GetDepthTextureMode()
 		{
@@ -36,11 +36,27 @@ namespace RenderPipeline
 		}
 		internal override bool CheckParameterChange( bool clearCache)
 		{
+			bool rebuild = false;
+			
 			if( clearCache != false)
 			{
-				Properties.ClearCache();
+				cacheEnabled = null;
+				cacheColor = null;
 			}
-			return Properties.CheckParameterChange( materialFxaa3);
+			if( cacheEnabled != enabled)
+			{
+				rebuild = true;
+				cacheEnabled = enabled;
+			}
+			if( enabled != false)
+			{
+				if( cacheColor != color)
+				{
+					alphaBlendMaterial.SetColor( kShaderPropertyColor, color);
+					cacheColor = color;
+				}
+			}
+			return rebuild;
 		}
 		protected override bool OnDuplicate()
 		{
@@ -70,38 +86,18 @@ namespace RenderPipeline
 				RenderBufferLoadAction.DontCare,	
 				RenderBufferStoreAction.DontCare);
 			commandBuffer.SetGlobalTexture( kShaderPropertyMainTex, context.source0);
-			pipeline.DrawFill( commandBuffer, materialFxaa3, 0);
+			pipeline.DrawFill( commandBuffer, alphaBlendMaterial, 0);
 			context.duplicated = false;
 		}
 		
-		static readonly int kShaderPropertyEdgeThresholdMin = Shader.PropertyToID( "_EdgeThresholdMin");
-		static readonly int kShaderPropertyEdgeThreshold = Shader.PropertyToID( "_EdgeThreshold");
-		static readonly int kShaderPropertyEdgeSharpness = Shader.PropertyToID( "_EdgeSharpness");
+		[SerializeField]
+        Shader alphaBlendShader = default;
+		[SerializeField]
+		Color color = Color.clear;
 		
-		Fxaa3Properties Properties
-		{
-			get{ return (sharedSettings != null)? sharedSettings.properties : properties; }
-		}
-		[SerializeField]
-        Shader shaderFxaa3 = default;
-        [SerializeField]
-        Fxaa3Settings sharedSettings = default;
-        [SerializeField]
-        Fxaa3Properties properties = default;
-        
-	#if false
-		[SerializeField]
-		float edgeThresholdMin = 0.05f;
-		[SerializeField]
-        float edgeThreshold = 0.1f;//0.2f;
-        [SerializeField]
-        float edgeSharpness = 4.0f;
-        
-        bool? cacheEnabled;
-		float? cacheEdgeThresholdMin = 0.05f;
-        float? cacheEdgeThreshold = 0.2f;
-        float? cacheEdgeSharpness = 4.0f;
-	#endif
-		Material materialFxaa3;
+		Material alphaBlendMaterial;
+		
+		bool? cacheEnabled;
+		Color? cacheColor;
 	}
 }
