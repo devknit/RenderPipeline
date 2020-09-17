@@ -164,7 +164,7 @@ namespace RenderPipeline
 			}
 			return rebuild;
 		}
-		void OnDestroy()
+		void OnDisable()
 		{
 			if( commandBufferDepthTexture != null)
 			{
@@ -176,19 +176,27 @@ namespace RenderPipeline
 				cacheCamera.RemoveCommandBuffer( CameraEvent.BeforeImageEffects, commandBufferPostProcesses);
 				commandBufferPostProcesses = null;
 			}
-			if( postProcesses != null)
+			for( int i0 = 0; i0 < postProcesses.Length; ++i0)
 			{
-				for( int i0 = 0; i0 < postProcesses.Length; ++i0)
-				{
-					postProcesses[ i0]?.Dispose();
-				}
+				postProcesses[ i0]?.ClearCache();
 			}
 			cacheCamera.allowHDR = false;
 			cacheCamera.allowMSAA = false;
 			cacheCamera.forceIntoRenderTexture = false;
 			cacheCamera.depthTextureMode = DepthTextureMode.None;
+		#if UNITY_EDITOR
 			cacheCamera.SetTargetBuffers( Display.main.colorBuffer, Display.main.depthBuffer);
-			
+		#endif
+		}
+		void OnDestroy()
+		{
+		#if UNITY_EDITOR
+			cacheCamera.SetTargetBuffers( Display.main.colorBuffer, Display.main.depthBuffer);
+		#endif
+			for( int i0 = 0; i0 < postProcesses.Length; ++i0)
+			{
+				postProcesses[ i0]?.Dispose();
+			}
 			if( colorBuffer != null)
 			{
 				colorBuffer.Release();
@@ -218,6 +226,12 @@ namespace RenderPipeline
 		void OnPreRender()
 		{
 		#if UNITY_EDITOR
+			if( Application.isPlaying == false && enabled == false)
+			{
+				return;
+			}
+		#endif
+		#if UNITY_EDITOR
 			if( CollectionProcesses() != false)
 			{
 				isRebuildCommandBuffers = true;
@@ -246,21 +260,18 @@ namespace RenderPipeline
 				cacheCamera.allowMSAA = false;
 				isRebuildCommandBuffers = true;
 			}
-			if( postProcesses != null)
+			for( int i0 = 0; i0 < postProcesses.Length; ++i0)
 			{
-				for( int i0 = 0; i0 < postProcesses.Length; ++i0)
+				bool cacheClear = false;
+			#if UNITY_EDITOR
+				if( postProcesses[ i0]?.RestoreResources() != false)
 				{
-					bool cacheClear = false;
-				#if UNITY_EDITOR
-					if( postProcesses[ i0]?.RestoreResources() != false)
-					{
-						cacheClear = true;
-					}
-				#endif
-					if( (postProcesses[ i0]?.CheckParameterChange( cacheClear) ?? false) != false)
-					{
-						isRebuildCommandBuffers = true;
-					}
+					cacheClear = true;
+				}
+			#endif
+				if( (postProcesses[ i0]?.CheckParameterChange( cacheClear) ?? false) != false)
+				{
+					isRebuildCommandBuffers = true;
 				}
 			}
 			if( isRebuildCommandBuffers != false)

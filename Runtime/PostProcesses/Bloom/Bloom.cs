@@ -126,13 +126,12 @@ namespace RenderPipeline
 			}
 			return false;
 		}
-		internal override DepthTextureMode GetDepthTextureMode()
+		internal override void ClearCache()
 		{
-			return DepthTextureMode.None;
-		}
-		internal override bool IsHighDynamicRange()
-		{
-			return true;
+			Properties.ClearCache();
+		#if UNITY_EDITOR
+			cacheSharedSettings = null;
+		#endif
 		}
 		internal override bool CheckParameterChange( bool clearCache)
 		{
@@ -141,9 +140,6 @@ namespace RenderPipeline
 			if( clearCache != false)
 			{
 				Properties.ClearCache();
-			#if UNITY_EDITOR
-				cacheSharedSettings = null;
-			#endif
 			}
 		#if UNITY_EDITOR
 			if( cacheSharedSettings != sharedSettings)
@@ -172,6 +168,14 @@ namespace RenderPipeline
 				}
 			}
 			return (updateFlags & BloomProperties.kRebuild) != 0;
+		}
+		internal override DepthTextureMode GetDepthTextureMode()
+		{
+			return DepthTextureMode.None;
+		}
+		internal override bool IsHighDynamicRange()
+		{
+			return true;
 		}
 		protected override bool OnDuplicate()
 		{

@@ -41,13 +41,9 @@ namespace RenderPipeline
 		{
 			return Properties.Enabled != false && screenBlendMaterial != null;
 		}
-		internal override DepthTextureMode GetDepthTextureMode()
+		internal override void ClearCache()
 		{
-			return DepthTextureMode.None;
-		}
-		internal override bool IsHighDynamicRange()
-		{
-			return false;
+			Properties.ClearCache();
 		}
 		internal override bool CheckParameterChange( bool clearCache)
 		{
@@ -56,6 +52,14 @@ namespace RenderPipeline
 				Properties.ClearCache();
 			}
 			return Properties.CheckParameterChange( screenBlendMaterial);
+		}
+		internal override DepthTextureMode GetDepthTextureMode()
+		{
+			return DepthTextureMode.None;
+		}
+		internal override bool IsHighDynamicRange()
+		{
+			return false;
 		}
 		protected override bool OnDuplicate()
 		{

@@ -37,13 +37,15 @@ namespace RenderPipeline
 		{
 			return enabled != false && mosaicMaterial != null;
 		}
-		internal override DepthTextureMode GetDepthTextureMode()
+		internal override void ClearCache()
 		{
-			return DepthTextureMode.None;
-		}
-		internal override bool IsHighDynamicRange()
-		{
-			return false;
+			cacheEnabled = null;
+			cacheWidth = null;
+			cacheHeight = null;
+			cacheBlockSize = null;
+			cacheStencilReference = null;
+			cacheStencilReadMask = null;
+			cacheStencilCompare = null;
 		}
 		internal override bool CheckParameterChange( bool clearCache)
 		{
@@ -51,13 +53,7 @@ namespace RenderPipeline
 			
 			if( clearCache != false)
 			{
-				cacheEnabled = null;
-				cacheWidth = null;
-				cacheHeight = null;
-				cacheBlockSize = null;
-				cacheStencilReference = null;
-				cacheStencilReadMask = null;
-				cacheStencilCompare = null;
+				ClearCache();
 			}
 			if( cacheEnabled != enabled)
 			{
@@ -116,6 +112,14 @@ namespace RenderPipeline
 				}
 			}
 			return rebuild;
+		}
+		internal override DepthTextureMode GetDepthTextureMode()
+		{
+			return DepthTextureMode.None;
+		}
+		internal override bool IsHighDynamicRange()
+		{
+			return false;
 		}
 		protected override bool OnDuplicate()
 		{

@@ -28,7 +28,7 @@ namespace RenderPipeline.Editor
 					{
 						continue;
 					}
-					else if( iterator.objectReferenceValue is Shader)
+					if( iterator.objectReferenceValue is Shader)
 					{
 						continue;
 					}

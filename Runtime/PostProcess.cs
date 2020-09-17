@@ -14,9 +14,11 @@ namespace RenderPipeline
 		internal abstract void Dispose();
 		internal abstract bool RestoreResources();
 		internal abstract bool Valid();
+		internal abstract void ClearCache();
+		internal abstract bool CheckParameterChange( bool clearCache);
 		internal abstract DepthTextureMode GetDepthTextureMode();
 		internal abstract bool IsHighDynamicRange();
-		internal abstract bool CheckParameterChange( bool clearCache);
+		
 		internal bool DuplicateMRT()
 		{
 			if( SystemInfo.supportedRenderTargetCount > 1)

@@ -44,13 +44,17 @@ namespace RenderPipeline
 		{
 			return enabled != false && depthOfFieldMaterial != null;
 		}
-		internal override DepthTextureMode GetDepthTextureMode()
+		internal override void ClearCache()
 		{
-			return DepthTextureMode.Depth;
-		}
-		internal override bool IsHighDynamicRange()
-		{
-			return false;
+			cacheEnabled = null;
+			cacheWidth = null;
+			cacheHeight = null;
+			cacheFocalSize = null;
+			cacheAperture = null;
+			cacheMaxBlurSize = null;
+			cacheBlurQuality = null;
+			cacheHighResolution = null;
+			cacheVisualizeFocus = null;
 		}
 		internal override bool CheckParameterChange( bool clearCache)
 		{
@@ -58,15 +62,7 @@ namespace RenderPipeline
 			
 			if( clearCache != false)
 			{
-				cacheEnabled = null;
-				cacheWidth = null;
-				cacheHeight = null;
-				cacheFocalSize = null;
-				cacheAperture = null;
-				cacheMaxBlurSize = null;
-				cacheBlurQuality = null;
-				cacheHighResolution = null;
-				cacheVisualizeFocus = null;
+				ClearCache();
 			}
 			if( cacheEnabled != enabled)
 			{
@@ -136,6 +132,14 @@ namespace RenderPipeline
 				}
 			}
 			return rebuild;
+		}
+		internal override DepthTextureMode GetDepthTextureMode()
+		{
+			return DepthTextureMode.Depth;
+		}
+		internal override bool IsHighDynamicRange()
+		{
+			return false;
 		}
 		protected override bool OnDuplicate()
 		{
