@@ -20,13 +20,36 @@ namespace RenderPipeline.Editor
 			else
 			{
 				serializedObject.Update();
+				
 				EditorGUILayout.PropertyField( sharedSettings, true);
 				
-				if( sharedSettings.objectReferenceValue == null)
+				if( sharedSettings.objectReferenceValue != null)
 				{
-					EditorGUILayout.PropertyField( properties, true);
+					var sharedSettingsObject = new SerializedObject( sharedSettings.objectReferenceValue);
+					sharedSettingsObject.Update();
+					OnPropertiesGUI( sharedSettingsObject.FindProperty( "properties"));
+					sharedSettingsObject.ApplyModifiedProperties();
+				}
+				else
+				{
+					OnPropertiesGUI( properties);
 				}
 				serializedObject.ApplyModifiedProperties();
+			}
+		}
+		void OnPropertiesGUI( SerializedProperty properties)
+		{
+			if( properties != null)
+			{
+				int depth = properties.depth + 1;
+				
+				while( properties.NextVisible( true) != false)
+				{
+					if( properties.depth == depth)
+					{
+						EditorGUILayout.PropertyField( properties, true);
+					}
+				}
 			}
 		}
 	}
