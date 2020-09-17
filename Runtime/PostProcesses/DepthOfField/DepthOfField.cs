@@ -25,21 +25,36 @@ namespace RenderPipeline
 		{
 			if( depthOfFieldMaterial != null)
 			{
-				Destroy( depthOfFieldMaterial);
+				ObjectUtility.Release( depthOfFieldMaterial);
 				depthOfFieldMaterial = null;
 			}
+		}
+		internal override bool RestoreResources()
+		{
+			bool rebuild = false;
+			
+			if( ObjectUtility.IsMissing( depthOfFieldMaterial) != false)
+			{
+				depthOfFieldMaterial = new Material( depthOfFieldShader);
+				rebuild = true;
+			}
+			return rebuild;
 		}
 		internal override bool Valid()
 		{
 			return enabled != false && depthOfFieldMaterial != null;
 		}
-		internal override DepthTextureMode GetDepthTextureMode()
+		internal override void ClearCache()
 		{
-			return DepthTextureMode.Depth;
-		}
-		internal override bool IsHighDynamicRange()
-		{
-			return false;
+			cacheEnabled = null;
+			cacheWidth = null;
+			cacheHeight = null;
+			cacheFocalSize = null;
+			cacheAperture = null;
+			cacheMaxBlurSize = null;
+			cacheBlurQuality = null;
+			cacheHighResolution = null;
+			cacheVisualizeFocus = null;
 		}
 		internal override bool CheckParameterChange( bool clearCache)
 		{
@@ -47,15 +62,7 @@ namespace RenderPipeline
 			
 			if( clearCache != false)
 			{
-				cacheEnabled = null;
-				cacheWidth = null;
-				cacheHeight = null;
-				cacheFocalSize = null;
-				cacheAperture = null;
-				cacheMaxBlurSize = null;
-				cacheBlurQuality = null;
-				cacheHighResolution = null;
-				cacheVisualizeFocus = null;
+				ClearCache();
 			}
 			if( cacheEnabled != enabled)
 			{
@@ -125,6 +132,14 @@ namespace RenderPipeline
 				}
 			}
 			return rebuild;
+		}
+		internal override DepthTextureMode GetDepthTextureMode()
+		{
+			return DepthTextureMode.Depth;
+		}
+		internal override bool IsHighDynamicRange()
+		{
+			return false;
 		}
 		protected override bool OnDuplicate()
 		{
@@ -248,7 +263,6 @@ namespace RenderPipeline
 		
 		static readonly int kShaderPropertyCurveParams = Shader.PropertyToID( "_CurveParams");
 		static readonly int kShaderPropertyOffsets = Shader.PropertyToID( "_Offsets");
-		static readonly int kShaderPropertyMainTex = Shader.PropertyToID( "_MainTex");
 		static readonly int kShaderPropertyAlphaDepthTarget = Shader.PropertyToID( "_AlphaDepthTarget");
 		static readonly int kShaderPropertyLowBlurTarget = Shader.PropertyToID( "_LowBlurTarget");
 		static readonly int kShaderPropertyLowDiscTarget = Shader.PropertyToID( "_LowDiscTarget");

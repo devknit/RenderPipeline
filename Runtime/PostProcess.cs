@@ -12,10 +12,13 @@ namespace RenderPipeline
 		}
 		internal abstract void Create();
 		internal abstract void Dispose();
+		internal abstract bool RestoreResources();
 		internal abstract bool Valid();
+		internal abstract void ClearCache();
+		internal abstract bool CheckParameterChange( bool clearCache);
 		internal abstract DepthTextureMode GetDepthTextureMode();
 		internal abstract bool IsHighDynamicRange();
-		internal abstract bool CheckParameterChange( bool clearCache);
+		
 		internal bool DuplicateMRT()
 		{
 			if( SystemInfo.supportedRenderTargetCount > 1)
@@ -28,7 +31,10 @@ namespace RenderPipeline
 		internal abstract void BuildCommandBuffer( 
 			CommandBuffer commandBuffer, TargetContext context, 
 			System.Func<int, int, int, FilterMode, RenderTextureFormat, int> GetTemporaryRT);
-			
+		
+		protected static readonly int kShaderPropertyMainTex = Shader.PropertyToID( "_MainTex");
+		protected static readonly int kShaderPropertyColor = Shader.PropertyToID( "_Color");
+		
 		protected RenderPipeline pipeline;
 		internal PostProcess nextProcess;
 	}

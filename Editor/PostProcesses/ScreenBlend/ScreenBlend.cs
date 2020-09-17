@@ -5,8 +5,8 @@ using UnityEngine;
 namespace RenderPipeline.Editor
 {
 	[CanEditMultipleObjects]
-	[CustomEditor( typeof( Bloom))]
-	public sealed class BloomEditor : UnityEditor.Editor
+	[CustomEditor( typeof( ScreenBlend))]
+	public sealed class ScreenBlendEditor : UnityEditor.Editor
 	{
 		public override void OnInspectorGUI()
 		{

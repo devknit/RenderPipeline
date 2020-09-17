@@ -23,21 +23,34 @@ namespace RenderPipeline
 		{
 			if( edgeDetectMaterial != null)
 			{
-				Destroy( edgeDetectMaterial);
+				ObjectUtility.Release( edgeDetectMaterial);
 				edgeDetectMaterial = null;
 			}
+		}
+		internal override bool RestoreResources()
+		{
+			bool rebuild = false;
+			
+			if( ObjectUtility.IsMissing( edgeDetectMaterial) != false)
+			{
+				edgeDetectMaterial = new Material( edgeDetectShader);
+				rebuild = true;
+			}
+			return rebuild;
 		}
 		internal override bool Valid()
 		{
 			return enabled != false && edgeDetectMaterial != null;
 		}
-		internal override DepthTextureMode GetDepthTextureMode()
+		internal override void ClearCache()
 		{
-			return DepthTextureMode.Depth;
-		}
-		internal override bool IsHighDynamicRange()
-		{
-			return false;
+			cacheEnabled = null;
+			cacheDetectType = null;
+			cacheColor = null;
+			cacheSampleDistance = null;
+			cacheStencilReference = null;
+			cacheStencilReadMask = null;
+			cacheStencilCompare = null;
 		}
 		internal override bool CheckParameterChange( bool clearCache)
 		{
@@ -45,13 +58,7 @@ namespace RenderPipeline
 			
 			if( clearCache != false)
 			{
-				cacheEnabled = null;
-				cacheDetectType = null;
-				cacheColor = null;
-				cacheSampleDistance = null;
-				cacheStencilReference = null;
-				cacheStencilReadMask = null;
-				cacheStencilCompare = null;
+				ClearCache();
 			}
 			if( cacheEnabled != enabled)
 			{
@@ -118,6 +125,14 @@ namespace RenderPipeline
 			}
 			return rebuild;
 		}
+		internal override DepthTextureMode GetDepthTextureMode()
+		{
+			return DepthTextureMode.Depth;
+		}
+		internal override bool IsHighDynamicRange()
+		{
+			return false;
+		}
 		protected override bool OnDuplicate()
 		{
 			return false;
@@ -160,8 +175,6 @@ namespace RenderPipeline
 			context.duplicated = false;
 		}
 		
-		static readonly int kShaderPropertyMainTex = Shader.PropertyToID( "_MainTex");
-		static readonly int kShaderPropertyColor = Shader.PropertyToID( "_Color");
 		static readonly int kShaderPropertySampleDistance = Shader.PropertyToID( "_SampleDistance");
 		static readonly int kShaderPropertyStencilRef = Shader.PropertyToID( "_StencilRef");
 		static readonly int kShaderPropertyStencilReadMask = Shader.PropertyToID( "_StencilReadMask");

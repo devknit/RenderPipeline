@@ -6,32 +6,40 @@ using System.Collections.Generic;
 //CameraPipeline
 namespace RenderPipeline
 {
-//	[ExecuteInEditMode]
+	[ExecuteInEditMode]
 	[DisallowMultipleComponent]
 	[RequireComponent( typeof( Camera))]
 	public sealed class RenderPipeline : MonoBehaviour
 	{
-		public bool FlipHorizontal
+		public EdgeDetection EdgeDetection
 		{
-			get{ return flipHorizontal; }
-			set
-			{
-				if( flipHorizontal != value)
-				{
-					flipHorizontal = value;
-					isRebuildCommandBuffers = true;
-				}
-			}
-		}
-		public Color ScreenBlendColor
-		{
-			get{ return screenBlendColor; }
-			set{ screenBlendColor = value; }
+			get{ return postProcesses[ 0] as EdgeDetection; }
+			private set{ ApplyProcess( ref postProcesses[ 0], value); }
 		}
 		public Bloom Bloom
 		{
-			get;
-			private set;
+			get{ return postProcesses[ 1] as Bloom; }
+			private set{ ApplyProcess( ref postProcesses[ 1], value); }
+		}
+		public DepthOfField DepthOfField
+		{
+			get{ return postProcesses[ 2] as DepthOfField; }
+			private set{ ApplyProcess( ref postProcesses[ 2], value); }
+		}
+		public Mosaic Mosaic
+		{
+			get{ return postProcesses[ 3] as Mosaic; }
+			private set{ ApplyProcess( ref postProcesses[ 3], value); }
+		}
+		public Fxaa3 Fxaa3
+		{
+			get{ return postProcesses[ 4] as Fxaa3; }
+			private set{ ApplyProcess( ref postProcesses[ 4], value); }
+		}
+		public ScreenBlend ScreenBlend
+		{
+			get{ return postProcesses[ 5] as ScreenBlend; }
+			private set{ ApplyProcess( ref postProcesses[ 5], value); }
 		}
 		void Awake()
 		{
@@ -56,27 +64,6 @@ namespace RenderPipeline
 			fillMesh.Optimize();
 			fillMesh.UploadMeshData( true);
 			
-			flipMesh = new Mesh();
-			flipMesh.SetVertices(
-				new Vector3[]{
-					new Vector3( 0, 0, 0),
-					new Vector3( 0, 1, 0),
-					new Vector3( 1, 1, 0),
-					new Vector3( 1, 0, 0)
-				});
-			flipMesh.SetUVs( 
-				0,
-				new Vector2[]{
-					new Vector2( 1, 0),
-					new Vector2( 1, 1),
-					new Vector2( 0, 1),
-					new Vector2( 0, 0)
-				});
-			flipMesh.SetIndices(
-				new int[]{ 0, 1, 2, 3 }, MeshTopology.Quads, 0, false);
-			flipMesh.Optimize();
-			flipMesh.UploadMeshData( true);
-			
 			if( shaderCopy != null && materialCopy == null)
 			{
 				materialCopy = new Material( shaderCopy);
@@ -85,45 +72,99 @@ namespace RenderPipeline
 			{
 				materialColor = new Material( shaderColor);
 			}
-			var processes = new List<PostProcess>();
-			
-			if( postProcessesTarget == null)
-			{
-				postProcessesTarget = gameObject;
-			}
-			if( postProcessesTarget.GetComponent<EdgeDetection>() is EdgeDetection edgeDetection)
-			{
-				processes.Add( edgeDetection);
-			}
-			if( postProcessesTarget.GetComponent<Bloom>() is Bloom bloom)
-			{
-				Bloom = bloom;
-				processes.Add( bloom);
-			}
-			if( postProcessesTarget.GetComponent<DepthOfField>() is DepthOfField depthOfField)
-			{
-				processes.Add( depthOfField);
-			}
-			if( postProcessesTarget.GetComponent<Mosaic>() is Mosaic mosaic)
-			{
-				processes.Add( mosaic);
-			}
-			if( postProcessesTarget.GetComponent<Fxaa3>() is Fxaa3 fxaa3)
-			{
-				processes.Add( fxaa3);
-			}
-			postProcesses = processes.ToArray();
-			
-			for( int i0 = 0; i0 < postProcesses.Length; ++i0)
-			{
-				postProcesses[ i0].Initialize( this);
-				postProcesses[ i0].Create();
-				postProcesses[ i0].CheckParameterChange( true);
-			}
+			CollectionProcesses();
+
 			cacheCamera = GetComponent<Camera>();
 			RebuildCommandBuffers();
 		}
-		void OnDestroy()
+		void ApplyProcess( ref PostProcess prevProcess, PostProcess newProcess)
+		{
+			if( object.ReferenceEquals( prevProcess, null) == false)
+			{
+				prevProcess.Dispose();
+			}
+			if( newProcess != null)
+			{
+				newProcess.Initialize( this);
+				newProcess.Create();
+				newProcess.CheckParameterChange( true);
+			}
+			prevProcess = newProcess;
+		}
+		bool CollectionProcesses()
+		{
+			GameObject targetObject = (postProcessesTarget != null)? postProcessesTarget : gameObject;
+			bool rebuild = false;
+			
+			var edgeDetection = targetObject.GetComponent<EdgeDetection>() as EdgeDetection;
+			if( ObjectUtility.IsMissing( edgeDetection) != false)
+			{
+				EdgeDetection = null;
+				rebuild = true;
+			}
+			else if( EdgeDetection != edgeDetection)
+			{
+				EdgeDetection = edgeDetection;
+				rebuild = true;
+			}
+			var bloom = targetObject.GetComponent<Bloom>() as Bloom;
+			if( ObjectUtility.IsMissing( bloom) != false)
+			{
+				Bloom = null;
+				rebuild = true;
+			}
+			else if( Bloom != bloom)
+			{
+				Bloom = bloom;
+				rebuild = true;
+			}
+			var depthOfField = targetObject.GetComponent<DepthOfField>() as DepthOfField;
+			if( ObjectUtility.IsMissing( depthOfField) != false)
+			{
+				DepthOfField = null;
+				rebuild = true;
+			}
+			else if( DepthOfField != depthOfField)
+			{
+				DepthOfField = depthOfField;
+				rebuild = true;
+			}
+			var mosaic = targetObject.GetComponent<Mosaic>() as Mosaic;
+			if( ObjectUtility.IsMissing( mosaic) != false)
+			{
+				Mosaic = null;
+				rebuild = true;
+			}
+			else if( Mosaic != mosaic)
+			{
+				Mosaic = mosaic;
+				rebuild = true;
+			}
+			var fxaa3 = targetObject.GetComponent<Fxaa3>() as Fxaa3;
+			if( ObjectUtility.IsMissing( fxaa3) != false)
+			{
+				Fxaa3 = null;
+				rebuild = true;
+			}
+			else if( Fxaa3 != fxaa3)
+			{
+				Fxaa3 = fxaa3;
+				rebuild = true;
+			}
+			var screenBlend = targetObject.GetComponent<ScreenBlend>() as ScreenBlend;
+			if( ObjectUtility.IsMissing( screenBlend) != false)
+			{
+				ScreenBlend = null;
+				rebuild = true;
+			}
+			else if( ScreenBlend != screenBlend)
+			{
+				ScreenBlend = screenBlend;
+				rebuild = true;
+			}
+			return rebuild;
+		}
+		void OnDisable()
 		{
 			if( commandBufferDepthTexture != null)
 			{
@@ -135,19 +176,27 @@ namespace RenderPipeline
 				cacheCamera.RemoveCommandBuffer( CameraEvent.BeforeImageEffects, commandBufferPostProcesses);
 				commandBufferPostProcesses = null;
 			}
-			if( postProcesses != null)
+			for( int i0 = 0; i0 < postProcesses.Length; ++i0)
 			{
-				for( int i0 = 0; i0 < postProcesses.Length; ++i0)
-				{
-					postProcesses[ i0].Dispose();
-				}
+				postProcesses[ i0]?.ClearCache();
 			}
 			cacheCamera.allowHDR = false;
 			cacheCamera.allowMSAA = false;
 			cacheCamera.forceIntoRenderTexture = false;
 			cacheCamera.depthTextureMode = DepthTextureMode.None;
+		#if UNITY_EDITOR
 			cacheCamera.SetTargetBuffers( Display.main.colorBuffer, Display.main.depthBuffer);
-			
+		#endif
+		}
+		void OnDestroy()
+		{
+		#if UNITY_EDITOR
+			cacheCamera.SetTargetBuffers( Display.main.colorBuffer, Display.main.depthBuffer);
+		#endif
+			for( int i0 = 0; i0 < postProcesses.Length; ++i0)
+			{
+				postProcesses[ i0]?.Dispose();
+			}
 			if( colorBuffer != null)
 			{
 				colorBuffer.Release();
@@ -160,31 +209,36 @@ namespace RenderPipeline
 			}
 			if( materialColor != null)
 			{
-				Destroy( materialColor);
+				ObjectUtility.Release( materialColor);
 				materialColor = null;
 			}
 			if( materialCopy != null)
 			{
-				Destroy( materialCopy);
+				ObjectUtility.Release( materialCopy);
 				materialCopy = null;
 			}
 			if( fillMesh != null)
 			{
-				Destroy( fillMesh);
+				ObjectUtility.Release( fillMesh);
 				fillMesh = null;
-			}
-			if( flipMesh != null)
-			{
-				Destroy( flipMesh);
-				flipMesh = null;
 			}
 		}
 		void OnPreRender()
 		{
 		#if UNITY_EDITOR
-			if( cacheOverrideTargetBuffers != overrideTargetBuffers)
+			if( Application.isPlaying == false && enabled == false)
 			{
-				cacheOverrideTargetBuffers = overrideTargetBuffers;
+				return;
+			}
+		#endif
+		#if UNITY_EDITOR
+			if( CollectionProcesses() != false)
+			{
+				isRebuildCommandBuffers = true;
+			}
+			if( cacheOverrideTargetBuffers != OverrideTargetBuffers)
+			{
+				cacheOverrideTargetBuffers = OverrideTargetBuffers;
 				isRebuildCommandBuffers = true;
 			}
 			if( cacheDefaultDepthTextureMode != defaultDepthTextureMode)
@@ -192,13 +246,8 @@ namespace RenderPipeline
 				cacheDefaultDepthTextureMode = defaultDepthTextureMode;
 				isRebuildCommandBuffers = true;
 			}
-			if( cacheFlipHorizontal != flipHorizontal)
-			{
-				cacheFlipHorizontal = flipHorizontal;
-				isRebuildCommandBuffers = true;
-			}
 		#endif
-			if( overrideTargetBuffers != false)
+			if( OverrideTargetBuffers != false)
 			{
 				if( cacheWidth != Screen.width
 				||	cacheHeight != Screen.height)
@@ -211,20 +260,19 @@ namespace RenderPipeline
 				cacheCamera.allowMSAA = false;
 				isRebuildCommandBuffers = true;
 			}
-			if( postProcesses != null)
+			for( int i0 = 0; i0 < postProcesses.Length; ++i0)
 			{
-				for( int i0 = 0; i0 < postProcesses.Length; ++i0)
+				bool cacheClear = false;
+			#if UNITY_EDITOR
+				if( postProcesses[ i0]?.RestoreResources() != false)
 				{
-					if( postProcesses[ i0].CheckParameterChange( false) != false)
-					{
-						isRebuildCommandBuffers = true;
-					}
+					cacheClear = true;
 				}
-			}
-			if( cacheScreenBlendColor != screenBlendColor)
-			{
-				materialColor.SetColor( kShaderPropertyColor, screenBlendColor);
-				cacheScreenBlendColor = screenBlendColor;
+			#endif
+				if( (postProcesses[ i0]?.CheckParameterChange( cacheClear) ?? false) != false)
+				{
+					isRebuildCommandBuffers = true;
+				}
 			}
 			if( isRebuildCommandBuffers != false)
 			{
@@ -242,7 +290,8 @@ namespace RenderPipeline
 			for( int i0 = 0; i0 < postProcesses.Length; ++i0)
 			{
 				process = postProcesses[ i0];
-				if( process.Valid() != false)
+				
+				if( (process?.Valid() ?? false) != false)
 				{
 					enabledProcesses.Add( process);
 					
@@ -267,7 +316,7 @@ namespace RenderPipeline
 				cacheCamera.RemoveCommandBuffer( CameraEvent.BeforeImageEffects, commandBufferPostProcesses);
 				commandBufferPostProcesses = null;
 			}
-			if( enabledProcesses.Count == 0 && overrideTargetBuffers == false)
+			if( enabledProcesses.Count == 0 && OverrideTargetBuffers == false)
 			{
 			#if UNITY_EDITOR
 				cacheCamera.SetTargetBuffers( Display.main.colorBuffer, Display.main.depthBuffer);
@@ -275,7 +324,7 @@ namespace RenderPipeline
 			}
 			else
 			{
-				if( overrideTargetBuffers == false)
+				if( OverrideTargetBuffers == false)
 				{
 					forceIntoRenderTexture = true;
 				#if UNITY_EDITOR
@@ -336,7 +385,7 @@ namespace RenderPipeline
 				var recycleTemporaries = new Dictionary<int, TemporaryTarget>();
 				var context = new TargetContext();
 				
-				if( overrideTargetBuffers == false)
+				if( OverrideTargetBuffers == false)
 				{
 					context.SetBuffers();
 					context.SetSource0( BuiltinRenderTextureType.CameraTarget);
@@ -352,7 +401,7 @@ namespace RenderPipeline
 				
 				for( int i0 = 0; i0 < enabledProcesses.Count; ++i0)
 				{
-					if( overrideTargetBuffers == false)
+					if( OverrideTargetBuffers == false)
 					{
 						if( enabledProcesses[ i0].IsHighDynamicRange() != false)
 						{
@@ -361,7 +410,7 @@ namespace RenderPipeline
 					}
 					depthTextureMode |= enabledProcesses[ i0].GetDepthTextureMode();
 				}
-				if( overrideTargetBuffers != false && (depthTextureMode & DepthTextureMode.Depth) != 0)
+				if( OverrideTargetBuffers != false && (depthTextureMode & DepthTextureMode.Depth) != 0)
 				{
 					commandBufferDepthTexture = new CommandBuffer();
 					commandBufferDepthTexture.name = "CameraPipeline::DepthTexture";
@@ -390,14 +439,7 @@ namespace RenderPipeline
 					}
 					if( i0 == enabledProcesses.Count - 1)
 					{
-						if( overrideTargetBuffers == false)
-						{
-							context.SetTarget0( BuiltinRenderTextureType.CameraTarget);
-						}
-						else
-						{
-							context.SetTarget0( colorBuffer);
-						}
+						context.SetTarget0( BuiltinRenderTextureType.CameraTarget);
 					}
 					enabledProcesses[ i0].BuildCommandBuffer( 
 						commandBufferPostProcesses, context, 
@@ -423,17 +465,8 @@ namespace RenderPipeline
 						});
 					context.Next();
 				}
-				if( overrideTargetBuffers != false)
+				if( OverrideTargetBuffers != false)
 				{
-					commandBufferPostProcesses.SetRenderTarget( 
-						BuiltinRenderTextureType.CameraTarget, 
-						RenderBufferLoadAction.DontCare,
-						RenderBufferStoreAction.Store,
-						RenderBufferLoadAction.DontCare,
-						RenderBufferStoreAction.DontCare);
-					commandBufferPostProcesses.SetGlobalTexture( kShaderPropertyMainTex, colorBuffer);
-					commandBufferPostProcesses.DrawMesh( (flipHorizontal == false)? fillMesh : flipMesh, Matrix4x4.identity, materialColor, 0, 0);
-					
 					if( (depthTextureMode & DepthTextureMode.Depth) != 0)
 					{
 						commandBufferPostProcesses.ReleaseTemporaryRT( kShaderPropertyDepthTextureId);
@@ -495,6 +528,19 @@ namespace RenderPipeline
 		{
 			get => cacheCamera;
 		}
+		internal bool OverrideTargetBuffers
+		{
+			get
+			{
+			#if UNITY_EDITOR
+				if( Application.isPlaying == false)
+				{
+					return false;
+				}
+			#endif
+				return overrideTargetBuffers;
+			}
+		}
 		
 		static readonly int kShaderPropertyMainTex = Shader.PropertyToID( "_MainTex");
 		static readonly int kShaderPropertyColor = Shader.PropertyToID( "_Color");
@@ -507,7 +553,6 @@ namespace RenderPipeline
 			"UpdateDepthTextureが発生しない様にするにはModeがRealtimeに設定されているLightのShadowTypeにNoShadowsが設定されている必要があります。\n\n" +
 			"※この機能はUpdateDepthTextureで_CameraDepthTextureが利用可能になる場合と異なり、ForwardOpaque中に使用することが出来ません。\n\n" +
 			"※ポストプロセスの使用状況によって_CameraDepthTextureに書き込まれない場合があるため、強制する場合は DefaultDepthTextureMode の Depth を有効にしてください。";
-		const string kTipsFlipHorizontal = "この機能を有効にした場合、水平方向に画面を反転させます。";
 		
 		[SerializeField]
 		Shader shaderCopy = default;
@@ -517,33 +562,26 @@ namespace RenderPipeline
 		DepthTextureMode defaultDepthTextureMode = default;
 		[SerializeField, TooltipAttribute( kTipsOverrideTargetBuffers)]
 		bool overrideTargetBuffers = false;
-		[SerializeField, TooltipAttribute( kTipsFlipHorizontal)]
-		bool flipHorizontal = false;
-		[SerializeField]
-		Color screenBlendColor = Color.clear;
 		[SerializeField]
 		GameObject postProcessesTarget = default;
 		
 		Mesh fillMesh;
-		Mesh flipMesh;
 		Material materialCopy;
 		Material materialColor;
 		RenderTexture colorBuffer;
 		RenderTexture depthBuffer;
 		bool isRebuildCommandBuffers;
 		
-		PostProcess[] postProcesses;
+		PostProcess[] postProcesses = new PostProcess[ 6];
 		CommandBuffer commandBufferDepthTexture;
 		CommandBuffer commandBufferPostProcesses;
 		
 		Camera cacheCamera;
 		int? cacheWidth;
 		int? cacheHeight;
-		Color? cacheScreenBlendColor;
 	#if UNITY_EDITOR
 		DepthTextureMode? cacheDefaultDepthTextureMode;
 		bool? cacheOverrideTargetBuffers;
-		bool? cacheFlipHorizontal;
 	#endif
 	}
 }

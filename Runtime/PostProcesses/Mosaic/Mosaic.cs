@@ -18,21 +18,34 @@ namespace RenderPipeline
 		{
 			if( mosaicMaterial != null)
 			{
-				Destroy( mosaicMaterial);
+				ObjectUtility.Release( mosaicMaterial);
 				mosaicMaterial = null;
 			}
+		}
+		internal override bool RestoreResources()
+		{
+			bool rebuild = false;
+			
+			if( ObjectUtility.IsMissing( mosaicMaterial) != false)
+			{
+				mosaicMaterial = new Material( mosaicShader);
+				rebuild = true;
+			}
+			return rebuild;
 		}
 		internal override bool Valid()
 		{
 			return enabled != false && mosaicMaterial != null;
 		}
-		internal override DepthTextureMode GetDepthTextureMode()
+		internal override void ClearCache()
 		{
-			return DepthTextureMode.None;
-		}
-		internal override bool IsHighDynamicRange()
-		{
-			return false;
+			cacheEnabled = null;
+			cacheWidth = null;
+			cacheHeight = null;
+			cacheBlockSize = null;
+			cacheStencilReference = null;
+			cacheStencilReadMask = null;
+			cacheStencilCompare = null;
 		}
 		internal override bool CheckParameterChange( bool clearCache)
 		{
@@ -40,13 +53,7 @@ namespace RenderPipeline
 			
 			if( clearCache != false)
 			{
-				cacheEnabled = null;
-				cacheWidth = null;
-				cacheHeight = null;
-				cacheBlockSize = null;
-				cacheStencilReference = null;
-				cacheStencilReadMask = null;
-				cacheStencilCompare = null;
+				ClearCache();
 			}
 			if( cacheEnabled != enabled)
 			{
@@ -106,6 +113,14 @@ namespace RenderPipeline
 			}
 			return rebuild;
 		}
+		internal override DepthTextureMode GetDepthTextureMode()
+		{
+			return DepthTextureMode.None;
+		}
+		internal override bool IsHighDynamicRange()
+		{
+			return false;
+		}
 		protected override bool OnDuplicate()
 		{
 			return nextProcess != null;
@@ -157,7 +172,6 @@ namespace RenderPipeline
 			context.duplicated = false;
 		}
 		
-		static readonly int kShaderPropertyMainTex = Shader.PropertyToID( "_MainTex");
 		static readonly int kShaderPropertyPixelation = Shader.PropertyToID( "_Pixelation");
 		static readonly int kShaderPropertyStencilRef = Shader.PropertyToID( "_StencilRef");
 		static readonly int kShaderPropertyStencilReadMask = Shader.PropertyToID( "_StencilReadMask");

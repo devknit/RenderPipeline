@@ -12,7 +12,13 @@ namespace RenderPipeline
 	{
 		public override Playable CreateTrackMixer( PlayableGraph graph, GameObject go, int inputCount)
 	    {
-	        return ScriptPlayable<ScreenBlendColorMixerBehaviour>.Create( graph, inputCount);
+			var scriptPlayable = ScriptPlayable<ScreenBlendColorMixerBehaviour>.Create( graph, inputCount);
+			var mixerBehaviour = scriptPlayable.GetBehaviour();
+			mixerBehaviour.restoreSeconds = restoreSeconds;
+	        return scriptPlayable;
 	    }
+	    
+	    [SerializeField, Range( 0, 1)]
+	    float restoreSeconds = 0.5f;
 	}
 }
