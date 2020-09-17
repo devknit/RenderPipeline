@@ -23,9 +23,20 @@ namespace RenderPipeline
 		{
 			if( edgeDetectMaterial != null)
 			{
-				Release( edgeDetectMaterial);
+				ObjectUtility.Release( edgeDetectMaterial);
 				edgeDetectMaterial = null;
 			}
+		}
+		internal override bool RestoreResources()
+		{
+			bool rebuild = false;
+			
+			if( ObjectUtility.IsMissing( edgeDetectMaterial) != false)
+			{
+				edgeDetectMaterial = new Material( edgeDetectShader);
+				rebuild = true;
+			}
+			return rebuild;
 		}
 		internal override bool Valid()
 		{

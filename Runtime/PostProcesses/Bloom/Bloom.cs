@@ -8,6 +8,10 @@ namespace RenderPipeline
 	[System.Serializable]
 	public sealed partial class Bloom : PostProcess
 	{
+		public BloomProperties Properties
+		{
+			get{ return (sharedSettings != null)? sharedSettings.properties : properties; }
+		}
 		internal override void Create()
 		{
 			if( brightnessExtractionShader != null && brightnessExtractionMaterial == null)
@@ -39,44 +43,70 @@ namespace RenderPipeline
 		{
 			if( brightnessExtractionMaterial != null)
 			{
-				Release( brightnessExtractionMaterial);
+				ObjectUtility.Release( brightnessExtractionMaterial);
 				brightnessExtractionMaterial = null;
 			}
 			if( gaussianBlurMaterial != null)
 			{
-				Release( gaussianBlurMaterial);
+				ObjectUtility.Release( gaussianBlurMaterial);
 				gaussianBlurMaterial = null;
 			}
 			if( combineMaterial != null)
 			{
-				Release( combineMaterial);
+				ObjectUtility.Release( combineMaterial);
 				combineMaterial = null;
 			}
 			if( compositionMaterial != null)
 			{
-				Release( compositionMaterial);
+				ObjectUtility.Release( compositionMaterial);
 				compositionMaterial = null;
 			}
 			if( brightnessExtractionMesh != null)
 			{
-				Release( brightnessExtractionMesh);
+				ObjectUtility.Release( brightnessExtractionMesh);
 				brightnessExtractionMesh = null;
 			}
 			if( blurHorizontalMesh != null)
 			{
-				Release( blurHorizontalMesh);
+				ObjectUtility.Release( blurHorizontalMesh);
 				blurHorizontalMesh = null;
 			}
 			if( blurVerticalMesh != null)
 			{
-				Release( blurVerticalMesh);
+				ObjectUtility.Release( blurVerticalMesh);
 				blurVerticalMesh = null;
 			}
 			if( combineMesh != null)
 			{
-				Release( combineMesh);
+				ObjectUtility.Release( combineMesh);
 				combineMesh = null;
 			}
+		}
+		internal override bool RestoreResources()
+		{
+			bool rebuild = false;
+			
+			if( ObjectUtility.IsMissing( brightnessExtractionMaterial) != false)
+			{
+				brightnessExtractionMaterial = new Material( brightnessExtractionShader);
+				rebuild = true;
+			}
+			if( ObjectUtility.IsMissing( gaussianBlurMaterial) != false)
+			{
+				gaussianBlurMaterial = new Material( gaussianBlurShader);
+				rebuild = true;
+			}
+			if( ObjectUtility.IsMissing( combineMaterial) != false)
+			{
+				combineMaterial = new Material( combineShader);
+				rebuild = true;
+			}
+			if( ObjectUtility.IsMissing( compositionMaterial) != false)
+			{
+				compositionMaterial = new Material( compositionShader);
+				rebuild = true;
+			}
+			return rebuild;
 		}
 		internal override bool Valid()
 		{
@@ -455,10 +485,6 @@ namespace RenderPipeline
 		static readonly int kShaderPropertyBloomWeightCombined = Shader.PropertyToID( "_BloomWeightCombined");
 		static readonly int kShaderPropertyBloomUvTransformCombined = Shader.PropertyToID( "_BloomUvTransformCombined");
 		
-		public BloomProperties Properties
-		{
-			get{ return (sharedSettings != null)? sharedSettings.properties : properties; }
-		}
 		[SerializeField]
         Shader brightnessExtractionShader = default;
 		[SerializeField]

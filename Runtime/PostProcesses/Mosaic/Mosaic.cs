@@ -18,9 +18,20 @@ namespace RenderPipeline
 		{
 			if( mosaicMaterial != null)
 			{
-				Release( mosaicMaterial);
+				ObjectUtility.Release( mosaicMaterial);
 				mosaicMaterial = null;
 			}
+		}
+		internal override bool RestoreResources()
+		{
+			bool rebuild = false;
+			
+			if( ObjectUtility.IsMissing( mosaicMaterial) != false)
+			{
+				mosaicMaterial = new Material( mosaicShader);
+				rebuild = true;
+			}
+			return rebuild;
 		}
 		internal override bool Valid()
 		{

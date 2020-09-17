@@ -1,0 +1,12 @@
+fileFormatVersion: 2
+guid: 42acae609ff0f85449447cf669beed68
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - screenBlendShader: {fileID: 4800000, guid: 4ebc102d93d94d44ba8d52d90f7d16b2, type: 3}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

@@ -10,21 +10,9 @@ namespace RenderPipeline
 		{
 			this.pipeline = pipeline;
 		}
-		internal void Release( Object obj)
-		{
-		#if UNITY_EDITOR
-			if( UnityEditor.EditorApplication.isPlaying == false)
-			{
-				DestroyImmediate( obj);
-			}
-			else
-		#endif
-			{
-				Destroy( obj);
-			}
-		}
 		internal abstract void Create();
 		internal abstract void Dispose();
+		internal abstract bool RestoreResources();
 		internal abstract bool Valid();
 		internal abstract DepthTextureMode GetDepthTextureMode();
 		internal abstract bool IsHighDynamicRange();

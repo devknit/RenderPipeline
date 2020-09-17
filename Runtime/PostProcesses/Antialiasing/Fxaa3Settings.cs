@@ -84,9 +84,13 @@ namespace RenderPipeline
         [SerializeField]
         float edgeSharpness = 4.0f;
 		
+		[System.NonSerialized]
 		bool? cacheEnabled;
+		[System.NonSerialized]
 		float? cacheEdgeThresholdMin = 0.05f;
+		[System.NonSerialized]
         float? cacheEdgeThreshold = 0.2f;
+        [System.NonSerialized]
         float? cacheEdgeSharpness = 4.0f;
 	}
 }

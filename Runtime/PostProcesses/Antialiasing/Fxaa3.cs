@@ -7,6 +7,10 @@ namespace RenderPipeline
 	[System.Serializable]
 	public sealed partial class Fxaa3 : PostProcess
 	{
+		public Fxaa3Properties Properties
+		{
+			get{ return (sharedSettings != null)? sharedSettings.properties : properties; }
+		}
 		internal override void Create()
 		{
 			if( shaderFxaa3 != null && materialFxaa3 == null)
@@ -18,9 +22,20 @@ namespace RenderPipeline
 		{
 			if( materialFxaa3 != null)
 			{
-				Release( materialFxaa3);
+				ObjectUtility.Release( materialFxaa3);
 				materialFxaa3 = null;
 			}
+		}
+		internal override bool RestoreResources()
+		{
+			bool rebuild = false;
+			
+			if( ObjectUtility.IsMissing( materialFxaa3) != false)
+			{
+				materialFxaa3 = new Material( shaderFxaa3);
+				rebuild = true;
+			}
+			return rebuild;
 		}
 		internal override bool Valid()
 		{
@@ -78,30 +93,13 @@ namespace RenderPipeline
 		static readonly int kShaderPropertyEdgeThreshold = Shader.PropertyToID( "_EdgeThreshold");
 		static readonly int kShaderPropertyEdgeSharpness = Shader.PropertyToID( "_EdgeSharpness");
 		
-		Fxaa3Properties Properties
-		{
-			get{ return (sharedSettings != null)? sharedSettings.properties : properties; }
-		}
 		[SerializeField]
         Shader shaderFxaa3 = default;
         [SerializeField]
         Fxaa3Settings sharedSettings = default;
         [SerializeField]
         Fxaa3Properties properties = default;
-        
-	#if false
-		[SerializeField]
-		float edgeThresholdMin = 0.05f;
-		[SerializeField]
-        float edgeThreshold = 0.1f;//0.2f;
-        [SerializeField]
-        float edgeSharpness = 4.0f;
-        
-        bool? cacheEnabled;
-		float? cacheEdgeThresholdMin = 0.05f;
-        float? cacheEdgeThreshold = 0.2f;
-        float? cacheEdgeSharpness = 4.0f;
-	#endif
+        [System.NonSerialized]
 		Material materialFxaa3;
 	}
 }

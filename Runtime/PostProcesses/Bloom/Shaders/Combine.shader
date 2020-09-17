@@ -5,8 +5,7 @@
 		Cull Off
 		ZWrite Off
 		ZTest Always
-		BlendOp Add
-		Blend One Zero
+		Blend Off
 		
 		Pass
 		{

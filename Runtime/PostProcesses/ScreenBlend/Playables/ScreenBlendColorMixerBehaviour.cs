@@ -9,15 +9,15 @@ namespace RenderPipeline
 	{
 		public override void ProcessFrame( Playable playable, FrameData info, object playerData)
 	    {
-			if( playerData is RenderPipeline renderPipeline)
+			if( playerData is RenderPipeline renderPipeline && renderPipeline.ScreenBlend != null)
 			{
-				if( cachedRenderPipeline == null)
+				if( cachedScreenBlend == null)
 				{
-					defaultScreenBlendColor = renderPipeline.ScreenBlendColor;
-					cachedRenderPipeline = renderPipeline;
+					cachedScreenBlend = renderPipeline.ScreenBlend;
+					defaultScreenBlendColor = cachedScreenBlend.Properties.Color;
 				}
 				int inputCount = playable.GetInputCount();
-				Color defaultColor = renderPipeline.ScreenBlendColor;
+				Color defaultColor = cachedScreenBlend.Properties.Color;
 				Color blendedColor = Color.clear;
 				float totalWeight = 0.0f;
 				
@@ -31,18 +31,18 @@ namespace RenderPipeline
 		            totalWeight += inputWeight;
 		        }
 		        blendedColor += defaultColor * (1.0f - totalWeight);
-		        renderPipeline.ScreenBlendColor = blendedColor;
+		        cachedScreenBlend.Properties.Color = blendedColor;
 			}
 		}
 		public override void OnGraphStop( Playable playable)
 	    {
-			if( cachedRenderPipeline != null)
+			if( cachedScreenBlend != null)
 			{
-				cachedRenderPipeline.ScreenBlendColor = defaultScreenBlendColor;
+				cachedScreenBlend.Properties.Color = defaultScreenBlendColor;
 			}
 	    }
 	    
-	    RenderPipeline cachedRenderPipeline;
+	    ScreenBlend cachedScreenBlend;
 	    Color defaultScreenBlendColor;
 	}
 }

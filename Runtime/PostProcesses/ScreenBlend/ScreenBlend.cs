@@ -5,26 +5,41 @@ using UnityEngine.Rendering;
 namespace RenderPipeline
 {
 	[System.Serializable]
-	public sealed partial class AlphaBlend : PostProcess
+	public sealed partial class ScreenBlend : PostProcess
 	{
+		public ScreenBlendProperties Properties
+		{
+			get{ return (sharedSettings != null)? sharedSettings.properties : properties; }
+		}
 		internal override void Create()
 		{
-			if( alphaBlendShader != null && alphaBlendMaterial == null)
+			if( screenBlendShader != null && screenBlendMaterial == null)
 			{
-				alphaBlendMaterial = new Material( alphaBlendShader);
+				screenBlendMaterial = new Material( screenBlendShader);
 			}
 		}
 		internal override void Dispose()
 		{
-			if( alphaBlendMaterial != null)
+			if( screenBlendMaterial != null)
 			{
-				Release( alphaBlendMaterial);
-				alphaBlendMaterial = null;
+				ObjectUtility.Release( screenBlendMaterial);
+				screenBlendMaterial = null;
 			}
+		}
+		internal override bool RestoreResources()
+		{
+			bool rebuild = false;
+			
+			if( ObjectUtility.IsMissing( screenBlendMaterial) != false)
+			{
+				screenBlendMaterial = new Material( screenBlendShader);
+				rebuild = true;
+			}
+			return rebuild;
 		}
 		internal override bool Valid()
 		{
-			return enabled != false && alphaBlendMaterial != null;
+			return Properties.Enabled != false && screenBlendMaterial != null;
 		}
 		internal override DepthTextureMode GetDepthTextureMode()
 		{
@@ -36,27 +51,11 @@ namespace RenderPipeline
 		}
 		internal override bool CheckParameterChange( bool clearCache)
 		{
-			bool rebuild = false;
-			
 			if( clearCache != false)
 			{
-				cacheEnabled = null;
-				cacheColor = null;
+				Properties.ClearCache();
 			}
-			if( cacheEnabled != enabled)
-			{
-				rebuild = true;
-				cacheEnabled = enabled;
-			}
-			if( enabled != false)
-			{
-				if( cacheColor != color)
-				{
-					alphaBlendMaterial.SetColor( kShaderPropertyColor, color);
-					cacheColor = color;
-				}
-			}
-			return rebuild;
+			return Properties.CheckParameterChange( screenBlendMaterial);
 		}
 		protected override bool OnDuplicate()
 		{
@@ -86,18 +85,19 @@ namespace RenderPipeline
 				RenderBufferLoadAction.DontCare,	
 				RenderBufferStoreAction.DontCare);
 			commandBuffer.SetGlobalTexture( kShaderPropertyMainTex, context.source0);
-			pipeline.DrawFill( commandBuffer, alphaBlendMaterial, 0);
+			pipeline.DrawFill( commandBuffer, screenBlendMaterial, 0);
 			context.duplicated = false;
 		}
 		
-		[SerializeField]
-        Shader alphaBlendShader = default;
-		[SerializeField]
-		Color color = Color.clear;
+		const string kShaderKeywordFlipHorizontal = "FLIPHORIZONTAL";
 		
-		Material alphaBlendMaterial;
-		
-		bool? cacheEnabled;
-		Color? cacheColor;
+		[SerializeField]
+        ScreenBlendSettings sharedSettings = default;
+        [SerializeField]
+        ScreenBlendProperties properties = default;
+		[SerializeField]
+        Shader screenBlendShader = default;
+		[System.NonSerialized]
+		Material screenBlendMaterial;
 	}
 }
