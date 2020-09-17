@@ -2,6 +2,7 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 using System.Collections.Generic;
+using DG.Tweening;
 
 namespace RenderPipeline
 {
@@ -61,13 +62,42 @@ namespace RenderPipeline
 					}
 					cacheFlipHorizontal = flipHorizontal;
 				}
-				if( cacheColor != color)
+				Color mixedColor = ColorBlending();
+				if( cacheColor != mixedColor)
 				{
-					material.SetColor( kShaderPropertyColor, color);
-					cacheColor = color;
+					material.SetColor( kShaderPropertyColor, mixedColor);
+					cacheColor = mixedColor;
 				}
 			}
 			return rebuild;
+		}
+		internal void ApplyBlendColor( Color color, float weight)
+		{
+			blendColor = color;
+			blendColorWeight = weight;
+		}
+		internal void RestoreBlendColor( float seconds)
+		{
+			if( seconds > 0.0f)
+			{
+				restoreTween?.Kill( true);
+				Color mixedColor = ColorBlending();
+				
+				if( mixedColor != color)
+				{
+					restoreTween = DOTween.To(
+						() => mixedColor,
+						value => color = value,
+						color, seconds);
+					color = mixedColor;
+				}
+			}
+			blendColor = Color.clear;
+			blendColorWeight = 0.0f;
+		}
+		Color ColorBlending()
+		{
+			return blendColor + color * (1.0f - blendColorWeight);
 		}
 		
 		const string kShaderKeywordFlipHorizontal = "FLIPHORIZONTAL";
@@ -78,12 +108,19 @@ namespace RenderPipeline
 		[SerializeField]
 		bool flipHorizontal;
 		[SerializeField]
-        Color color;
+		Color color;
+		
 		[System.NonSerialized]
 		bool? cacheEnabled;
 		[System.NonSerialized]
 		bool? cacheFlipHorizontal;
 		[System.NonSerialized]
-        Color? cacheColor;
+		Color? cacheColor;
+		[System.NonSerialized]
+		Color blendColor;
+		[System.NonSerialized]
+		float blendColorWeight;
+		[System.NonSerialized]
+		Tween restoreTween;
 	}
 }

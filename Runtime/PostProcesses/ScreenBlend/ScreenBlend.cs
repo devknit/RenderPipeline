@@ -92,7 +92,6 @@ namespace RenderPipeline
 			pipeline.DrawFill( commandBuffer, screenBlendMaterial, 0);
 			context.duplicated = false;
 		}
-		
 		const string kShaderKeywordFlipHorizontal = "FLIPHORIZONTAL";
 		
 		[SerializeField]
