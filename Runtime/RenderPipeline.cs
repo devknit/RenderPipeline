@@ -225,6 +225,7 @@ namespace RenderPipeline
 		}
 		void OnPreRender()
 		{
+			bool fourceCacheClear = false;
 		#if UNITY_EDITOR
 			if( Application.isPlaying == false && enabled == false)
 			{
@@ -235,6 +236,7 @@ namespace RenderPipeline
 			if( CollectionProcesses() != false)
 			{
 				isRebuildCommandBuffers = true;
+				fourceCacheClear = true;
 			}
 			if( cacheOverrideTargetBuffers != OverrideTargetBuffers)
 			{
@@ -262,7 +264,7 @@ namespace RenderPipeline
 			}
 			for( int i0 = 0; i0 < postProcesses.Length; ++i0)
 			{
-				bool cacheClear = false;
+				bool cacheClear = fourceCacheClear;
 			#if UNITY_EDITOR
 				if( postProcesses[ i0]?.RestoreResources() != false)
 				{
