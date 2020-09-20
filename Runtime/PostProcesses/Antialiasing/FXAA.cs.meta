@@ -1,9 +1,11 @@
 fileFormatVersion: 2
-guid: e7568c5459cf7d443bf017494035943f
+guid: 12e9221eb7be50942b9e12f088fa829c
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - shaderFXAA: {fileID: 4800000, guid: bc84575b55ab3da44905e0a429e64bae, type: 3}
+  - sharedSettings: {instanceID: 0}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 

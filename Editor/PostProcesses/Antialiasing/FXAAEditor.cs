@@ -5,8 +5,8 @@ using UnityEngine;
 namespace RenderPipeline.Editor
 {
 	[CanEditMultipleObjects]
-	[CustomEditor( typeof( Fxaa3))]
-	public sealed class Fxaa3Editor : UnityEditor.Editor
+	[CustomEditor( typeof( FXAA))]
+	public sealed class FXAAEditor : UnityEditor.Editor
 	{
 		public override void OnInspectorGUI()
 		{

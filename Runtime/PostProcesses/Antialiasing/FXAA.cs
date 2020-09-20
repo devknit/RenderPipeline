@@ -5,41 +5,41 @@ using UnityEngine.Rendering;
 namespace RenderPipeline
 {
 	[System.Serializable]
-	public sealed partial class Fxaa3 : PostProcess
+	public sealed partial class FXAA : PostProcess
 	{
-		public Fxaa3Properties Properties
+		public FXAAProperties Properties
 		{
 			get{ return (sharedSettings != null)? sharedSettings.properties : properties; }
 		}
 		internal override void Create()
 		{
-			if( shaderFxaa3 != null && materialFxaa3 == null)
+			if( shaderFXAA != null && materialFXAA == null)
 			{
-				materialFxaa3 = new Material( shaderFxaa3);
+				materialFXAA = new Material( shaderFXAA);
 			}
 		}
 		internal override void Dispose()
 		{
-			if( materialFxaa3 != null)
+			if( materialFXAA != null)
 			{
-				ObjectUtility.Release( materialFxaa3);
-				materialFxaa3 = null;
+				ObjectUtility.Release( materialFXAA);
+				materialFXAA = null;
 			}
 		}
 		internal override bool RestoreResources()
 		{
 			bool rebuild = false;
 			
-			if( ObjectUtility.IsMissing( materialFxaa3) != false)
+			if( ObjectUtility.IsMissing( materialFXAA) != false)
 			{
-				materialFxaa3 = new Material( shaderFxaa3);
+				materialFXAA = new Material( shaderFXAA);
 				rebuild = true;
 			}
 			return rebuild;
 		}
 		internal override bool Valid()
 		{
-			return Properties.Enabled != false && materialFxaa3 != null;
+			return Properties.Enabled != false && materialFXAA != null;
 		}
 		internal override void ClearCache()
 		{
@@ -51,7 +51,7 @@ namespace RenderPipeline
 			{
 				Properties.ClearCache();
 			}
-			return Properties.CheckParameterChange( materialFxaa3);
+			return Properties.CheckParameterChange( materialFXAA);
 		}
 		internal override DepthTextureMode GetDepthTextureMode()
 		{
@@ -89,21 +89,17 @@ namespace RenderPipeline
 				RenderBufferLoadAction.DontCare,	
 				RenderBufferStoreAction.DontCare);
 			commandBuffer.SetGlobalTexture( kShaderPropertyMainTex, context.source0);
-			pipeline.DrawFill( commandBuffer, materialFxaa3, 0);
+			pipeline.DrawFill( commandBuffer, materialFXAA, 0);
 			context.duplicated = false;
 		}
 		
-		static readonly int kShaderPropertyEdgeThresholdMin = Shader.PropertyToID( "_EdgeThresholdMin");
-		static readonly int kShaderPropertyEdgeThreshold = Shader.PropertyToID( "_EdgeThreshold");
-		static readonly int kShaderPropertyEdgeSharpness = Shader.PropertyToID( "_EdgeSharpness");
-		
 		[SerializeField]
-        Shader shaderFxaa3 = default;
+        Shader shaderFXAA = default;
         [SerializeField]
-        Fxaa3Settings sharedSettings = default;
+        FXAASettings sharedSettings = default;
         [SerializeField]
-        Fxaa3Properties properties = default;
+        FXAAProperties properties = default;
         [System.NonSerialized]
-		Material materialFxaa3;
+		Material materialFXAA;
 	}
 }

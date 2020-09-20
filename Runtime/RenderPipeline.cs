@@ -31,9 +31,9 @@ namespace RenderPipeline
 			get{ return postProcesses[ 3] as Mosaic; }
 			private set{ ApplyProcess( ref postProcesses[ 3], value); }
 		}
-		public Fxaa3 Fxaa3
+		public FXAA FXAA
 		{
-			get{ return postProcesses[ 4] as Fxaa3; }
+			get{ return postProcesses[ 4] as FXAA; }
 			private set{ ApplyProcess( ref postProcesses[ 4], value); }
 		}
 		public ScreenBlend ScreenBlend
@@ -140,15 +140,15 @@ namespace RenderPipeline
 				Mosaic = mosaic;
 				rebuild = true;
 			}
-			var fxaa3 = targetObject.GetComponent<Fxaa3>() as Fxaa3;
-			if( ObjectUtility.IsMissing( fxaa3) != false)
+			var fxaa = targetObject.GetComponent<FXAA>() as FXAA;
+			if( ObjectUtility.IsMissing( fxaa) != false)
 			{
-				Fxaa3 = null;
+				FXAA = null;
 				rebuild = true;
 			}
-			else if( Fxaa3 != fxaa3)
+			else if( FXAA != fxaa)
 			{
-				Fxaa3 = fxaa3;
+				FXAA = fxaa;
 				rebuild = true;
 			}
 			var screenBlend = targetObject.GetComponent<ScreenBlend>() as ScreenBlend;
