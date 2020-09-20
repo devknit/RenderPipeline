@@ -11,35 +11,50 @@ namespace RenderPipeline
 	[RequireComponent( typeof( Camera))]
 	public sealed class RenderPipeline : MonoBehaviour
 	{
+		const int kPriorityEdgeDetection = 0;
+		const int kPrioritySSAO = 1;
+		const int kPriorityBloom = 2;
+		const int kPriorityDepthOfField = 3;
+		const int kPriorityMosaic = 4;
+		const int kPriorityFXAA = 5;
+		const int kPriorityScreenBlend = 6;
+		const int kPriorityMax = 7;
+		
+		
 		public EdgeDetection EdgeDetection
 		{
-			get{ return postProcesses[ 0] as EdgeDetection; }
-			private set{ ApplyProcess( ref postProcesses[ 0], value); }
+			get{ return postProcesses[ kPriorityEdgeDetection] as EdgeDetection; }
+			private set{ ApplyProcess( ref postProcesses[ kPriorityEdgeDetection], value); }
+		}
+		public SSAO SSAO
+		{
+			get{ return postProcesses[ kPrioritySSAO] as SSAO; }
+			private set{ ApplyProcess( ref postProcesses[ kPrioritySSAO], value); }
 		}
 		public Bloom Bloom
 		{
-			get{ return postProcesses[ 1] as Bloom; }
-			private set{ ApplyProcess( ref postProcesses[ 1], value); }
+			get{ return postProcesses[ kPriorityBloom] as Bloom; }
+			private set{ ApplyProcess( ref postProcesses[ kPriorityBloom], value); }
 		}
 		public DepthOfField DepthOfField
 		{
-			get{ return postProcesses[ 2] as DepthOfField; }
-			private set{ ApplyProcess( ref postProcesses[ 2], value); }
+			get{ return postProcesses[ kPriorityDepthOfField] as DepthOfField; }
+			private set{ ApplyProcess( ref postProcesses[ kPriorityDepthOfField], value); }
 		}
 		public Mosaic Mosaic
 		{
-			get{ return postProcesses[ 3] as Mosaic; }
-			private set{ ApplyProcess( ref postProcesses[ 3], value); }
+			get{ return postProcesses[ kPriorityMosaic] as Mosaic; }
+			private set{ ApplyProcess( ref postProcesses[ kPriorityMosaic], value); }
 		}
 		public FXAA FXAA
 		{
-			get{ return postProcesses[ 4] as FXAA; }
-			private set{ ApplyProcess( ref postProcesses[ 4], value); }
+			get{ return postProcesses[ kPriorityFXAA] as FXAA; }
+			private set{ ApplyProcess( ref postProcesses[ kPriorityFXAA], value); }
 		}
 		public ScreenBlend ScreenBlend
 		{
-			get{ return postProcesses[ 5] as ScreenBlend; }
-			private set{ ApplyProcess( ref postProcesses[ 5], value); }
+			get{ return postProcesses[ kPriorityScreenBlend] as ScreenBlend; }
+			private set{ ApplyProcess( ref postProcesses[ kPriorityScreenBlend], value); }
 		}
 		void Awake()
 		{
@@ -68,10 +83,6 @@ namespace RenderPipeline
 			{
 				materialCopy = new Material( shaderCopy);
 			}
-			if( shaderColor != null && materialColor == null)
-			{
-				materialColor = new Material( shaderColor);
-			}
 			CollectionProcesses();
 
 			cacheCamera = GetComponent<Camera>();
@@ -96,6 +107,13 @@ namespace RenderPipeline
 			GameObject targetObject = (postProcessesTarget != null)? postProcessesTarget : gameObject;
 			bool rebuild = false;
 			
+		#if UNITY_EDITOR
+			if( (postProcesses?.Length ?? 0) != kPriorityMax)
+			{
+				postProcesses = new PostProcess[ kPriorityMax];
+				rebuild = true;
+			}
+		#endif
 			var edgeDetection = targetObject.GetComponent<EdgeDetection>() as EdgeDetection;
 			if( ObjectUtility.IsMissing( edgeDetection) != false)
 			{
@@ -105,6 +123,17 @@ namespace RenderPipeline
 			else if( EdgeDetection != edgeDetection)
 			{
 				EdgeDetection = edgeDetection;
+				rebuild = true;
+			}
+			var ssao = targetObject.GetComponent<SSAO>() as SSAO;
+			if( ObjectUtility.IsMissing( ssao) != false)
+			{
+				SSAO = null;
+				rebuild = true;
+			}
+			else if( SSAO != ssao)
+			{
+				SSAO = ssao;
 				rebuild = true;
 			}
 			var bloom = targetObject.GetComponent<Bloom>() as Bloom;
@@ -559,8 +588,6 @@ namespace RenderPipeline
 		[SerializeField]
 		Shader shaderCopy = default;
 		[SerializeField]
-		Shader shaderColor = default;
-		[SerializeField]
 		DepthTextureMode defaultDepthTextureMode = default;
 		[SerializeField, TooltipAttribute( kTipsOverrideTargetBuffers)]
 		bool overrideTargetBuffers = false;
@@ -574,7 +601,7 @@ namespace RenderPipeline
 		RenderTexture depthBuffer;
 		bool isRebuildCommandBuffers;
 		
-		PostProcess[] postProcesses = new PostProcess[ 6];
+		PostProcess[] postProcesses = new PostProcess[ kPriorityMax];
 		CommandBuffer commandBufferDepthTexture;
 		CommandBuffer commandBufferPostProcesses;
 		
@@ -587,3 +614,4 @@ namespace RenderPipeline
 	#endif
 	}
 }
+	
