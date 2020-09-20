@@ -24,6 +24,11 @@ namespace RenderPipeline
 			get{ return fastMode; }
 			set{ fastMode = value; }
 		}
+		public bool DebugMode
+		{
+			get{ return debugMode; }
+			set{ debugMode = value; }
+		}
 		public float Intensity
 		{
 			get{ return intensity; }
@@ -86,6 +91,11 @@ namespace RenderPipeline
 						material.DisableKeyword( kShaderKeywordFastMode);
 					}
 				}
+				if( cacheDebugMode != debugMode)
+				{
+					cacheDebugMode = debugMode;
+					rebuild = true;
+				}
 				if( cacheIntensity != intensity)
 				{
 					material.SetFloat( kShaderPropertyIntensity, intensity);
@@ -120,6 +130,8 @@ namespace RenderPipeline
 		bool enabled = true;
 		[SerializeField]
 		bool fastMode = true;
+		[SerializeField]
+		bool debugMode = false;
 		[SerializeField, Range( 0, 3)]
 		float intensity = 1.0f;
 		[SerializeField, Range( 0, 3)]
@@ -133,6 +145,8 @@ namespace RenderPipeline
 		bool? cacheEnabled;
 		[System.NonSerialized]
 		bool? cacheFastMode;
+		[System.NonSerialized]
+		bool? cacheDebugMode;
 		[System.NonSerialized]
 		float? cacheIntensity;
 		[System.NonSerialized]

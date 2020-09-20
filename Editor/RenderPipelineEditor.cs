@@ -10,43 +10,37 @@ namespace RenderPipeline.Editor
 	{
 		public override void OnInspectorGUI()
 		{
-			serializedObject.Update();
+			var defaultDepthTextureMode = serializedObject.FindProperty( "defaultDepthTextureMode");
+			var overrideTargetBuffers = serializedObject.FindProperty( "overrideTargetBuffers");
+			var postProcessesTarget = serializedObject.FindProperty( "postProcessesTarget");
 			
-			SerializedProperty iterator = serializedObject.GetIterator();
-			int currentDepth = 0;
-			
-			while( iterator.NextVisible( true) != false)
+			if( defaultDepthTextureMode == null
+			||	overrideTargetBuffers == null
+			||	postProcessesTarget == null)
 			{
-				if( iterator.editable == false
-				||	currentDepth < iterator.depth)
-				{
-					continue;
-				}
-				if( iterator.propertyType == SerializedPropertyType.ObjectReference)
-				{
-					if( iterator.name == "m_Script" && iterator.type == "PPtr<MonoScript>")
-					{
-						continue;
-					}
-					if( iterator.objectReferenceValue is Shader)
-					{
-						continue;
-					}
-				}
-				
-				EditorGUI.indentLevel = iterator.depth;
-				EditorGUILayout.PropertyField( iterator, false);
-				
-				if( iterator.isExpanded != false)
-	            {
-	                currentDepth = iterator.depth + 1;
-	            }
-	            else
-	            {
-	                currentDepth = iterator.depth;
-	            }
+				base.OnInspectorGUI();
 			}
-			serializedObject.ApplyModifiedProperties();
+			else
+			{
+				serializedObject.Update();
+				
+				EditorGUILayout.PropertyField( defaultDepthTextureMode, true);
+				EditorGUILayout.PropertyField( overrideTargetBuffers, true);
+				
+				if( overrideTargetBuffers.boolValue != false)
+				{
+					var overrideCameraDepthTexture = serializedObject.FindProperty( "overrideCameraDepthTexture");
+					
+					if( overrideCameraDepthTexture != null)
+					{
+						EditorGUI.indentLevel++;
+						EditorGUILayout.PropertyField( overrideCameraDepthTexture, true);
+						EditorGUI.indentLevel--;
+					}
+				}
+				EditorGUILayout.PropertyField( postProcessesTarget, true);
+				serializedObject.ApplyModifiedProperties();
+			}
 		}
 	}
 }

@@ -95,11 +95,10 @@ namespace RenderPipeline
 		}
 		public bool CompareSource0ToTarget0()
 		{
-			var source = (source0texture != colorBuffer)? source0 : 
-				new RenderTargetIdentifier( BuiltinRenderTextureType.CameraTarget);
-			var target = (target0texture != colorBuffer)? target0 : 
-				new RenderTargetIdentifier( BuiltinRenderTextureType.CameraTarget);
-			return source == target;
+			return ( source0 == target0
+			&&	source0type == target0type
+			&&	source0texture == target0texture
+			&&	source0propertyId == target0propertyId);
 		}
 		public void Next()
 		{

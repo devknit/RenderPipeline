@@ -95,73 +95,85 @@ namespace RenderPipeline
 					context.SetTarget0( temporary);
 				}
 			}
-			
-			/**/
-			var shadeTarget = new RenderTargetIdentifier( kShaderTargetShade);
-			commandBuffer.GetTemporaryRT( kShaderTargetShade, shadeDescriptor, FilterMode.Bilinear);
-			
-			commandBuffer.SetRenderTarget( 
-				shadeTarget, 
-				RenderBufferLoadAction.DontCare,	
-				RenderBufferStoreAction.Store,
-				RenderBufferLoadAction.DontCare,	
-				RenderBufferStoreAction.DontCare);
-			if( SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
+			if( Properties.DebugMode != false)
 			{
-				commandBuffer.ClearRenderTarget( false, true, Color.black, 0);
+				commandBuffer.SetRenderTarget( 
+					context.target0,
+					RenderBufferLoadAction.DontCare,	
+					RenderBufferStoreAction.Store,
+					RenderBufferLoadAction.DontCare,	
+					RenderBufferStoreAction.DontCare);
+				commandBuffer.SetGlobalTexture( kShaderPropertyMainTex, context.source0);
+				pipeline.DrawFill( commandBuffer, materialSSAO, 0);
 			}
-			commandBuffer.SetGlobalTexture( kShaderPropertyMainTex, context.source0);
-			pipeline.DrawFill( commandBuffer, materialSSAO, 0);
-			
-			/**/
-			var halfTarget = new RenderTargetIdentifier( kShaderTargetHalf);
-			commandBuffer.GetTemporaryRT( kShaderTargetHalf, halfDescriptor, FilterMode.Bilinear);
-			
-			commandBuffer.SetRenderTarget( 
-				halfTarget, 
-				RenderBufferLoadAction.DontCare,	
-				RenderBufferStoreAction.Store,
-				RenderBufferLoadAction.DontCare,	
-				RenderBufferStoreAction.DontCare);
-			if( SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
+			else
 			{
-				commandBuffer.ClearRenderTarget( false, true, Color.black, 0);
+				/**/
+				var shadeTarget = new RenderTargetIdentifier( kShaderTargetShade);
+				commandBuffer.GetTemporaryRT( kShaderTargetShade, shadeDescriptor, FilterMode.Bilinear);
+				
+				commandBuffer.SetRenderTarget( 
+					shadeTarget, 
+					RenderBufferLoadAction.DontCare,	
+					RenderBufferStoreAction.Store,
+					RenderBufferLoadAction.DontCare,	
+					RenderBufferStoreAction.DontCare);
+				if( SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
+				{
+					commandBuffer.ClearRenderTarget( false, true, Color.black, 0);
+				}
+				commandBuffer.SetGlobalTexture( kShaderPropertyMainTex, context.source0);
+				pipeline.DrawFill( commandBuffer, materialSSAO, 0);
+				
+				/**/
+				var halfTarget = new RenderTargetIdentifier( kShaderTargetHalf);
+				commandBuffer.GetTemporaryRT( kShaderTargetHalf, halfDescriptor, FilterMode.Bilinear);
+				
+				commandBuffer.SetRenderTarget( 
+					halfTarget, 
+					RenderBufferLoadAction.DontCare,	
+					RenderBufferStoreAction.Store,
+					RenderBufferLoadAction.DontCare,	
+					RenderBufferStoreAction.DontCare);
+				if( SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
+				{
+					commandBuffer.ClearRenderTarget( false, true, Color.black, 0);
+				}
+				commandBuffer.SetGlobalTexture( kShaderPropertyMainTex, shadeTarget);
+				pipeline.DrawFill( commandBuffer, materialSSAO, 1);
+				
+				/**/
+				var quarterTarget = new RenderTargetIdentifier( kShaderTargetQuarter);
+				commandBuffer.GetTemporaryRT( kShaderTargetQuarter, quarterDescriptor, FilterMode.Bilinear);
+				
+				commandBuffer.SetRenderTarget( 
+					quarterTarget, 
+					RenderBufferLoadAction.DontCare,	
+					RenderBufferStoreAction.Store,
+					RenderBufferLoadAction.DontCare,	
+					RenderBufferStoreAction.DontCare);
+				if( SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
+				{
+					commandBuffer.ClearRenderTarget( false, true, Color.black, 0);
+				}
+				commandBuffer.SetGlobalTexture( kShaderPropertyMainTex, halfTarget);
+				pipeline.DrawFill( commandBuffer, materialSSAO, 1);
+				
+				/**/
+				commandBuffer.SetRenderTarget( 
+					context.target0,
+					RenderBufferLoadAction.DontCare,	
+					RenderBufferStoreAction.Store,
+					RenderBufferLoadAction.DontCare,	
+					RenderBufferStoreAction.DontCare);
+				commandBuffer.SetGlobalTexture( kShaderPropertyMainTex, context.source0);
+				commandBuffer.SetGlobalTexture( kShaderPropertyBlurTex, quarterTarget);
+				pipeline.DrawFill( commandBuffer, materialSSAO, 2);
+				
+				commandBuffer.ReleaseTemporaryRT( kShaderTargetShade);
+				commandBuffer.ReleaseTemporaryRT( kShaderTargetHalf);
+				commandBuffer.ReleaseTemporaryRT( kShaderTargetQuarter);
 			}
-			commandBuffer.SetGlobalTexture( kShaderPropertyMainTex, shadeTarget);
-			pipeline.DrawFill( commandBuffer, materialSSAO, 1);
-			
-			/**/
-			var quarterTarget = new RenderTargetIdentifier( kShaderTargetQuarter);
-			commandBuffer.GetTemporaryRT( kShaderTargetQuarter, quarterDescriptor, FilterMode.Bilinear);
-			
-			commandBuffer.SetRenderTarget( 
-				quarterTarget, 
-				RenderBufferLoadAction.DontCare,	
-				RenderBufferStoreAction.Store,
-				RenderBufferLoadAction.DontCare,	
-				RenderBufferStoreAction.DontCare);
-			if( SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
-			{
-				commandBuffer.ClearRenderTarget( false, true, Color.black, 0);
-			}
-			commandBuffer.SetGlobalTexture( kShaderPropertyMainTex, halfTarget);
-			pipeline.DrawFill( commandBuffer, materialSSAO, 1);
-			
-			/**/
-			commandBuffer.SetRenderTarget( 
-				context.target0,
-				RenderBufferLoadAction.DontCare,	
-				RenderBufferStoreAction.Store,
-				RenderBufferLoadAction.DontCare,	
-				RenderBufferStoreAction.DontCare);
-			commandBuffer.SetGlobalTexture( kShaderPropertyMainTex, context.source0);
-			commandBuffer.SetGlobalTexture( kShaderPropertyBlurTex, quarterTarget);
-			pipeline.DrawFill( commandBuffer, materialSSAO, 2);
-			
-			commandBuffer.ReleaseTemporaryRT( kShaderTargetShade);
-			commandBuffer.ReleaseTemporaryRT( kShaderTargetHalf);
-			commandBuffer.ReleaseTemporaryRT( kShaderTargetQuarter);
-			
 			context.duplicated = false;
 		}
 		
