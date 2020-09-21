@@ -9,7 +9,9 @@ namespace RenderPipeline
 		{
 			if( (updateFlags & BloomProperties.kChangeThresholds) != 0)
 			{
-				if( SystemInfo.SupportsRenderTextureFormat( RenderTextureFormat.RGB111110Float) != false)
+				if( SystemInfo.SupportsRenderTextureFormat( RenderTextureFormat.ARGBHalf) != false
+				||	SystemInfo.SupportsRenderTextureFormat( RenderTextureFormat.ARGBFloat) != false
+				||	SystemInfo.SupportsRenderTextureFormat( RenderTextureFormat.RGB111110Float) != false)
 				{
 					if( material.IsKeywordEnabled( kShaderKeywordLDR) != false)
 					{

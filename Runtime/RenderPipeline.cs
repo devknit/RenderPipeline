@@ -41,23 +41,17 @@ namespace RenderPipeline
 			CollectionProcesses();
 			RebuildCommandBuffers();
 		}
+	#if UNITY_EDITOR
 		void OnDisable()
 		{
-			if( commandBufferDepthTexture != null)
-			{
-				cacheCamera.RemoveCommandBuffer( CameraEvent.AfterForwardOpaque, commandBufferDepthTexture);
-				commandBufferDepthTexture = null;
-			}
-			if( commandBufferOpaqueProcesses != null)
-			{
-				cacheCamera.RemoveCommandBuffer( CameraEvent.BeforeImageEffectsOpaque, commandBufferOpaqueProcesses);
-				commandBufferOpaqueProcesses = null;
-			}
-			if( commandBufferPostProcesses != null)
-			{
-				cacheCamera.RemoveCommandBuffer( CameraEvent.BeforeImageEffects, commandBufferPostProcesses);
-				commandBufferPostProcesses = null;
-			}
+			cacheCamera.SetTargetBuffers( Display.main.colorBuffer, Display.main.depthBuffer);
+			cacheCamera.depthTextureMode = DepthTextureMode.None;
+			cacheCamera.forceIntoRenderTexture = false;
+			cacheCamera.allowHDR = false;
+			cacheCamera.allowMSAA = false;
+			
+			RemoveCommandBuffers();
+			
 			for( int i0 = 0; i0 < opaqueProcesses.Length; ++i0)
 			{
 				opaqueProcesses[ i0]?.ClearCache();
@@ -66,19 +60,15 @@ namespace RenderPipeline
 			{
 				postProcesses[ i0]?.ClearCache();
 			}
-			cacheCamera.allowHDR = false;
-			cacheCamera.allowMSAA = false;
-			cacheCamera.forceIntoRenderTexture = false;
-			cacheCamera.depthTextureMode = DepthTextureMode.None;
-		#if UNITY_EDITOR
-			cacheCamera.SetTargetBuffers( Display.main.colorBuffer, Display.main.depthBuffer);
-		#endif
 		}
+	#endif
 		void OnDestroy()
 		{
 		#if UNITY_EDITOR
 			cacheCamera.SetTargetBuffers( Display.main.colorBuffer, Display.main.depthBuffer);
 		#endif
+			RemoveCommandBuffers();
+			
 			for( int i0 = 0; i0 < opaqueProcesses.Length; ++i0)
 			{
 				opaqueProcesses[ i0]?.Dispose();
@@ -121,8 +111,6 @@ namespace RenderPipeline
 			{
 				return;
 			}
-		#endif
-		#if UNITY_EDITOR
 			if( CollectionProcesses() != false)
 			{
 				isRebuildCommandBuffers = true;
@@ -143,11 +131,14 @@ namespace RenderPipeline
 				cacheDefaultDepthTextureMode = defaultDepthTextureMode;
 				isRebuildCommandBuffers = true;
 			}
+			if( shaderCopy != null && materialCopy == null)
+			{
+				materialCopy = new Material( shaderCopy);
+			}
 		#endif
 			if( OverrideTargetBuffers != false)
 			{
-				if( cacheWidth != Screen.width
-				||	cacheHeight != Screen.height)
+				if( cacheScreenWidth != Screen.width || cacheScreenHeight != Screen.height)
 				{
 					isRebuildCommandBuffers = true;
 				}
@@ -190,17 +181,8 @@ namespace RenderPipeline
 			}
 			return rebuild;
 		}
-		void RebuildCommandBuffers()
+		void RemoveCommandBuffers()
 		{
-			var enabledOpaqueProcesses = new List<PostProcess>();
-			var enabledPostProcesses = new List<PostProcess>();
-			var depthTextureMode = defaultDepthTextureMode;
-			bool highDynamicRange = false;
-			bool forceIntoRenderTexture = false;
-			PostProcess process, prevProcess;
-			int i0;
-			
-			/* 既存のコマンドバッファを解放する */
 			if( commandBufferDepthTexture != null)
 			{
 				cacheCamera.RemoveCommandBuffer( CameraEvent.AfterForwardOpaque, commandBufferDepthTexture);
@@ -216,6 +198,19 @@ namespace RenderPipeline
 				cacheCamera.RemoveCommandBuffer( CameraEvent.BeforeImageEffects, commandBufferPostProcesses);
 				commandBufferPostProcesses = null;
 			}
+		}
+		void RebuildCommandBuffers()
+		{
+			var enabledOpaqueProcesses = new List<PostProcess>();
+			var enabledPostProcesses = new List<PostProcess>();
+			var depthTextureMode = defaultDepthTextureMode;
+			bool highDynamicRangeTarget = false;
+			bool forceIntoRenderTexture = false;
+			PostProcess process, prevProcess;
+			int i0;
+			
+			/* 既存のコマンドバッファを解放する */
+			RemoveCommandBuffers();
 			
 			/* 有効なプロセスを収集すると共にバッファの属性を求める */
 			for( i0 = 0, prevProcess = null; i0 < opaqueProcesses.Length; ++i0)
@@ -229,7 +224,7 @@ namespace RenderPipeline
 					
 					if( process.IsHighDynamicRange() != false)
 					{
-						highDynamicRange = true;
+						highDynamicRangeTarget = true;
 					}
 					if( prevProcess != null)
 					{
@@ -253,7 +248,7 @@ namespace RenderPipeline
 					
 					if( process.IsHighDynamicRange() != false)
 					{
-						highDynamicRange = true;
+						highDynamicRangeTarget = true;
 					}
 					if( prevProcess != null)
 					{
@@ -314,8 +309,8 @@ namespace RenderPipeline
 					}
 				}
 				cacheCamera.SetTargetBuffers( colorBuffer.colorBuffer, depthBuffer.depthBuffer);
-				cacheWidth = Screen.width;
-				cacheHeight = Screen.height;
+				cacheScreenWidth = Screen.width;
+				cacheScreenHeight = Screen.height;
 				
 				if( (depthTextureMode & DepthTextureMode.Depth) != 0 && OverrideCameraDepthTexture != false)
 				{
@@ -337,7 +332,7 @@ namespace RenderPipeline
 			if( enabledOpaqueProcesses.Count > 0)
 			{
 				commandBufferOpaqueProcesses = new CommandBuffer();
-				commandBufferOpaqueProcesses.name = "CameraPipeline::PostProcesses";
+				commandBufferOpaqueProcesses.name = "CameraPipeline::OpaqueProcesses";
 				commandBufferOpaqueProcesses.Clear();
 				commandBufferOpaqueProcesses.SetProjectionMatrix( Matrix4x4.Ortho( 0, 1, 0, 1, 0, 1));
 				commandBufferOpaqueProcesses.SetViewMatrix( Matrix4x4.identity);
@@ -398,7 +393,7 @@ namespace RenderPipeline
 									return recycleTemporary.propertyId;
 								}
 							}
-							int temporary = Shader.PropertyToID( "CameraPipeline::Temporary" + temporaryCount);
+							int temporary = Shader.PropertyToID( "CameraPipeline::OpaqueTemporary" + temporaryCount);
 							commandBufferOpaqueProcesses.GetTemporaryRT( temporary, width, height, depth, filterMode, format);
 							usedTemporaries.Add( temporary, new TemporaryTarget( temporary, width, height, depth, filterMode, format));
 							++temporaryCount;
@@ -472,7 +467,7 @@ namespace RenderPipeline
 										return recycleTemporary.propertyId;
 									}
 								}
-								int temporary = Shader.PropertyToID( "CameraPipeline::Temporary" + temporaryCount);
+								int temporary = Shader.PropertyToID( "CameraPipeline::PostTemporary" + temporaryCount);
 								commandBufferPostProcesses.GetTemporaryRT( temporary, width, height, depth, filterMode, format);
 								usedTemporaries.Add( temporary, new TemporaryTarget( temporary, width, height, depth, filterMode, format));
 								++temporaryCount;
@@ -496,7 +491,7 @@ namespace RenderPipeline
 				}
 				cacheCamera.AddCommandBuffer( CameraEvent.BeforeImageEffects, commandBufferPostProcesses);
 			}
-			cacheCamera.allowHDR = highDynamicRange;
+			cacheCamera.allowHDR = highDynamicRangeTarget;
 			cacheCamera.depthTextureMode = depthTextureMode;
 			cacheCamera.forceIntoRenderTexture = forceIntoRenderTexture;
 			isRebuildCommandBuffers = false;
@@ -607,8 +602,8 @@ namespace RenderPipeline
 		CommandBuffer commandBufferPostProcesses;
 		
 		Camera cacheCamera;
-		int? cacheWidth;
-		int? cacheHeight;
+		int? cacheScreenWidth;
+		int? cacheScreenHeight;
 	#if UNITY_EDITOR
 		DepthTextureMode? cacheDefaultDepthTextureMode;
 		bool? cacheOverrideTargetBuffers;
