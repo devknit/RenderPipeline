@@ -14,21 +14,9 @@ namespace RenderPipeline
 		}
 		internal override void Create()
 		{
-			if( brightnessExtractionShader != null && brightnessExtractionMaterial == null)
+			if( shader != null && material == null)
 			{
-				brightnessExtractionMaterial = new Material( brightnessExtractionShader);
-			}
-			if( gaussianBlurShader != null && gaussianBlurMaterial == null)
-			{
-				gaussianBlurMaterial = new Material( gaussianBlurShader);
-			}
-			if( combineShader != null && combineMaterial == null)
-			{
-				combineMaterial = new Material( combineShader);
-			}
-			if( compositionShader != null && compositionMaterial == null)
-			{
-				compositionMaterial = new Material( compositionShader);
+				material = new Material( shader);
 			}
 			brightnessExtractionMesh = new Mesh();
 			brightnessExtractionMesh.MarkDynamic();
@@ -41,25 +29,10 @@ namespace RenderPipeline
 		}
 		internal override void Dispose()
 		{
-			if( brightnessExtractionMaterial != null)
+			if( material != null)
 			{
-				ObjectUtility.Release( brightnessExtractionMaterial);
-				brightnessExtractionMaterial = null;
-			}
-			if( gaussianBlurMaterial != null)
-			{
-				ObjectUtility.Release( gaussianBlurMaterial);
-				gaussianBlurMaterial = null;
-			}
-			if( combineMaterial != null)
-			{
-				ObjectUtility.Release( combineMaterial);
-				combineMaterial = null;
-			}
-			if( compositionMaterial != null)
-			{
-				ObjectUtility.Release( compositionMaterial);
-				compositionMaterial = null;
+				ObjectUtility.Release( material);
+				material = null;
 			}
 			if( brightnessExtractionMesh != null)
 			{
@@ -86,35 +59,16 @@ namespace RenderPipeline
 		{
 			bool rebuild = false;
 			
-			if( brightnessExtractionShader != null && brightnessExtractionMaterial == null)
+			if( shader != null && material == null)
 			{
-				brightnessExtractionMaterial = new Material( brightnessExtractionShader);
-				rebuild = true;
-			}
-			if( gaussianBlurShader != null && gaussianBlurMaterial == null)
-			{
-				gaussianBlurMaterial = new Material( gaussianBlurShader);
-				rebuild = true;
-			}
-			if( combineShader != null && combineMaterial == null)
-			{
-				combineMaterial = new Material( combineShader);
-				rebuild = true;
-			}
-			if( compositionShader != null && compositionMaterial == null)
-			{
-				compositionMaterial = new Material( compositionShader);
+				material = new Material( shader);
 				rebuild = true;
 			}
 			return rebuild;
 		}
 		internal override bool Valid()
 		{
-			if( Properties.Enabled != false 
-				&& brightnessExtractionMaterial != null
-				&& gaussianBlurMaterial != null
-				&& combineMaterial != null
-				&& compositionMaterial != null)
+			if( Properties.Enabled != false && material != null)
 			{
 				if( cacheWidth.HasValue != false && cacheHeight.HasValue != false)
 				{
@@ -212,7 +166,7 @@ namespace RenderPipeline
 				commandBuffer.ClearRenderTarget( false, true, Color.black, 0);
 			}
 			commandBuffer.SetGlobalTexture( kShaderPropertyMainTex, context.source0);
-			commandBuffer.DrawMesh( brightnessExtractionMesh, Matrix4x4.identity, brightnessExtractionMaterial);
+			commandBuffer.DrawMesh( brightnessExtractionMesh, Matrix4x4.identity, material, 0, 0);
 		
 			var gaussianBlurHorizontalTarget = new RenderTargetIdentifier( kShaderPropertyGaussianBlurHorizontalTarget);
 			commandBuffer.GetTemporaryRT( kShaderPropertyGaussianBlurHorizontalTarget, blurDescriptor, FilterMode.Bilinear);
@@ -228,7 +182,7 @@ namespace RenderPipeline
 				commandBuffer.ClearRenderTarget( false, true, Color.black, 0);
 			}
 			commandBuffer.SetGlobalTexture( kShaderPropertyMainTex, brightnessExtractionTarget);
-			commandBuffer.DrawMesh( blurHorizontalMesh, Matrix4x4.identity, gaussianBlurMaterial);
+			commandBuffer.DrawMesh( blurHorizontalMesh, Matrix4x4.identity, material, 0, 1);
 			
 			var gaussianBlurVerticalTarget = new RenderTargetIdentifier( kShaderPropertyGaussianBlurVerticalTarget);
 			commandBuffer.GetTemporaryRT( kShaderPropertyGaussianBlurVerticalTarget, blurDescriptor, FilterMode.Bilinear);
@@ -244,7 +198,7 @@ namespace RenderPipeline
 				commandBuffer.ClearRenderTarget( false, true, Color.black, 0);
 			}
 			commandBuffer.SetGlobalTexture( kShaderPropertyMainTex, kShaderPropertyGaussianBlurHorizontalTarget);
-			commandBuffer.DrawMesh( blurVerticalMesh, Matrix4x4.identity, gaussianBlurMaterial);
+			commandBuffer.DrawMesh( blurVerticalMesh, Matrix4x4.identity, material, 0, 1);
 			
 			var combineTarget = new RenderTargetIdentifier( kShaderPropertyCombineTarget);
 			if( combinePassCount > 0)
@@ -261,7 +215,7 @@ namespace RenderPipeline
 					commandBuffer.ClearRenderTarget( false, true, Color.black, 0);
 				}
 				commandBuffer.SetGlobalTexture( kShaderPropertyMainTex, gaussianBlurVerticalTarget);
-				commandBuffer.DrawMesh( combineMesh, Matrix4x4.identity, combineMaterial);
+				commandBuffer.DrawMesh( combineMesh, Matrix4x4.identity, material, 0, 2);
 			}
 			
 			commandBuffer.SetGlobalTexture( kShaderPropertyMainTex, context.source0);
@@ -279,7 +233,7 @@ namespace RenderPipeline
 					context.depthBuffer,
 					RenderBufferLoadAction.DontCare,
 					RenderBufferStoreAction.DontCare));
-				pipeline.DrawFill( commandBuffer, compositionMaterial, 1);
+				pipeline.DrawFill( commandBuffer, material, 4);
 				context.duplicated = true;
 			}
 			else
@@ -290,7 +244,7 @@ namespace RenderPipeline
 					RenderBufferStoreAction.Store,
 					RenderBufferLoadAction.DontCare,	
 					RenderBufferStoreAction.DontCare);
-				pipeline.DrawFill( commandBuffer, compositionMaterial, 0);
+				pipeline.DrawFill( commandBuffer, material, 3);
 				context.duplicated = false;
 			}
 			if( combinePassCount > 0)
@@ -452,10 +406,14 @@ namespace RenderPipeline
 		}
 		
 		const string kShaderKeywordLDR = "LDR";
-		const string kShaderKeywordSample1 = "SAMPLE1";
-		const string kShaderKeywordSample2 = "SAMPLE2";
-		const string kShaderKeywordSample4 = "SAMPLE4";
-		const string kShaderKeywordCombined = "COMBINED";
+		
+		const string kShaderKeywordCombineSample1 = "COMBINE_SAMPLE1";
+		const string kShaderKeywordCombineSample2 = "COMBINE_SAMPLE2";
+		const string kShaderKeywordCombineSample4 = "COMBINE_SAMPLE4";
+		const string kShaderKeywordCompositionSample1 = "COMPOSITION_SAMPLE1";
+		const string kShaderKeywordCompositionSample2 = "COMPOSITION_SAMPLE2";
+		const string kShaderKeywordCompositionSample4 = "COMPOSITION_SAMPLE4";
+		const string kShaderKeywordCompositionCombined = "COMPOSITION_COMBINED";
 		
 		static readonly int kShaderPropertyBrightnessExtractionTarget = Shader.PropertyToID( "_BrightnessExtractionTarget");
 		static readonly int kShaderPropertyGaussianBlurHorizontalTarget = Shader.PropertyToID( "_GaussianBlurHorizontalTarget");
@@ -489,32 +447,25 @@ namespace RenderPipeline
 		static readonly int kShaderPropertyBloomWeightCombined = Shader.PropertyToID( "_BloomWeightCombined");
 		static readonly int kShaderPropertyBloomUvTransformCombined = Shader.PropertyToID( "_BloomUvTransformCombined");
 		
-		[SerializeField]
-        Shader brightnessExtractionShader = default;
-		[SerializeField]
-        Shader gaussianBlurShader = default;
-		[SerializeField]
-		Shader combineShader = default;
-        [SerializeField]
-        Shader compositionShader = default;
+		
+		
         [SerializeField]
         BloomSettings sharedSettings = default;
         [SerializeField]
         BloomProperties properties = default;
+        [SerializeField]
+		Shader shader = default;
+		
+		Material material;
 	
-		RenderTextureDescriptor brightnessExtractionDescriptor;
-		RenderTextureDescriptor blurDescriptor;
-		RenderTextureDescriptor combineDescriptor;
-		
-		Material brightnessExtractionMaterial;
-		Material gaussianBlurMaterial;
-		Material combineMaterial;
-		Material compositionMaterial;
-		
 		Mesh brightnessExtractionMesh;
 		Mesh blurHorizontalMesh;
 		Mesh blurVerticalMesh;
 		Mesh combineMesh;
+		
+		RenderTextureDescriptor brightnessExtractionDescriptor;
+		RenderTextureDescriptor blurDescriptor;
+		RenderTextureDescriptor combineDescriptor;
 		
 		BlurSample blurSample0;
 		BlurSample blurSample1;
