@@ -4,8 +4,8 @@ MonoImporter:
   externalObjects: {}
   serializedVersion: 2
   defaultReferences:
-  - shaderSSAO: {fileID: 4800000, guid: a44417ae99f520349a8cfda976a7d46a, type: 3}
   - sharedSettings: {instanceID: 0}
+  - shader: {fileID: 4800000, guid: a44417ae99f520349a8cfda976a7d46a, type: 3}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 
