@@ -4,7 +4,8 @@ MonoImporter:
   externalObjects: {}
   serializedVersion: 2
   defaultReferences:
-  - screenBlendShader: {fileID: 4800000, guid: 4ebc102d93d94d44ba8d52d90f7d16b2, type: 3}
+  - sharedSettings: {instanceID: 0}
+  - shader: {fileID: 4800000, guid: 4ebc102d93d94d44ba8d52d90f7d16b2, type: 3}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 

@@ -7,40 +7,40 @@ namespace RenderPipeline
 	[System.Serializable]
 	public sealed partial class EdgeDetection : PostProcess
 	{
-	public enum DetectType : int
+		public enum DetectType : int
 		{
 			kCheap,
 			kThin
 		}
 		internal override void Create()
 		{
-			if( edgeDetectShader != null && edgeDetectMaterial == null)
+			if( shader != null && material == null)
 			{
-				edgeDetectMaterial = new Material( edgeDetectShader);
+				material = new Material( shader);
 			}
 		}
 		internal override void Dispose()
 		{
-			if( edgeDetectMaterial != null)
+			if( material != null)
 			{
-				ObjectUtility.Release( edgeDetectMaterial);
-				edgeDetectMaterial = null;
+				ObjectUtility.Release( material);
+				material = null;
 			}
 		}
 		internal override bool RestoreResources()
 		{
 			bool rebuild = false;
 			
-			if( ObjectUtility.IsMissing( edgeDetectMaterial) != false)
+			if( shader != null && material == null)
 			{
-				edgeDetectMaterial = new Material( edgeDetectShader);
+				material = new Material( shader);
 				rebuild = true;
 			}
 			return rebuild;
 		}
 		internal override bool Valid()
 		{
-			return enabled != false && edgeDetectMaterial != null;
+			return enabled != false && material != null;
 		}
 		internal override void ClearCache()
 		{
@@ -74,7 +74,7 @@ namespace RenderPipeline
 				}
 				if( cacheColor != color)
 				{
-					edgeDetectMaterial.SetColor( kShaderPropertyColor, color);
+					material.SetColor( kShaderPropertyColor, color);
 					cacheColor = color;
 				}
 				if( cacheSampleDistance != sampleDistance)
@@ -87,19 +87,19 @@ namespace RenderPipeline
 					{
 						sampleDistance = 5;
 					}
-					edgeDetectMaterial.SetFloat( kShaderPropertySampleDistance, sampleDistance);
+					material.SetFloat( kShaderPropertySampleDistance, sampleDistance);
 					cacheSampleDistance = sampleDistance;
 				}
 				if( cacheStencilReference != stencilReference)
 				{
 					stencilReference = Mathf.Clamp( stencilReference, 0, 255);
-					edgeDetectMaterial.SetInt( kShaderPropertyStencilRef, stencilReference);
+					material.SetInt( kShaderPropertyStencilRef, stencilReference);
 					cacheStencilReference = stencilReference;
 				}
 				if( cacheStencilReadMask != stencilReadMask)
 				{
 					stencilReadMask = Mathf.Clamp( stencilReadMask, 0, 255);
-					edgeDetectMaterial.SetInt( kShaderPropertyStencilReadMask, stencilReadMask);
+					material.SetInt( kShaderPropertyStencilReadMask, stencilReadMask);
 					cacheStencilReadMask = stencilReadMask;
 				}
 				if( cacheStencilCompare != stencilCompare)
@@ -119,7 +119,7 @@ namespace RenderPipeline
 					{
 						rebuild = true;
 					}
-					edgeDetectMaterial.SetInt( kShaderPropertyStencilComp, (int)stencilCompare);
+					material.SetInt( kShaderPropertyStencilComp, (int)stencilCompare);
 					cacheStencilCompare = stencilCompare;
 				}
 			}
@@ -171,7 +171,7 @@ namespace RenderPipeline
 				RenderBufferLoadAction.Load,	
 				RenderBufferStoreAction.DontCare);
 			commandBuffer.SetGlobalTexture( kShaderPropertyMainTex, context.source0);
-			pipeline.DrawFill( commandBuffer, edgeDetectMaterial, (int)detectType);
+			pipeline.DrawFill( commandBuffer, material, (int)detectType);
 			context.duplicated = false;
 		}
 		
@@ -181,7 +181,7 @@ namespace RenderPipeline
 		static readonly int kShaderPropertyStencilComp = Shader.PropertyToID( "_StencilComp");
 		
 		[SerializeField]
-        Shader edgeDetectShader = default;
+		Shader shader = default;
 		[SerializeField]
 		DetectType detectType = DetectType.kThin;
 		[SerializeField]
@@ -195,7 +195,7 @@ namespace RenderPipeline
 		[SerializeField]
 		CompareFunction stencilCompare = CompareFunction.Equal;
 		
-		Material edgeDetectMaterial;
+		Material material;
 		
 		bool? cacheEnabled;
 		DetectType? cacheDetectType;

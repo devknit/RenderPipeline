@@ -16,33 +16,33 @@ namespace RenderPipeline
 		}
 		internal override void Create()
 		{
-			if( depthOfFieldShader != null && depthOfFieldMaterial == null)
+			if( shader != null && material == null)
 			{
-				depthOfFieldMaterial = new Material( depthOfFieldShader);
+				material = new Material( shader);
 			}
 		}
 		internal override void Dispose()
 		{
-			if( depthOfFieldMaterial != null)
+			if( material != null)
 			{
-				ObjectUtility.Release( depthOfFieldMaterial);
-				depthOfFieldMaterial = null;
+				ObjectUtility.Release( material);
+				material = null;
 			}
 		}
 		internal override bool RestoreResources()
 		{
 			bool rebuild = false;
 			
-			if( ObjectUtility.IsMissing( depthOfFieldMaterial) != false)
+			if( shader != null && material == null)
 			{
-				depthOfFieldMaterial = new Material( depthOfFieldShader);
+				material = new Material( shader);
 				rebuild = true;
 			}
 			return rebuild;
 		}
 		internal override bool Valid()
 		{
-			return enabled != false && depthOfFieldMaterial != null;
+			return enabled != false && material != null;
 		}
 		internal override void ClearCache()
 		{
@@ -120,12 +120,12 @@ namespace RenderPipeline
 						(focalLength - cacheCamera.nearClipPlane) * cacheCamera.transform.forward + 
 						cacheCamera.transform.position).z / (cacheCamera.farClipPlane - cacheCamera.nearClipPlane):
 						(cacheCamera.WorldToViewportPoint( focalTransform.position)).z / (cacheCamera.farClipPlane);
-				depthOfFieldMaterial.SetVector( kShaderPropertyCurveParams,
+				material.SetVector( kShaderPropertyCurveParams,
 					new Vector4( 1.0f, focalSize, (1.0f / (1.0f - aperture) - 1.0f), focalDistance01));
 				
 				if( updateOffsets != false)
 				{
-					depthOfFieldMaterial.SetVector( 
+					material.SetVector( 
 						kShaderPropertyOffsets, (highResolution != false)?
 						new Vector4( 0.025f, blurWidth * 2.0f, 0, 0) : 
 						new Vector4( 0.1f, blurWidth, (Screen.width / (Screen.width >> 1)) * blurWidth, 0));
@@ -168,7 +168,7 @@ namespace RenderPipeline
 					RenderBufferStoreAction.Store,
 					RenderBufferLoadAction.DontCare,	
 					RenderBufferStoreAction.DontCare);
-				pipeline.DrawFill( commandBuffer, depthOfFieldMaterial, 7);
+				pipeline.DrawFill( commandBuffer, material, 7);
 			}
 			else
 			{
@@ -181,7 +181,7 @@ namespace RenderPipeline
 					RenderBufferLoadAction.DontCare,	
 					RenderBufferStoreAction.DontCare);
 				commandBuffer.SetGlobalTexture( kShaderPropertyMainTex, context.source0);
-				pipeline.DrawFill( commandBuffer, depthOfFieldMaterial, 0);
+				pipeline.DrawFill( commandBuffer, material, 0);
 				
 				int pass = (blurQuality == BlurQuality.kLow)? 2 : 3;
 				
@@ -194,7 +194,7 @@ namespace RenderPipeline
 						RenderBufferLoadAction.DontCare,	
 						RenderBufferStoreAction.DontCare);
 					commandBuffer.SetGlobalTexture( kShaderPropertyMainTex, alphaDepthTarget);
-					pipeline.DrawFill( commandBuffer, depthOfFieldMaterial, pass);
+					pipeline.DrawFill( commandBuffer, material, pass);
 				}
 				else
 				{
@@ -214,7 +214,7 @@ namespace RenderPipeline
 						RenderBufferLoadAction.DontCare,	
 						RenderBufferStoreAction.DontCare);
 					commandBuffer.SetGlobalTexture( kShaderPropertyMainTex, alphaDepthTarget);
-					pipeline.DrawFill( commandBuffer, depthOfFieldMaterial, 1);
+					pipeline.DrawFill( commandBuffer, material, 1);
 					
 					commandBuffer.SetRenderTarget( 
 						lowDiscTarget, 
@@ -223,7 +223,7 @@ namespace RenderPipeline
 						RenderBufferLoadAction.DontCare,	
 						RenderBufferStoreAction.DontCare);
 					commandBuffer.SetGlobalTexture( kShaderPropertyMainTex, lowBlurTarget);
-					pipeline.DrawFill( commandBuffer, depthOfFieldMaterial, pass);
+					pipeline.DrawFill( commandBuffer, material, pass);
 					
 					switch( blurQuality)
 					{
@@ -251,7 +251,7 @@ namespace RenderPipeline
 						RenderBufferStoreAction.DontCare);
 					commandBuffer.SetGlobalTexture( kShaderPropertyMainTex, alphaDepthTarget);
 					commandBuffer.SetGlobalTexture( kShaderPropertyLowRez, lowDiscTarget);
-					pipeline.DrawFill( commandBuffer, depthOfFieldMaterial, pass);
+					pipeline.DrawFill( commandBuffer, material, pass);
 					
 					commandBuffer.ReleaseTemporaryRT( kShaderPropertyLowBlurTarget);
 					commandBuffer.ReleaseTemporaryRT( kShaderPropertyLowDiscTarget);
@@ -269,7 +269,7 @@ namespace RenderPipeline
 		static readonly int kShaderPropertyLowRez = Shader.PropertyToID( "_LowRez");
 		
 		[SerializeField]
-        Shader depthOfFieldShader = default;
+        Shader shader = default;
 		[SerializeField]
 		Transform focalTransform = null;
 		[SerializeField]
@@ -287,7 +287,9 @@ namespace RenderPipeline
 		[SerializeField]
 		bool visualizeFocus = false;
 		
-		Material depthOfFieldMaterial;
+		[System.NonSerialized]
+		Material material;
+		[System.NonSerialized]
 		float blurWidth = 2.0f;
 		
 		bool? cacheEnabled;

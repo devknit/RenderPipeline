@@ -3,61 +3,13 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using System.Collections.Generic;
 
-//CameraPipeline
 namespace RenderPipeline
 {
 	[ExecuteInEditMode]
 	[DisallowMultipleComponent]
 	[RequireComponent( typeof( Camera))]
-	public sealed class RenderPipeline : MonoBehaviour
+	public sealed partial class RenderPipeline : MonoBehaviour
 	{
-		const int kOpaquePriorityEdgeDetection = 0;
-		const int kOpaquePrioritySSAO = 1;
-		const int kOpaquePriorityMax = 2;
-		
-		public EdgeDetection EdgeDetection
-		{
-			get{ return opaqueProcesses[ kOpaquePriorityEdgeDetection] as EdgeDetection; }
-			private set{ ApplyProcess( ref opaqueProcesses[ kOpaquePriorityEdgeDetection], value); }
-		}
-		public SSAO SSAO
-		{
-			get{ return opaqueProcesses[ kOpaquePrioritySSAO] as SSAO; }
-			private set{ ApplyProcess( ref opaqueProcesses[ kOpaquePrioritySSAO], value); }
-		}
-		
-		const int kPostPriorityBloom = 0;
-		const int kPostPriorityDepthOfField = 1;
-		const int kPostPriorityMosaic = 2;
-		const int kPostPriorityFXAA = 3;
-		const int kPostPriorityScreenBlend = 4;
-		const int kPostPriorityMax = 5;
-		
-		public Bloom Bloom
-		{
-			get{ return postProcesses[ kPostPriorityBloom] as Bloom; }
-			private set{ ApplyProcess( ref postProcesses[ kPostPriorityBloom], value); }
-		}
-		public DepthOfField DepthOfField
-		{
-			get{ return postProcesses[ kPostPriorityDepthOfField] as DepthOfField; }
-			private set{ ApplyProcess( ref postProcesses[ kPostPriorityDepthOfField], value); }
-		}
-		public Mosaic Mosaic
-		{
-			get{ return postProcesses[ kPostPriorityMosaic] as Mosaic; }
-			private set{ ApplyProcess( ref postProcesses[ kPostPriorityMosaic], value); }
-		}
-		public FXAA FXAA
-		{
-			get{ return postProcesses[ kPostPriorityFXAA] as FXAA; }
-			private set{ ApplyProcess( ref postProcesses[ kPostPriorityFXAA], value); }
-		}
-		public ScreenBlend ScreenBlend
-		{
-			get{ return postProcesses[ kPostPriorityScreenBlend] as ScreenBlend; }
-			private set{ ApplyProcess( ref postProcesses[ kPostPriorityScreenBlend], value); }
-		}
 		void Awake()
 		{
 			cacheCamera = GetComponent<Camera>();
@@ -89,116 +41,6 @@ namespace RenderPipeline
 			CollectionProcesses();
 			RebuildCommandBuffers();
 		}
-		void ApplyProcess( ref PostProcess prevProcess, PostProcess newProcess)
-		{
-			if( object.ReferenceEquals( prevProcess, null) == false)
-			{
-				prevProcess.Dispose();
-			}
-			if( newProcess != null)
-			{
-				newProcess.Initialize( this);
-				newProcess.Create();
-				newProcess.CheckParameterChange( true);
-			}
-			prevProcess = newProcess;
-		}
-		bool CollectionProcesses()
-		{
-			GameObject targetObject = (postProcessesTarget != null)? postProcessesTarget : gameObject;
-			bool rebuild = false;
-			
-		#if UNITY_EDITOR
-			if( (opaqueProcesses?.Length ?? 0) != kOpaquePriorityMax)
-			{
-				opaqueProcesses = new PostProcess[ kOpaquePriorityMax];
-				rebuild = true;
-			}
-			if( (postProcesses?.Length ?? 0) != kPostPriorityMax)
-			{
-				postProcesses = new PostProcess[ kPostPriorityMax];
-				rebuild = true;
-			}
-		#endif
-			var edgeDetection = targetObject.GetComponent<EdgeDetection>() as EdgeDetection;
-			if( ObjectUtility.IsMissing( edgeDetection) != false)
-			{
-				EdgeDetection = null;
-				rebuild = true;
-			}
-			else if( EdgeDetection != edgeDetection)
-			{
-				EdgeDetection = edgeDetection;
-				rebuild = true;
-			}
-			var ssao = targetObject.GetComponent<SSAO>() as SSAO;
-			if( ObjectUtility.IsMissing( ssao) != false)
-			{
-				SSAO = null;
-				rebuild = true;
-			}
-			else if( SSAO != ssao)
-			{
-				SSAO = ssao;
-				rebuild = true;
-			}
-			var bloom = targetObject.GetComponent<Bloom>() as Bloom;
-			if( ObjectUtility.IsMissing( bloom) != false)
-			{
-				Bloom = null;
-				rebuild = true;
-			}
-			else if( Bloom != bloom)
-			{
-				Bloom = bloom;
-				rebuild = true;
-			}
-			var depthOfField = targetObject.GetComponent<DepthOfField>() as DepthOfField;
-			if( ObjectUtility.IsMissing( depthOfField) != false)
-			{
-				DepthOfField = null;
-				rebuild = true;
-			}
-			else if( DepthOfField != depthOfField)
-			{
-				DepthOfField = depthOfField;
-				rebuild = true;
-			}
-			var mosaic = targetObject.GetComponent<Mosaic>() as Mosaic;
-			if( ObjectUtility.IsMissing( mosaic) != false)
-			{
-				Mosaic = null;
-				rebuild = true;
-			}
-			else if( Mosaic != mosaic)
-			{
-				Mosaic = mosaic;
-				rebuild = true;
-			}
-			var fxaa = targetObject.GetComponent<FXAA>() as FXAA;
-			if( ObjectUtility.IsMissing( fxaa) != false)
-			{
-				FXAA = null;
-				rebuild = true;
-			}
-			else if( FXAA != fxaa)
-			{
-				FXAA = fxaa;
-				rebuild = true;
-			}
-			var screenBlend = targetObject.GetComponent<ScreenBlend>() as ScreenBlend;
-			if( ObjectUtility.IsMissing( screenBlend) != false)
-			{
-				ScreenBlend = null;
-				rebuild = true;
-			}
-			else if( ScreenBlend != screenBlend)
-			{
-				ScreenBlend = screenBlend;
-				rebuild = true;
-			}
-			return rebuild;
-		}
 		void OnDisable()
 		{
 			if( commandBufferDepthTexture != null)
@@ -215,6 +57,10 @@ namespace RenderPipeline
 			{
 				cacheCamera.RemoveCommandBuffer( CameraEvent.BeforeImageEffects, commandBufferPostProcesses);
 				commandBufferPostProcesses = null;
+			}
+			for( int i0 = 0; i0 < opaqueProcesses.Length; ++i0)
+			{
+				opaqueProcesses[ i0]?.ClearCache();
 			}
 			for( int i0 = 0; i0 < postProcesses.Length; ++i0)
 			{
@@ -233,6 +79,10 @@ namespace RenderPipeline
 		#if UNITY_EDITOR
 			cacheCamera.SetTargetBuffers( Display.main.colorBuffer, Display.main.depthBuffer);
 		#endif
+			for( int i0 = 0; i0 < opaqueProcesses.Length; ++i0)
+			{
+				opaqueProcesses[ i0]?.Dispose();
+			}
 			for( int i0 = 0; i0 < postProcesses.Length; ++i0)
 			{
 				postProcesses[ i0]?.Dispose();
@@ -307,24 +157,38 @@ namespace RenderPipeline
 				cacheCamera.allowMSAA = false;
 				isRebuildCommandBuffers = true;
 			}
-			for( int i0 = 0; i0 < postProcesses.Length; ++i0)
+			if( RestoreAndCheckParameter( opaqueProcesses, fourceCacheClear) != false)
 			{
-				bool cacheClear = fourceCacheClear;
-			#if UNITY_EDITOR
-				if( postProcesses[ i0]?.RestoreResources() != false)
-				{
-					cacheClear = true;
-				}
-			#endif
-				if( (postProcesses[ i0]?.CheckParameterChange( cacheClear) ?? false) != false)
-				{
-					isRebuildCommandBuffers = true;
-				}
+				isRebuildCommandBuffers = true;
+			}
+			if( RestoreAndCheckParameter( postProcesses, fourceCacheClear) != false)
+			{
+				isRebuildCommandBuffers = true;
 			}
 			if( isRebuildCommandBuffers != false)
 			{
 				RebuildCommandBuffers();
 			}
+		}
+		bool RestoreAndCheckParameter( PostProcess[] processes, bool fourceCacheClear)
+		{
+			bool rebuild = false;
+			
+			for( int i0 = 0; i0 < processes.Length; ++i0)
+			{
+				bool cacheClear = fourceCacheClear;
+			#if UNITY_EDITOR
+				if( processes[ i0]?.RestoreResources() != false)
+				{
+					cacheClear = true;
+				}
+			#endif
+				if( (processes[ i0]?.CheckParameterChange( cacheClear) ?? false) != false)
+				{
+					rebuild = true;
+				}
+			}
+			return rebuild;
 		}
 		void RebuildCommandBuffers()
 		{
@@ -705,7 +569,6 @@ namespace RenderPipeline
 				return false;
 			}
 		}
-		
 		static readonly int kShaderPropertyMainTex = Shader.PropertyToID( "_MainTex");
 		static readonly int kShaderPropertyColor = Shader.PropertyToID( "_Color");
 		static readonly int kShaderPropertyDepthTextureId = Shader.PropertyToID( "CameraPipeline::DepthTexture");
@@ -737,8 +600,8 @@ namespace RenderPipeline
 		RenderTexture depthBuffer;
 		bool isRebuildCommandBuffers;
 		
-		PostProcess[] opaqueProcesses = new PostProcess[ kOpaquePriorityMax];
-		PostProcess[] postProcesses = new PostProcess[ kPostPriorityMax];
+		PostProcess[] opaqueProcesses = new PostProcess[ kOpaqueProcesses.Length];
+		PostProcess[] postProcesses = new PostProcess[ kPostProcesses.Length];
 		CommandBuffer commandBufferDepthTexture;
 		CommandBuffer commandBufferOpaqueProcesses;
 		CommandBuffer commandBufferPostProcesses;

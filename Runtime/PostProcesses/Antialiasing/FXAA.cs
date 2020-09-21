@@ -13,33 +13,33 @@ namespace RenderPipeline
 		}
 		internal override void Create()
 		{
-			if( shaderFXAA != null && materialFXAA == null)
+			if( shader != null && material == null)
 			{
-				materialFXAA = new Material( shaderFXAA);
+				material = new Material( shader);
 			}
 		}
 		internal override void Dispose()
 		{
-			if( materialFXAA != null)
+			if( material != null)
 			{
-				ObjectUtility.Release( materialFXAA);
-				materialFXAA = null;
+				ObjectUtility.Release( material);
+				material = null;
 			}
 		}
 		internal override bool RestoreResources()
 		{
 			bool rebuild = false;
 			
-			if( ObjectUtility.IsMissing( materialFXAA) != false)
+			if( shader != null && material == null)
 			{
-				materialFXAA = new Material( shaderFXAA);
+				material = new Material( shader);
 				rebuild = true;
 			}
 			return rebuild;
 		}
 		internal override bool Valid()
 		{
-			return Properties.Enabled != false && materialFXAA != null;
+			return Properties.Enabled != false && material != null;
 		}
 		internal override void ClearCache()
 		{
@@ -51,7 +51,7 @@ namespace RenderPipeline
 			{
 				Properties.ClearCache();
 			}
-			return Properties.CheckParameterChange( materialFXAA);
+			return Properties.CheckParameterChange( material);
 		}
 		internal override DepthTextureMode GetDepthTextureMode()
 		{
@@ -89,17 +89,17 @@ namespace RenderPipeline
 				RenderBufferLoadAction.DontCare,	
 				RenderBufferStoreAction.DontCare);
 			commandBuffer.SetGlobalTexture( kShaderPropertyMainTex, context.source0);
-			pipeline.DrawFill( commandBuffer, materialFXAA, 0);
+			pipeline.DrawFill( commandBuffer, material, 0);
 			context.duplicated = false;
 		}
 		
 		[SerializeField]
-        Shader shaderFXAA = default;
-        [SerializeField]
-        FXAASettings sharedSettings = default;
-        [SerializeField]
-        FXAAProperties properties = default;
-        [System.NonSerialized]
-		Material materialFXAA;
+		FXAASettings sharedSettings = default;
+		[SerializeField]
+		FXAAProperties properties = default;
+		[SerializeField]
+		Shader shader = default;
+		[System.NonSerialized]
+		Material material;
 	}
 }

@@ -13,33 +13,33 @@ namespace RenderPipeline
 		}
 		internal override void Create()
 		{
-			if( shaderSSAO != null && materialSSAO == null)
+			if( shader != null && material == null)
 			{
-				materialSSAO = new Material( shaderSSAO);
+				material = new Material( shader);
 			}
 		}
 		internal override void Dispose()
 		{
-			if( materialSSAO != null)
+			if( material != null)
 			{
-				ObjectUtility.Release( materialSSAO);
-				materialSSAO = null;
+				ObjectUtility.Release( material);
+				material = null;
 			}
 		}
 		internal override bool RestoreResources()
 		{
 			bool rebuild = false;
 			
-			if( ObjectUtility.IsMissing( materialSSAO) != false)
+			if( shader != null && material == null)
 			{
-				materialSSAO = new Material( shaderSSAO);
+				material = new Material( shader);
 				rebuild = true;
 			}
 			return rebuild;
 		}
 		internal override bool Valid()
 		{
-			return Properties.Enabled != false && materialSSAO != null;
+			return Properties.Enabled != false && material != null;
 		}
 		internal override void ClearCache()
 		{
@@ -51,7 +51,7 @@ namespace RenderPipeline
 			{
 				Properties.ClearCache();
 			}
-			return Properties.CheckParameterChange( materialSSAO, (width, height) => 
+			return Properties.CheckParameterChange( material, (width, height) => 
 			{
 				shadeDescriptor = new RenderTextureDescriptor( width, height, TextureUtil.DefaultHDR);
 				shadeDescriptor.useMipMap = false;
@@ -104,7 +104,7 @@ namespace RenderPipeline
 					RenderBufferLoadAction.DontCare,	
 					RenderBufferStoreAction.DontCare);
 				commandBuffer.SetGlobalTexture( kShaderPropertyMainTex, context.source0);
-				pipeline.DrawFill( commandBuffer, materialSSAO, 0);
+				pipeline.DrawFill( commandBuffer, material, 0);
 			}
 			else
 			{
@@ -123,7 +123,7 @@ namespace RenderPipeline
 					commandBuffer.ClearRenderTarget( false, true, Color.black, 0);
 				}
 				commandBuffer.SetGlobalTexture( kShaderPropertyMainTex, context.source0);
-				pipeline.DrawFill( commandBuffer, materialSSAO, 0);
+				pipeline.DrawFill( commandBuffer, material, 0);
 				
 				/**/
 				var halfTarget = new RenderTargetIdentifier( kShaderTargetHalf);
@@ -140,7 +140,7 @@ namespace RenderPipeline
 					commandBuffer.ClearRenderTarget( false, true, Color.black, 0);
 				}
 				commandBuffer.SetGlobalTexture( kShaderPropertyMainTex, shadeTarget);
-				pipeline.DrawFill( commandBuffer, materialSSAO, 1);
+				pipeline.DrawFill( commandBuffer, material, 1);
 				
 				/**/
 				var quarterTarget = new RenderTargetIdentifier( kShaderTargetQuarter);
@@ -157,7 +157,7 @@ namespace RenderPipeline
 					commandBuffer.ClearRenderTarget( false, true, Color.black, 0);
 				}
 				commandBuffer.SetGlobalTexture( kShaderPropertyMainTex, halfTarget);
-				pipeline.DrawFill( commandBuffer, materialSSAO, 1);
+				pipeline.DrawFill( commandBuffer, material, 1);
 				
 				/**/
 				commandBuffer.SetRenderTarget( 
@@ -168,7 +168,7 @@ namespace RenderPipeline
 					RenderBufferStoreAction.DontCare);
 				commandBuffer.SetGlobalTexture( kShaderPropertyMainTex, context.source0);
 				commandBuffer.SetGlobalTexture( kShaderPropertyBlurTex, quarterTarget);
-				pipeline.DrawFill( commandBuffer, materialSSAO, 2);
+				pipeline.DrawFill( commandBuffer, material, 2);
 				
 				commandBuffer.ReleaseTemporaryRT( kShaderTargetShade);
 				commandBuffer.ReleaseTemporaryRT( kShaderTargetHalf);
@@ -183,15 +183,14 @@ namespace RenderPipeline
 		
 		static readonly int kShaderPropertyBlurTex = Shader.PropertyToID( "_BlurTex");
 		
-		
-		[SerializeField]
-        Shader shaderSSAO = default;
         [SerializeField]
         SSAOSettings sharedSettings = default;
         [SerializeField]
         SSAOProperties properties = default;
+        [SerializeField]
+        Shader shader = default;
         [System.NonSerialized]
-		Material materialSSAO;
+		Material material;
 		[System.NonSerialized]
 		RenderTextureDescriptor shadeDescriptor;
 		[System.NonSerialized]

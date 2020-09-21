@@ -5,9 +5,15 @@ using UnityEngine.Rendering;
 namespace RenderPipeline
 {
 	[System.Serializable]
-	public sealed partial class ScreenBlend : PostProcess
+	public sealed partial class CameraMotionBlur : PostProcess
 	{
-		public ScreenBlendProperties Properties
+		public enum Quality
+		{
+			kLow,
+			kMiddle,
+			kHigh
+		}
+		public CameraMotionBlurProperties Properties
 		{
 			get{ return (sharedSettings != null)? sharedSettings.properties : properties; }
 		}
@@ -51,11 +57,16 @@ namespace RenderPipeline
 			{
 				Properties.ClearCache();
 			}
-			return Properties.CheckParameterChange( material);
+			return Properties.CheckParameterChange( material, pipeline.CacheCamera, (width, height) => 
+			{
+				descriptor = new RenderTextureDescriptor( width, height, TextureUtil.DefaultHDR);
+				descriptor.useMipMap = false;
+				descriptor.autoGenerateMips = false;
+			});
 		}
 		internal override DepthTextureMode GetDepthTextureMode()
 		{
-			return DepthTextureMode.None;
+			return DepthTextureMode.Depth;
 		}
 		internal override bool IsHighDynamicRange()
 		{
@@ -82,25 +93,46 @@ namespace RenderPipeline
 					context.SetTarget0( temporary);
 				}
 			}
+			/**/
+			var blurTarget = new RenderTargetIdentifier( kShaderTargetBlur);
+			commandBuffer.GetTemporaryRT( kShaderTargetBlur, descriptor, FilterMode.Point);
+			
 			commandBuffer.SetRenderTarget( 
-				context.target0, 
+				blurTarget, 
 				RenderBufferLoadAction.DontCare,	
 				RenderBufferStoreAction.Store,
 				RenderBufferLoadAction.DontCare,	
 				RenderBufferStoreAction.DontCare);
 			commandBuffer.SetGlobalTexture( kShaderPropertyMainTex, context.source0);
 			pipeline.DrawFill( commandBuffer, material, 0);
+			
+			/**/
+			commandBuffer.SetRenderTarget( 
+				context.target0,
+				RenderBufferLoadAction.DontCare,	
+				RenderBufferStoreAction.Store,
+				RenderBufferLoadAction.DontCare,	
+				RenderBufferStoreAction.DontCare);
+			commandBuffer.SetGlobalTexture( kShaderPropertyMainTex, context.source0);
+			commandBuffer.SetGlobalTexture( kShaderPropertyBlurTex, blurTarget);
+			pipeline.DrawFill( commandBuffer, material, 1);
+			
+			commandBuffer.ReleaseTemporaryRT( kShaderTargetBlur);
 			context.duplicated = false;
 		}
-		const string kShaderKeywordFlipHorizontal = "FLIPHORIZONTAL";
+		
+		static readonly int kShaderTargetBlur = Shader.PropertyToID( "_CameraMotionBlurTarget");
+		static readonly int kShaderPropertyBlurTex = Shader.PropertyToID( "_BlurTex");
 		
 		[SerializeField]
-        ScreenBlendSettings sharedSettings = default;
-        [SerializeField]
-        ScreenBlendProperties properties = default;
+		CameraMotionBlurSettings sharedSettings = default;
 		[SerializeField]
-        Shader shader = default;
+		CameraMotionBlurProperties properties = default;
+		[SerializeField]
+		Shader shader = default;
 		[System.NonSerialized]
 		Material material;
+		[System.NonSerialized]
+		RenderTextureDescriptor descriptor;
 	}
 }

@@ -86,22 +86,22 @@ namespace RenderPipeline
 		{
 			bool rebuild = false;
 			
-			if( ObjectUtility.IsMissing( brightnessExtractionMaterial) != false)
+			if( brightnessExtractionShader != null && brightnessExtractionMaterial == null)
 			{
 				brightnessExtractionMaterial = new Material( brightnessExtractionShader);
 				rebuild = true;
 			}
-			if( ObjectUtility.IsMissing( gaussianBlurMaterial) != false)
+			if( gaussianBlurShader != null && gaussianBlurMaterial == null)
 			{
 				gaussianBlurMaterial = new Material( gaussianBlurShader);
 				rebuild = true;
 			}
-			if( ObjectUtility.IsMissing( combineMaterial) != false)
+			if( combineShader != null && combineMaterial == null)
 			{
 				combineMaterial = new Material( combineShader);
 				rebuild = true;
 			}
-			if( ObjectUtility.IsMissing( compositionMaterial) != false)
+			if( compositionShader != null && compositionMaterial == null)
 			{
 				compositionMaterial = new Material( compositionShader);
 				rebuild = true;

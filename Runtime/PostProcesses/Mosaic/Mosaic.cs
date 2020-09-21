@@ -9,33 +9,33 @@ namespace RenderPipeline
 	{
 		internal override void Create()
 		{
-			if( mosaicShader != null && mosaicMaterial == null)
+			if( shader != null && material == null)
 			{
-				mosaicMaterial = new Material( mosaicShader);
+				material = new Material( shader);
 			}
 		}
 		internal override void Dispose()
 		{
-			if( mosaicMaterial != null)
+			if( material != null)
 			{
-				ObjectUtility.Release( mosaicMaterial);
-				mosaicMaterial = null;
+				ObjectUtility.Release( material);
+				material = null;
 			}
 		}
 		internal override bool RestoreResources()
 		{
 			bool rebuild = false;
 			
-			if( ObjectUtility.IsMissing( mosaicMaterial) != false)
+			if( shader != null && material == null)
 			{
-				mosaicMaterial = new Material( mosaicShader);
+				material = new Material( shader);
 				rebuild = true;
 			}
 			return rebuild;
 		}
 		internal override bool Valid()
 		{
-			return enabled != false && mosaicMaterial != null;
+			return enabled != false && material != null;
 		}
 		internal override void ClearCache()
 		{
@@ -72,7 +72,7 @@ namespace RenderPipeline
 					}
 					float texelWidth = 1.0f / (float)Screen.width * blockSize;
 					float texelHeight = 1.0f / (float)Screen.height * blockSize;
-					mosaicMaterial.SetVector( kShaderPropertyPixelation, new Vector4(
+					material.SetVector( kShaderPropertyPixelation, new Vector4(
 						1.0f / texelWidth, 1.0f / texelHeight, texelWidth, texelHeight));
 					cacheWidth = Screen.width;
 					cacheHeight = Screen.height;
@@ -81,13 +81,13 @@ namespace RenderPipeline
 				if( cacheStencilReference != stencilReference)
 				{
 					stencilReference = Mathf.Clamp( stencilReference, 0, 255);
-					mosaicMaterial.SetInt( kShaderPropertyStencilRef, stencilReference);
+					material.SetInt( kShaderPropertyStencilRef, stencilReference);
 					cacheStencilReference = stencilReference;
 				}
 				if( cacheStencilReadMask != stencilReadMask)
 				{
 					stencilReadMask = Mathf.Clamp( stencilReadMask, 0, 255);
-					mosaicMaterial.SetInt( kShaderPropertyStencilReadMask, stencilReadMask);
+					material.SetInt( kShaderPropertyStencilReadMask, stencilReadMask);
 					cacheStencilReadMask = stencilReadMask;
 				}
 				if( cacheStencilCompare != stencilCompare)
@@ -107,7 +107,7 @@ namespace RenderPipeline
 					{
 						rebuild = true;
 					}
-					mosaicMaterial.SetInt( kShaderPropertyStencilComp, (int)stencilCompare);
+					material.SetInt( kShaderPropertyStencilComp, (int)stencilCompare);
 					cacheStencilCompare = stencilCompare;
 				}
 			}
@@ -168,7 +168,7 @@ namespace RenderPipeline
 				RenderBufferLoadAction.Load,	
 				RenderBufferStoreAction.DontCare);
 			commandBuffer.SetGlobalTexture( kShaderPropertyMainTex, context.source0);
-			pipeline.DrawFill( commandBuffer, mosaicMaterial, 0);
+			pipeline.DrawFill( commandBuffer, material, 0);
 			context.duplicated = false;
 		}
 		
@@ -178,7 +178,7 @@ namespace RenderPipeline
 		static readonly int kShaderPropertyStencilComp = Shader.PropertyToID( "_StencilComp");
 		
 		[SerializeField]
-        Shader mosaicShader = default;
+        Shader shader = default;
         [SerializeField]
         int blockSize = 16;
 		[SerializeField, Range(0, 255)]
@@ -188,7 +188,7 @@ namespace RenderPipeline
 		[SerializeField]
 		CompareFunction stencilCompare = CompareFunction.Equal;
 		
-		Material mosaicMaterial;
+		Material material;
 		
 		bool? cacheEnabled;
 		int? cacheWidth;

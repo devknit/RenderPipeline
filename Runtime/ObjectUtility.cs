@@ -19,13 +19,5 @@ namespace RenderPipeline
 				Object.Destroy( obj);
 			}
 		}
-		public static bool IsMissing<T>( T obj) where T : class
-		{
-			if( obj == null)
-			{
-				return object.ReferenceEquals( obj, null);
-			}
-			return false;
-		}
 	}
 }
