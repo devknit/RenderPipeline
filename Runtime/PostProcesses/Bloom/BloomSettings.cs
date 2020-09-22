@@ -36,7 +36,18 @@ namespace RenderPipeline
 	{
 		public bool Enabled
 		{
-			get{ return enabled; }
+			get
+			{
+				if( enabled != false)
+				{
+					if( (cacheScreenWidth ?? 0) > 0
+					&&	(cacheScreenHeight ?? 0) > 0)
+					{
+						return true;
+					}
+				}
+				return false;
+			}
 			set{ enabled = value; }
 		}
 		public float Thresholds
@@ -74,6 +85,14 @@ namespace RenderPipeline
 			get{ return combineStartLevel; }
 			set{ combineStartLevel = value; }
 		}
+		public int ScreenWidth
+		{
+			get{ return cacheScreenWidth ?? 0; }
+		}
+		public int ScreenHeight
+		{
+			get{ return cacheScreenHeight ?? 0; }
+		}
 		internal override void ClearCache()
 		{
 			cacheEnabled = null;
@@ -84,6 +103,8 @@ namespace RenderPipeline
 			cacheDownSampleLevel = null;
 			cacheDownSampleCount = null;
 			cacheCombineStartLevel = null;
+			cacheScreenWidth = null;
+			cacheScreenHeight = null;
 		}
 		internal int CheckParameterChange()
 		{
@@ -91,11 +112,21 @@ namespace RenderPipeline
 			
 			if( cacheEnabled != enabled)
 			{
+				if( enabled != false)
+				{
+					updateFlags |= kRebuild;
+				}
 				cacheEnabled = enabled;
-				updateFlags |= kRebuild;
 			}
 			if( enabled != false)
 			{
+				if( cacheScreenWidth != Screen.width
+				||	cacheScreenHeight != Screen.height)
+				{
+					cacheScreenWidth = Screen.width;
+					cacheScreenHeight = Screen.height;
+					updateFlags |= kChangeScreen;
+				}
 				if( cacheThresholds != thresholds)
 				{
 					cacheThresholds = thresholds;
@@ -127,7 +158,7 @@ namespace RenderPipeline
 						downSampleLevel = 4;
 					}
 					cacheDownSampleLevel = downSampleLevel;
-					updateFlags |= kChangeDescriptors;
+					updateFlags |= kChangeDownSampleLevel;
 				}
 				if( cacheDownSampleCount != downSampleCount)
 				{
@@ -140,7 +171,7 @@ namespace RenderPipeline
 						downSampleCount = 7;
 					}
 					cacheDownSampleCount = downSampleCount;
-					updateFlags |= kChangeDescriptors;
+					updateFlags |= kChangeDownSampleCount;
 				}
 				if( cacheCombineStartLevel != combineStartLevel)
 				{
@@ -158,48 +189,74 @@ namespace RenderPipeline
 			}
 			return updateFlags;
 		}
+		
 		internal const int kRebuild = 1 << 0;
 		internal const int kChangeThresholds = 1 << 1;
 		internal const int kChangeSigmaInPixel = 1 << 2;
 		internal const int kChangeIntensity = 1 << 3;
 		internal const int kChangeIntensityMultiplier = 1 << 4;
-		internal const int kChangeCombineStartLevel = 1 << 5;
-		internal const int kChangeDescriptors = 1 << 6;
+		internal const int kChangeDownSampleLevel = 1 << 5;
+		internal const int kChangeDownSampleCount = 1 << 6;
+		internal const int kChangeCombineStartLevel = 1 << 7;
+		internal const int kChangeScreen = 1 << 8;
 		
-		internal const int kChangeCombinePassCount = 
-			kChangeThresholds |
-			kChangeDescriptors |
-			kChangeCombineStartLevel;
-		internal const int kChangeCombineComposition = 
-			kChangeCombinePassCount |
+		internal const int kChangeBrightnessExtractionMesh = 1 << 9;
+		internal const int kChangeGaussianBlurMesh = 1 << 10;
+		internal const int kChangeCombineMesh = 1 << 11;
+		internal const int kChangeBloomRects = 1 << 12;
+		internal const int kChangeCombinePassCount = 1 << 13;
+		internal const int kChangeBloomRectCount = 1 << 14;
+		
+		internal const int kVerifyDescriptors = 
+			kChangeDownSampleLevel |
+			kChangeDownSampleCount |
+			kChangeScreen;
+		internal const int kVerifyCombinePassCount = 
+			kChangeBloomRects |
+			kChangeCombineStartLevel |
+			kChangeDownSampleLevel;
+		internal const int kVerifyCombineComposition = 
 			kChangeIntensity |
-			kChangeIntensityMultiplier;
-		internal const int kChangeAll = 0x7fffffff;
+			kChangeIntensityMultiplier |
+			kChangeBloomRects |
+			kChangeCombinePassCount;
 		
 		[SerializeField]
 		bool enabled = true;
 		[SerializeField]
 		float thresholds = 1.0f;
 		[SerializeField]
-		float sigmaInPixel = 3.0f;
+		float sigmaInPixel = 3.0f; /**/
 		[SerializeField]
 		float intensity = 5.0f;
 		[SerializeField] 
 		float intensityMultiplier = 1.5f;
 		[SerializeField, Range( 0, 4)] 
-		int downSampleLevel = 2;
+		int downSampleLevel = 2;	 /**/
 		[SerializeField, Range( 1, 7)] 
-		int downSampleCount = 7;
+		int downSampleCount = 7;	 /**/
 		[SerializeField, Range( 0, 6)]
 		int combineStartLevel = 0;
 		
+		[System.NonSerialized]
 		bool? cacheEnabled;
+		[System.NonSerialized]
 		float? cacheThresholds;
+		[System.NonSerialized]
 		float? cacheSigmaInPixel;
+		[System.NonSerialized]
 		float? cacheIntensity;
+		[System.NonSerialized]
 		float? cacheIntensityMultiplier;
+		[System.NonSerialized]
 		int? cacheDownSampleLevel;
+		[System.NonSerialized]
 		int? cacheDownSampleCount;
+		[System.NonSerialized]
 		int? cacheCombineStartLevel;
+		[System.NonSerialized]
+		int? cacheScreenWidth;
+		[System.NonSerialized]
+		int? cacheScreenHeight;
 	}
 }

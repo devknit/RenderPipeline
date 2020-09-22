@@ -5,8 +5,10 @@ namespace RenderPipeline
 {
 	public sealed partial class Bloom
 	{
-		void UpdateResources( int updateFlags)
+		bool UpdateResources( int updateFlags)
 		{
+			bool rebuild = false;
+			
 			if( (updateFlags & BloomProperties.kChangeThresholds) != 0)
 			{
 				if( SystemInfo.SupportsRenderTextureFormat( RenderTextureFormat.ARGBHalf) != false
@@ -42,110 +44,109 @@ namespace RenderPipeline
 			}
 			if( (updateFlags & BloomProperties.kChangeSigmaInPixel) != 0)
 			{
-				CalculateGaussianSamples( Properties.SigmaInPixel);
-				float diff = blurSample0.offset - blurSample1.offset;
-				float scale = (diff != 0.0f) ? (blurSample0.offset * 2.0f) / Mathf.Abs( diff) : 0.0f;
-				material.SetFloat( kShaderPropertyInvertOffsetScale01, scale);
+				material.SetFloat( kShaderPropertyInvertOffsetScale01, CalculateGaussianSamples( Properties.SigmaInPixel));
+				updateFlags |= BloomProperties.kChangeGaussianBlurMesh;
 			}
-			if( (updateFlags & BloomProperties.kChangeCombinePassCount) != 0)
+			if( (updateFlags & BloomProperties.kVerifyCombinePassCount) != 0)
 			{
 				combinePassCount = (bloomRects.Length + Properties.DownSampleLevel) - Properties.CombineStartLevel;
 				combinePassCount = Mathf.Clamp( combinePassCount, 0, bloomRects.Length);
 				bloomRectCount = bloomRects.Length - combinePassCount;
 				bloomRectCount = Mathf.Clamp( bloomRectCount, 0, bloomRects.Length - 1);
 				
-				/* Combine */
-				if( (combinePassCount & 0x4) != 0)
+				if( cacheCombinePassCount != combinePassCount)
 				{
-					if( material.IsKeywordEnabled( kShaderKeywordCombineSample4) == false)
+					/* Combine */
+					if( (combinePassCount & 0x4) != 0)
 					{
-						material.EnableKeyword( kShaderKeywordCombineSample4);
+						if( material.IsKeywordEnabled( kShaderKeywordCombineSample4) == false)
+						{
+							material.EnableKeyword( kShaderKeywordCombineSample4);
+						}
 					}
-				}
-				else if( material.IsKeywordEnabled( kShaderKeywordCombineSample4) != false)
-				{
-					material.DisableKeyword( kShaderKeywordCombineSample4);
-				}
-				if( (combinePassCount & 0x2) != 0)
-				{
-					if( material.IsKeywordEnabled( kShaderKeywordCombineSample2) == false)
+					else if( material.IsKeywordEnabled( kShaderKeywordCombineSample4) != false)
 					{
-						material.EnableKeyword( kShaderKeywordCombineSample2);
+						material.DisableKeyword( kShaderKeywordCombineSample4);
 					}
-				}
-				else if( material.IsKeywordEnabled( kShaderKeywordCombineSample2) != false)
-				{
-					material.DisableKeyword( kShaderKeywordCombineSample2);
-				}
-				if( (combinePassCount & 0x1) != 0)
-				{
-					if( material.IsKeywordEnabled( kShaderKeywordCombineSample1) == false)
+					if( (combinePassCount & 0x2) != 0)
 					{
-						material.EnableKeyword( kShaderKeywordCombineSample1);
+						if( material.IsKeywordEnabled( kShaderKeywordCombineSample2) == false)
+						{
+							material.EnableKeyword( kShaderKeywordCombineSample2);
+						}
 					}
-				}
-				else if( material.IsKeywordEnabled( kShaderKeywordCombineSample1) != false)
-				{
-					material.DisableKeyword( kShaderKeywordCombineSample1);
-				}
-				
-				/* Composition */
-				if( combinePassCount > 0)
-				{
-					if( material.IsKeywordEnabled( kShaderKeywordCompositionCombined) == false)
+					else if( material.IsKeywordEnabled( kShaderKeywordCombineSample2) != false)
 					{
-						material.EnableKeyword( kShaderKeywordCompositionCombined);
+						material.DisableKeyword( kShaderKeywordCombineSample2);
 					}
-				}
-				else if( material.IsKeywordEnabled( kShaderKeywordCompositionCombined) != false)
-				{
-					material.DisableKeyword( kShaderKeywordCompositionCombined);
-				}
-				if( (bloomRectCount & 0x4) != 0)
-				{
-					if( material.IsKeywordEnabled( kShaderKeywordCompositionSample4) == false)
+					if( (combinePassCount & 0x1) != 0)
 					{
-						material.EnableKeyword( kShaderKeywordCompositionSample4);
+						if( material.IsKeywordEnabled( kShaderKeywordCombineSample1) == false)
+						{
+							material.EnableKeyword( kShaderKeywordCombineSample1);
+						}
 					}
-				}
-				else if( material.IsKeywordEnabled( kShaderKeywordCompositionSample4) != false)
-				{
-					material.DisableKeyword( kShaderKeywordCompositionSample4);
-				}
-				if( (bloomRectCount & 0x2) != 0)
-				{
-					if( material.IsKeywordEnabled( kShaderKeywordCompositionSample2) == false)
+					else if( material.IsKeywordEnabled( kShaderKeywordCombineSample1) != false)
 					{
-						material.EnableKeyword( kShaderKeywordCompositionSample2);
+						material.DisableKeyword( kShaderKeywordCombineSample1);
 					}
-				}
-				else if( material.IsKeywordEnabled( kShaderKeywordCompositionSample2) != false)
-				{
-					material.DisableKeyword( kShaderKeywordCompositionSample2);
-				}
-				if( (bloomRectCount & 0x1) != 0)
-				{
-					if( material.IsKeywordEnabled( kShaderKeywordCompositionSample1) == false)
+					
+					/* Composition */
+					if( combinePassCount > 0)
 					{
-						material.EnableKeyword( kShaderKeywordCompositionSample1);
+						if( material.IsKeywordEnabled( kShaderKeywordCompositionCombined) == false)
+						{
+							material.EnableKeyword( kShaderKeywordCompositionCombined);
+						}
 					}
+					else if( material.IsKeywordEnabled( kShaderKeywordCompositionCombined) != false)
+					{
+						material.DisableKeyword( kShaderKeywordCompositionCombined);
+					}
+					cacheCombinePassCount = combinePassCount;
+					updateFlags |= BloomProperties.kChangeCombinePassCount;
 				}
-				else if( material.IsKeywordEnabled( kShaderKeywordCompositionSample1) != false)
+				if( cacheBloomRectCount != bloomRectCount)
 				{
-					material.DisableKeyword( kShaderKeywordCompositionSample1);
-				}
-				
-				/* Mesh */
-				UpdateBrightnessExtractionMesh();
-				UpdateGaussianBlurHorizontalMesh();
-				UpdateGaussianBlurVerticalMesh();
-				
-				if( combinePassCount > 0)
-				{
-					UpdateCombineMesh();
+					/* Composition */
+					if( (bloomRectCount & 0x4) != 0)
+					{
+						if( material.IsKeywordEnabled( kShaderKeywordCompositionSample4) == false)
+						{
+							material.EnableKeyword( kShaderKeywordCompositionSample4);
+						}
+					}
+					else if( material.IsKeywordEnabled( kShaderKeywordCompositionSample4) != false)
+					{
+						material.DisableKeyword( kShaderKeywordCompositionSample4);
+					}
+					if( (bloomRectCount & 0x2) != 0)
+					{
+						if( material.IsKeywordEnabled( kShaderKeywordCompositionSample2) == false)
+						{
+							material.EnableKeyword( kShaderKeywordCompositionSample2);
+						}
+					}
+					else if( material.IsKeywordEnabled( kShaderKeywordCompositionSample2) != false)
+					{
+						material.DisableKeyword( kShaderKeywordCompositionSample2);
+					}
+					if( (bloomRectCount & 0x1) != 0)
+					{
+						if( material.IsKeywordEnabled( kShaderKeywordCompositionSample1) == false)
+						{
+							material.EnableKeyword( kShaderKeywordCompositionSample1);
+						}
+					}
+					else if( material.IsKeywordEnabled( kShaderKeywordCompositionSample1) != false)
+					{
+						material.DisableKeyword( kShaderKeywordCompositionSample1);
+					}
+					cacheBloomRectCount = bloomRectCount;
+					updateFlags |= BloomProperties.kChangeBloomRectCount;
 				}
 			}
-			if( (updateFlags & BloomProperties.kChangeCombineComposition) != 0)
+			if( (updateFlags & BloomProperties.kVerifyCombineComposition) != 0)
 			{
 				/* Combine */
 				BloomRect toRect = bloomRects[ bloomRectCount];
@@ -215,6 +216,26 @@ namespace RenderPipeline
 							(float)rect.y / (float)blurDescriptor.height));
 				}
 			}
+			if( (updateFlags & BloomProperties.kChangeBrightnessExtractionMesh) != 0)
+			{
+				UpdateBrightnessExtractionMesh();
+				rebuild = true;
+			}
+			if( (updateFlags & BloomProperties.kChangeGaussianBlurMesh) != 0)
+			{
+				UpdateGaussianBlurHorizontalMesh();
+				UpdateGaussianBlurVerticalMesh();
+				rebuild = true;
+			}
+			if( (updateFlags & BloomProperties.kChangeCombineMesh) != 0)
+			{
+				if( combinePassCount > 0)
+				{
+					UpdateCombineMesh();
+					rebuild = true;
+				}
+			}
+			return rebuild;
 		}
 		void UpdateBrightnessExtractionMesh()
 		{

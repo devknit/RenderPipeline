@@ -68,21 +68,13 @@ namespace RenderPipeline
 		}
 		internal override bool Valid()
 		{
-			if( Properties.Enabled != false && material != null)
-			{
-				if( cacheWidth.HasValue != false && cacheHeight.HasValue != false)
-				{
-					if( cacheWidth.Value > 0 && cacheHeight.Value > 0)
-					{
-						return true;
-					}
-				}
-			}
-			return false;
+			return Properties.Enabled != false && material != null;
 		}
 		internal override void ClearCache()
 		{
 			Properties.ClearCache();
+			cacheCombinePassCount = null;
+			cacheBloomRectCount = null;
 		#if UNITY_EDITOR
 			cacheSharedSettings = null;
 		#endif
@@ -94,31 +86,30 @@ namespace RenderPipeline
 			if( clearCache != false)
 			{
 				Properties.ClearCache();
+				cacheCombinePassCount = null;
+				cacheBloomRectCount = null;
+			#if UNITY_EDITOR
+				cacheSharedSettings = null;
+			#endif
 			}
 		#if UNITY_EDITOR
 			if( cacheSharedSettings != sharedSettings)
 			{
+				sharedSettings.properties.ClearCache();
 				cacheSharedSettings = sharedSettings;
-				updateFlags |= BloomProperties.kChangeAll;
 			}
 		#endif
 			updateFlags |= Properties.CheckParameterChange();
 			
-			if( (updateFlags & BloomProperties.kChangeDescriptors) != 0)
+			if( (updateFlags & BloomProperties.kVerifyDescriptors) != 0)
 			{
-				cacheWidth = null;
-				cacheHeight = null;
+				updateFlags |= UpdateDescriptors( Properties.ScreenWidth, Properties.ScreenHeight);
 			}
-			if( properties.Enabled != false)
+			if( updateFlags != 0 && bloomRects != null)
 			{
-				if( UpdateDescriptors( Screen.width, Screen.height) != false)
+				if( UpdateResources( updateFlags) != false)
 				{
 					updateFlags |= BloomProperties.kRebuild;
-					updateFlags |= BloomProperties.kChangeDescriptors;
-				}
-				if( updateFlags != 0 && bloomRects != null)
-				{
-					UpdateResources( updateFlags);
 				}
 			}
 			return (updateFlags & BloomProperties.kRebuild) != 0;
@@ -255,13 +246,10 @@ namespace RenderPipeline
 			commandBuffer.ReleaseTemporaryRT( kShaderPropertyGaussianBlurHorizontalTarget);
 			commandBuffer.ReleaseTemporaryRT( kShaderPropertyBrightnessExtractionTarget);
 		}
-		bool UpdateDescriptors( int width, int height)
+		int UpdateDescriptors( int width, int height)
 		{
-			if( width == cacheWidth
-			&&	height == cacheHeight)
-			{
-				return false;
-			}
+			int updateFlags = 0;
+			
 			if( width > 0 && height > 0)
 			{
 				var renderTextureFormat = RenderTextureFormat.ARGB32;
@@ -283,7 +271,7 @@ namespace RenderPipeline
 				brightnessNetHeight = height >> Properties.DownSampleLevel;
 				brightnessOffsetX = (brightnessExtractionDescriptor.width - brightnessNetWidth) / 2;
 				brightnessOffsetY = (brightnessExtractionDescriptor.height - brightnessNetHeight) / 2;
-					
+				
 				int bloomWidth, bloomHeight;
 				
 				bloomRects = CalculateBloomRenderTextureArrangement(
@@ -303,11 +291,13 @@ namespace RenderPipeline
 					bloomWidth, bloomHeight, renderTextureFormat, 0);
 				combineDescriptor.useMipMap = false;
 				combineDescriptor.autoGenerateMips = false;
+				
+				updateFlags |= BloomProperties.kChangeBrightnessExtractionMesh;
+				updateFlags |= BloomProperties.kChangeGaussianBlurMesh;
+				updateFlags |= BloomProperties.kChangeCombineMesh;
+				updateFlags |= BloomProperties.kChangeBloomRects;
 			}
-			cacheWidth = width;
-			cacheHeight = height;
-			
-			return true;
+			return updateFlags;
 		}
 		BloomRect[] CalculateBloomRenderTextureArrangement(
 			out int dstWidth,
@@ -331,11 +321,11 @@ namespace RenderPipeline
 				rect.y = y;
 				rect.width = width;
 				rect.height = height;
-				rect.uvTransformShaderPropertyId = Shader.PropertyToID("_BloomUvTransform" + rects.Count);
-				rect.weightShaderPropertyId = Shader.PropertyToID("_BloomWeight" + rects.Count);
+				rect.uvTransformShaderPropertyId = Shader.PropertyToID( "_BloomUvTransform" + rects.Count);
+				rect.weightShaderPropertyId = Shader.PropertyToID( "_BloomWeight" + rects.Count);
 				rects.Add( rect);
-				maxX = System.Math.Max(maxX, x + width + padding);
-				maxY = System.Math.Max(maxY, y + height + padding);
+				maxX = Mathf.Max( maxX, x + width + padding);
+				maxY = Mathf.Max( maxY, y + height + padding);
 				if( right != false)
 				{
 					x += width + padding;
@@ -360,7 +350,7 @@ namespace RenderPipeline
 			
 			return rects.ToArray();
 		}
-		void CalculateGaussianSamples( float sigma)
+		float CalculateGaussianSamples( float sigma)
 		{
 			float w0 = Gauss( sigma, 0.0f) * 0.5f;
 			float w1 = Gauss( sigma, 1.0f);
@@ -395,6 +385,9 @@ namespace RenderPipeline
 			blurSample2.weight = w45;
 			blurSample3.offset = x67;
 			blurSample3.weight = w67;
+			
+			float x0123 = x01 - x23;
+			return (x0123 != 0.0f)? (x01 * 2.0f) / Mathf.Abs( x0123) : 0.0f;
 		}
 		static float Gauss( float sigma, float x)
 		{
@@ -479,9 +472,9 @@ namespace RenderPipeline
 		int brightnessNetHeight;
 		int combinePassCount;
 		int bloomRectCount;
+		int? cacheCombinePassCount;
+		int? cacheBloomRectCount;
 		
-		int? cacheWidth;
-		int? cacheHeight;
 	#if UNITY_EDITOR
 		BloomSettings cacheSharedSettings;
 	#endif
