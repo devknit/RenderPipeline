@@ -191,12 +191,10 @@ namespace RenderPipeline
 			commandBuffer.SetGlobalTexture( kShaderPropertyMainTex, kShaderPropertyGaussianBlurHorizontalTarget);
 			commandBuffer.DrawMesh( blurVerticalMesh, Matrix4x4.identity, material, 0, 1);
 			
-			var combineTarget = new RenderTargetIdentifier( kShaderPropertyCombineTarget);
-			if( combinePassCount > 0)
+			if( combinePassCount > 1)
 			{
-				commandBuffer.GetTemporaryRT( kShaderPropertyCombineTarget, blurDescriptor, FilterMode.Bilinear);
 				commandBuffer.SetRenderTarget( 
-					combineTarget,
+					gaussianBlurHorizontalTarget,
 					RenderBufferLoadAction.DontCare,	
 					RenderBufferStoreAction.Store,
 					RenderBufferLoadAction.DontCare,	
@@ -207,11 +205,15 @@ namespace RenderPipeline
 				}
 				commandBuffer.SetGlobalTexture( kShaderPropertyMainTex, gaussianBlurVerticalTarget);
 				commandBuffer.DrawMesh( combineMesh, Matrix4x4.identity, material, 0, 2);
+				commandBuffer.SetGlobalTexture( kShaderPropertyBloomTex, gaussianBlurVerticalTarget);
+				commandBuffer.SetGlobalTexture( kShaderPropertyBloomCombinedTex, kShaderPropertyGaussianBlurHorizontalTarget);
 			}
-			
+			else
+			{
+				commandBuffer.SetGlobalTexture( kShaderPropertyBloomCombinedTex, gaussianBlurVerticalTarget);
+			}
 			commandBuffer.SetGlobalTexture( kShaderPropertyMainTex, context.source0);
-			commandBuffer.SetGlobalTexture( kShaderPropertyBloomTex, gaussianBlurVerticalTarget);
-			commandBuffer.SetGlobalTexture( kShaderPropertyBloomCombinedTex, combineTarget);
+			
 			if( nextProcess?.DuplicateMRT() != false)
 			{
 				int temporary = GetTemporaryRT( -1, -1, 0, FilterMode.Bilinear, TextureUtil.DefaultHDR);
@@ -237,10 +239,6 @@ namespace RenderPipeline
 					RenderBufferStoreAction.DontCare);
 				pipeline.DrawFill( commandBuffer, material, 3);
 				context.duplicated = false;
-			}
-			if( combinePassCount > 0)
-			{
-				commandBuffer.ReleaseTemporaryRT( kShaderPropertyCombineTarget);
 			}
 			commandBuffer.ReleaseTemporaryRT( kShaderPropertyGaussianBlurVerticalTarget);
 			commandBuffer.ReleaseTemporaryRT( kShaderPropertyGaussianBlurHorizontalTarget);
