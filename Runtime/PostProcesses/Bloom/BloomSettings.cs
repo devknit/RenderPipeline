@@ -112,10 +112,7 @@ namespace RenderPipeline
 			
 			if( cacheEnabled != enabled)
 			{
-				if( enabled != false)
-				{
-					updateFlags |= kRebuild;
-				}
+				updateFlags |= kRebuild;
 				cacheEnabled = enabled;
 			}
 			if( enabled != false)

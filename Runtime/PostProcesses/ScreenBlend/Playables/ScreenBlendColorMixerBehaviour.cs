@@ -33,12 +33,28 @@ namespace RenderPipeline
 		}
 		public override void OnGraphStop( Playable playable)
 		{
+		#if UNITY_EDITOR
+			if( UnityEditor.EditorApplication.isPlaying == false)
+			{
+				return;
+			}
+		#endif
 			if( cachedScreenBlend != null)
 			{
 				cachedScreenBlend.Properties.RestoreBlendColor( restoreSeconds);
 				cachedScreenBlend = null;
 			}
 		}
+	#if UNITY_EDITOR
+		public override void OnPlayableDestroy( Playable playable)
+		{
+			if( UnityEditor.EditorApplication.isPlaying == false && cachedScreenBlend != null)
+			{
+				cachedScreenBlend.Properties.RestoreBlendColor( 0.0f);
+				cachedScreenBlend = null;
+			}
+		}
+	#endif
 		
 		ScreenBlend cachedScreenBlend;
 		internal float restoreSeconds;
