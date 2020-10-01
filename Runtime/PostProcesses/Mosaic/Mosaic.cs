@@ -7,14 +7,14 @@ namespace RenderPipeline
 	[System.Serializable]
 	public sealed partial class Mosaic : PostProcess
 	{
-		internal override void Create()
+		public override void Create()
 		{
 			if( shader != null && material == null)
 			{
 				material = new Material( shader);
 			}
 		}
-		internal override void Dispose()
+		public override void Dispose()
 		{
 			if( material != null)
 			{
@@ -22,7 +22,7 @@ namespace RenderPipeline
 				material = null;
 			}
 		}
-		internal override bool RestoreResources()
+		public override bool RestoreMaterials()
 		{
 			bool rebuild = false;
 			
@@ -33,11 +33,11 @@ namespace RenderPipeline
 			}
 			return rebuild;
 		}
-		internal override bool Valid()
+		public override bool Valid()
 		{
 			return enabled != false && material != null;
 		}
-		internal override void ClearCache()
+		public override void ClearPropertiesCache()
 		{
 			cacheEnabled = null;
 			cacheWidth = null;
@@ -47,13 +47,17 @@ namespace RenderPipeline
 			cacheStencilReadMask = null;
 			cacheStencilCompare = null;
 		}
-		internal override bool CheckParameterChange( bool clearCache)
+		public override CameraEvent GetCameraEvent()
+		{
+			return CameraEvent.BeforeImageEffects;
+		}
+		public override bool UpdateProperties( bool clearCache)
 		{
 			bool rebuild = false;
 			
 			if( clearCache != false)
 			{
-				ClearCache();
+				ClearPropertiesCache();
 			}
 			if( cacheEnabled != enabled)
 			{
@@ -113,20 +117,15 @@ namespace RenderPipeline
 			}
 			return rebuild;
 		}
-		internal override DepthTextureMode GetDepthTextureMode()
+		public override DepthTextureMode GetDepthTextureMode()
 		{
 			return DepthTextureMode.None;
 		}
-		internal override bool IsHighDynamicRange()
+		public override bool IsHighDynamicRange()
 		{
 			return false;
 		}
-		protected override bool OnDuplicate()
-		{
-			return nextProcess != null;
-			//return true;
-		}
-		internal override void BuildCommandBuffer( 
+		public override void BuildCommandBuffer( 
 			CommandBuffer commandBuffer, TargetContext context, 
 			System.Func<int, int, int, FilterMode, RenderTextureFormat, int> GetTemporaryRT)
 		{
@@ -170,6 +169,11 @@ namespace RenderPipeline
 			commandBuffer.SetGlobalTexture( kShaderPropertyMainTex, context.source0);
 			pipeline.DrawFill( commandBuffer, material, 0);
 			context.duplicated = false;
+		}
+		protected override bool OnDuplicate()
+		{
+			return nextProcess != null;
+			//return true;
 		}
 		
 		static readonly int kShaderPropertyPixelation = Shader.PropertyToID( "_Pixelation");

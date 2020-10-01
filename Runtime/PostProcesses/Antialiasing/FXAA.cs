@@ -11,14 +11,14 @@ namespace RenderPipeline
 		{
 			get{ return (sharedSettings != null)? sharedSettings.properties : properties; }
 		}
-		internal override void Create()
+		public override void Create()
 		{
 			if( shader != null && material == null)
 			{
 				material = new Material( shader);
 			}
 		}
-		internal override void Dispose()
+		public override void Dispose()
 		{
 			if( material != null)
 			{
@@ -26,7 +26,7 @@ namespace RenderPipeline
 				material = null;
 			}
 		}
-		internal override bool RestoreResources()
+		public override bool RestoreMaterials()
 		{
 			bool rebuild = false;
 			
@@ -37,15 +37,15 @@ namespace RenderPipeline
 			}
 			return rebuild;
 		}
-		internal override bool Valid()
+		public override bool Valid()
 		{
 			return Properties.Enabled != false && material != null;
 		}
-		internal override void ClearCache()
+		public override void ClearPropertiesCache()
 		{
 			Properties.ClearCache();
 		}
-		internal override bool CheckParameterChange( bool clearCache)
+		public override bool UpdateProperties( bool clearCache)
 		{
 			if( clearCache != false)
 			{
@@ -53,19 +53,19 @@ namespace RenderPipeline
 			}
 			return Properties.CheckParameterChange( material);
 		}
-		internal override DepthTextureMode GetDepthTextureMode()
+		public override CameraEvent GetCameraEvent()
+		{
+			return CameraEvent.BeforeImageEffects;
+		}
+		public override DepthTextureMode GetDepthTextureMode()
 		{
 			return DepthTextureMode.None;
 		}
-		internal override bool IsHighDynamicRange()
+		public override bool IsHighDynamicRange()
 		{
 			return false;
 		}
-		protected override bool OnDuplicate()
-		{
-			return false;
-		}
-		internal override void BuildCommandBuffer( 
+		public override void BuildCommandBuffer( 
 			CommandBuffer commandBuffer, TargetContext context, 
 			System.Func<int, int, int, FilterMode, RenderTextureFormat, int> GetTemporaryRT)
 		{

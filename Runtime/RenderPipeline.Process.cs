@@ -93,7 +93,7 @@ namespace RenderPipeline
 				{
 					component.Initialize( this);
 					component.Create();
-					component.CheckParameterChange( true);
+					component.UpdateProperties( true);
 					processes[ index] = component;
 				}
 				return true;

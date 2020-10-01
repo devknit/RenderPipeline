@@ -54,11 +54,11 @@ namespace RenderPipeline
 			
 			for( int i0 = 0; i0 < opaqueProcesses.Length; ++i0)
 			{
-				opaqueProcesses[ i0]?.ClearCache();
+				opaqueProcesses[ i0]?.ClearPropertiesCache();
 			}
 			for( int i0 = 0; i0 < postProcesses.Length; ++i0)
 			{
-				postProcesses[ i0]?.ClearCache();
+				postProcesses[ i0]?.ClearPropertiesCache();
 			}
 		}
 	#endif
@@ -169,12 +169,12 @@ namespace RenderPipeline
 			{
 				bool cacheClear = fourceCacheClear;
 			#if UNITY_EDITOR
-				if( processes[ i0]?.RestoreResources() != false)
+				if( processes[ i0]?.RestoreMaterials() != false)
 				{
 					cacheClear = true;
 				}
 			#endif
-				if( (processes[ i0]?.CheckParameterChange( cacheClear) ?? false) != false)
+				if( (processes[ i0]?.UpdateProperties( cacheClear) ?? false) != false)
 				{
 					rebuild = true;
 				}
@@ -228,14 +228,14 @@ namespace RenderPipeline
 					}
 					if( prevProcess != null)
 					{
-						prevProcess.nextProcess = process;
+						prevProcess.SetNextProcess( process);
 					}
 					prevProcess = process;
 				}
 			}
 			if( prevProcess != null)
 			{
-				prevProcess.nextProcess = null;
+				prevProcess.SetNextProcess( null);
 			}
 			for( i0 = 0, prevProcess = null; i0 < postProcesses.Length; ++i0)
 			{
@@ -252,14 +252,14 @@ namespace RenderPipeline
 					}
 					if( prevProcess != null)
 					{
-						prevProcess.nextProcess = process;
+						prevProcess.SetNextProcess( process);
 					}
 					prevProcess = process;
 				}
 			}
 			if( prevProcess != null)
 			{
-				prevProcess.nextProcess = null;
+				prevProcess.SetNextProcess( null);
 			}
 			/* [2019.4.1f1]
 			   SetTargetBuffers の引数に Display.main.*****Buffer を渡しても実機では正しく動作しない。
