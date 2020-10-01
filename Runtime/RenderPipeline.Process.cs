@@ -107,9 +107,10 @@ namespace RenderPipeline
 		const int kPostPriorityBloom = 0;
 		const int kPostPriorityDepthOfField = 1;
 		const int kPostPriorityCameraMotionBlur = 2;
-		const int kPostPriorityMosaic = 3;
-		const int kPostPriorityFXAA = 4;
-		const int kPostPriorityScreenBlend = 5;
+		const int kPostPriorityGlitch = 3;
+		const int kPostPriorityMosaic = 4;
+		const int kPostPriorityFXAA = 5;
+		const int kPostPriorityScreenBlend = 6;
 		
 		static readonly (System.Type, int)[] kOpaqueProcesses = new []
 		{
@@ -121,6 +122,7 @@ namespace RenderPipeline
 			(typeof( Bloom), kPostPriorityBloom),
 			(typeof( DepthOfField), kPostPriorityDepthOfField),
 			(typeof( CameraMotionBlur), kPostPriorityCameraMotionBlur),
+			(typeof( Glitch), kPostPriorityGlitch),
 			(typeof( Mosaic), kPostPriorityMosaic),
 			(typeof( FXAA), kPostPriorityFXAA),
 			(typeof( ScreenBlend), kPostPriorityScreenBlend),
