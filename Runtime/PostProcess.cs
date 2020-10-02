@@ -66,7 +66,7 @@ namespace RenderPipeline
 		 */
 		public virtual long GetDepthStencilHashCode()
 		{
-			return kDefaultDepthStencilHash;
+			return DepthStencil.kDefaultHash;
 		}
 		protected virtual bool OnDuplicate()
 		{
@@ -88,42 +88,9 @@ namespace RenderPipeline
 		{
 			this.nextProcess = nextProcess;
 		}
-		protected static long GetDepthStencilHashCode( byte reference, byte readMask, byte writeMask, CompareFunction compFunc, StencilOp passOp, StencilOp failOp, StencilOp zFailOp)
-		{
-			return (long)reference << 48 | (long)readMask << 40 | (long)writeMask << 32 | (long)compFunc << 24 | (long)passOp << 16 | (long)failOp << 8 | (long)zFailOp;
-		}
-		protected static byte GetDepthStencilReference( long hash)
-		{
-			return (byte)((hash >> 48) & 0xff);
-		}
-		protected static byte GetDepthStencilReadMask( long hash)
-		{
-			return (byte)((hash >> 40) & 0xff);
-		}
-		protected static byte GetDepthStencilWriteMask( long hash)
-		{
-			return (byte)((hash >> 32) & 0xff);
-		}
-		protected static CompareFunction GetDepthStencilCompareFunction( long hash)
-		{
-			return (CompareFunction)((hash >> 24) & 0xff);
-		}
-		protected static StencilOp GetDepthStencilPassOp( long hash)
-		{
-			return (StencilOp)((hash >> 16) & 0xff);
-		}
-		protected static StencilOp GetDepthStencilFailOp( long hash)
-		{
-			return (StencilOp)((hash >> 8) & 0xff);
-		}
-		protected static StencilOp GetDepthStencilZFailOp( long hash)
-		{
-			return (StencilOp)(hash & 0xff);
-		}
 		
 		protected static readonly int kShaderPropertyMainTex = Shader.PropertyToID( "_MainTex");
 		protected static readonly int kShaderPropertyColor = Shader.PropertyToID( "_Color");
-		protected static readonly long kDefaultDepthStencilHash = GetDepthStencilHashCode( 0, 255, 255, CompareFunction.Always, StencilOp.Keep, StencilOp.Keep, StencilOp.Keep);
 		
 		protected RenderPipeline pipeline
 	#if UNITY_EDITOR

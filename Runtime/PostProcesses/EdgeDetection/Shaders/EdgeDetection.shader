@@ -21,7 +21,7 @@
 	float4 _MainTex_TexelSize;
 	sampler2D _CameraDepthTexture;
 	float4 _CameraDepthTexture_ST;
-	fixed4 _Color;
+	fixed4 _EdgeColor;
 	half _SampleDistance;
 	
 	struct VertexOutput
@@ -68,7 +68,7 @@
 		float sobelY = dot( sobelV, kOne4);
 		float sobel = 1.0 - saturate( sqrt( sobelX * sobelX + sobelY * sobelY));
 
-		return lerp( _Color, tex2D( _MainTex, UnityStereoScreenSpaceUVAdjust( i.uv0.xy, _MainTex_ST)), sobel);
+		return lerp( _EdgeColor, tex2D( _MainTex, UnityStereoScreenSpaceUVAdjust( i.uv0.xy, _MainTex_ST)), sobel);
 	}
 	half4 thin( VertexOutput i)
 	{	
@@ -101,7 +101,7 @@
 		float sobelY = dot( sobelV, kOne4);
 		float sobel = 1.0 - saturate( sqrt( sobelX * sobelX + sobelY * sobelY));
 		
-		return lerp( _Color, tex2D( _MainTex, UnityStereoScreenSpaceUVAdjust( i.uv0.xy, _MainTex_ST)), sobel);
+		return lerp( _EdgeColor, tex2D( _MainTex, UnityStereoScreenSpaceUVAdjust( i.uv0.xy, _MainTex_ST)), sobel);
 	}
 	half4 fragCheap( VertexOutput i) : COLOR
 	{
