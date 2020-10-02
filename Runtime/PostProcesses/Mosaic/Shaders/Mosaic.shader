@@ -2,7 +2,6 @@
 {
 	Properties
 	{
-	//	_MainTex( "Texture", 2D) = "white" {}
 		_StencilRef( "Stencil Reference", Range( 0, 255)) = 1
 		_StencilReadMask( "Stencil Read Mask", Range( 0, 255)) = 255
 		[Enum( UnityEngine.Rendering.CompareFunction)]
@@ -13,20 +12,19 @@
 	#include "UnityCG.cginc"
 	
 	sampler2D _MainTex;
-	float4 _MainTex_TexelSize;
 	float4 _Pixelation;
 	
-	struct v2f
+	struct VertexOutput
 	{
 		float4 pos : SV_POSITION;
 		float2 uv : TEXCOORD0;
 	};
-	void vert( appdata_img v, out v2f o)
+	void vert( appdata_img v, out VertexOutput o)
 	{
 		o.pos = UnityObjectToClipPos( v.vertex);
 		o.uv = v.texcoord.xy;
 	}
-	float4 frag( v2f i) : SV_Target 
+	float4 frag( VertexOutput i) : SV_Target 
 	{
         return tex2D( _MainTex, float2(
         	floor( i.uv.x * _Pixelation.x) * _Pixelation.z, 

@@ -169,7 +169,7 @@ namespace RenderPipeline
 			{
 				bool cacheClear = fourceCacheClear;
 			#if UNITY_EDITOR
-				if( processes[ i0]?.RestoreMaterials() != false)
+				if( (processes[ i0]?.RestoreMaterials() ?? false) != false)
 				{
 					cacheClear = true;
 				}

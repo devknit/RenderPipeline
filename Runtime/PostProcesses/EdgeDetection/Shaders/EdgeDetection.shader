@@ -2,7 +2,6 @@
 {
 	Properties
 	{
-	//	_MainTex( "Texture", 2D) = "white" {}
 		_StencilRef( "Stencil Reference", Range( 0, 255)) = 1
 		_StencilReadMask( "Stencil Read Mask", Range( 0, 255)) = 255
 		[Enum( UnityEngine.Rendering.CompareFunction)]
@@ -25,13 +24,13 @@
 	fixed4 _Color;
 	half _SampleDistance;
 	
-	struct v2f
+	struct VertexOutput
 	{
 		float4 pos : SV_POSITION;
 		float2 uv0 : TEXCOORD0;
 		float2 uv1 : TEXCOORD1;
 	};
-	void vert( appdata_img v, out v2f o)
+	void vert( appdata_img v, out VertexOutput o)
 	{
 		o.pos = UnityObjectToClipPos( v.vertex);
 		o.uv0 = v.texcoord.xy;
@@ -41,9 +40,9 @@
 		o.uv1 = v.texcoord.xy;
 	#endif
 	}
-	half4 cheap( v2f i)
+	half4 cheap( VertexOutput i)
 	{	
-		float centerDepth = Linear01Depth( SAMPLE_DEPTH_TEXTURE( _CameraDepthTexture, i.uv1));
+		float centerDepth = Linear01Depth(SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, UnityStereoScreenSpaceUVAdjust( i.uv1, _CameraDepthTexture_ST)));
 		float4 depthsDiag;
 		float4 depthsAxis;
 		
@@ -71,7 +70,7 @@
 
 		return lerp( _Color, tex2D( _MainTex, UnityStereoScreenSpaceUVAdjust( i.uv0.xy, _MainTex_ST)), sobel);
 	}
-	half4 thin( v2f i)
+	half4 thin( VertexOutput i)
 	{	
 		float centerDepth = Linear01Depth(SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, UnityStereoScreenSpaceUVAdjust( i.uv1, _CameraDepthTexture_ST)));
 		float4 depthsDiag;
@@ -104,11 +103,11 @@
 		
 		return lerp( _Color, tex2D( _MainTex, UnityStereoScreenSpaceUVAdjust( i.uv0.xy, _MainTex_ST)), sobel);
 	}
-	half4 fragCheap( v2f i) : COLOR
+	half4 fragCheap( VertexOutput i) : COLOR
 	{
 		return cheap( i);
 	}
-	half4 fragThin( v2f i) : COLOR
+	half4 fragThin( VertexOutput i) : COLOR
 	{
 		return thin( i);
 	}
