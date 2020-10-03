@@ -62,8 +62,7 @@ namespace RenderPipeline
 		long GetDepthStencilHashCode();
 		
 		void BuildCommandBuffer( RenderPipeline pipeline,
-			CommandBuffer commandBuffer, TargetContext context, IPostProcess nextProcess,
-			System.Func<int, int, int, FilterMode, RenderTextureFormat, int> GetTemporaryRT);
+			CommandBuffer commandBuffer, TargetContext context, IPostProcess nextProcess);
 	}
 	public abstract class PostProcess : MonoBehaviour, IPostProcess
 	{
@@ -77,8 +76,7 @@ namespace RenderPipeline
 		public abstract DepthTextureMode GetDepthTextureMode();
 		public abstract bool IsHighDynamicRange();
 		public abstract void BuildCommandBuffer( RenderPipeline pipeline,
-			CommandBuffer commandBuffer, TargetContext context, IPostProcess nextProcess,
-			System.Func<int, int, int, FilterMode, RenderTextureFormat, int> GetTemporaryRT);
+			CommandBuffer commandBuffer, TargetContext context, IPostProcess nextProcess);
 		
 		public virtual long GetDepthStencilHashCode()
 		{

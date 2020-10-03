@@ -72,12 +72,11 @@ namespace RenderPipeline
 			return false;
 		}
 		public void BuildCommandBuffer( RenderPipeline pipeline,
-			CommandBuffer commandBuffer, TargetContext context, IPostProcess nextProcess,
-			System.Func<int, int, int, FilterMode, RenderTextureFormat, int> GetTemporaryRT)
+			CommandBuffer commandBuffer, TargetContext context, IPostProcess nextProcess)
 		{
 			if( context.CompareSource0ToTarget0() != false)
 			{
-				int temporary = GetTemporaryRT( -1, -1, 0, FilterMode.Bilinear, TextureUtil.DefaultHDR);
+				int temporary = pipeline.GetTemporaryRT();
 				if( nextProcess == null)
 				{
 					commandBuffer.Blit( context.source0, temporary);

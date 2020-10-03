@@ -146,18 +146,11 @@ namespace RenderPipeline
 			return false;
 		}
 		public override void BuildCommandBuffer( RenderPipeline pipeline,
-			CommandBuffer commandBuffer, TargetContext context, IPostProcess nextProcess,
-			System.Func<int, int, int, FilterMode, RenderTextureFormat, int> GetTemporaryRT)
+			CommandBuffer commandBuffer, TargetContext context, IPostProcess nextProcess)
 		{
 			if( context.CompareSource0ToTarget0() != false && nextProcess != null)
 			{
-				var renderTextureFormat = RenderTextureFormat.ARGB32;
-				
-				if( SystemInfo.SupportsRenderTextureFormat( RenderTextureFormat.RGB111110Float) != false)
-				{
-					renderTextureFormat = RenderTextureFormat.RGB111110Float;
-				}
-				int temporary = GetTemporaryRT( -1, -1, 0, FilterMode.Bilinear, renderTextureFormat);
+				int temporary = pipeline.GetTemporaryRT();
 				context.SetTarget0( temporary);
 			}
 			if( visualizeFocus != false)

@@ -1,7 +1,6 @@
 ﻿
 using UnityEngine;
 using UnityEngine.Rendering;
-using System.Collections.Generic;
 
 namespace RenderPipeline
 {
@@ -208,30 +207,6 @@ namespace RenderPipeline
 				commandBufferPostProcesses = null;
 			}
 		}
-		List<IPostProcess> CollectionEnabledProcesses( IPostProcess[] processes, ref DepthTextureMode depthTextureMode, ref bool highDynamicRangeTarget)
-		{
-			var enabledProcesses = new List<IPostProcess>();
-			IPostProcess process, prevProcess;
-			int i0;
-			
-			for( i0 = 0, prevProcess = null; i0 < processes.Length; ++i0)
-			{
-				process = processes[ i0];
-				
-				if( (process?.Valid() ?? false) != false)
-				{
-					enabledProcesses.Add( process);
-					depthTextureMode |= process.GetDepthTextureMode();
-					
-					if( process.IsHighDynamicRange() != false)
-					{
-						highDynamicRangeTarget = true;
-					}
-					prevProcess = process;
-				}
-			}
-			return enabledProcesses;
-		}
 		int EnabledProcessCount( IPostProcess[] processes, ref DepthTextureMode depthTextureMode, ref bool highDynamicRangeTarget)
 		{
 			IPostProcess process;
@@ -259,27 +234,18 @@ namespace RenderPipeline
 			var depthTextureMode = defaultDepthTextureMode;
 			bool highDynamicRangeTarget = false;
 			bool forceIntoRenderTexture = false;
-			IPostProcess nextProcess;
+			IPostProcess nextProcess, process;
 			int i0;
 			
 			/* 既存のコマンドバッファを解放する */
 			RemoveCommandBuffers();
 			
-			/* 有効なプロセスを収集する */
-			List<IPostProcess> enabledOpaqueProcesses = CollectionEnabledProcesses( 
-				opaqueProcesses, ref depthTextureMode, ref highDynamicRangeTarget);
-			List<IPostProcess> enabledPostProcesses = CollectionEnabledProcesses( 
-				postProcesses, ref depthTextureMode, ref highDynamicRangeTarget);
-				
-		#if true
-			int enabledOpaqueProcessCount = enabledOpaqueProcesses.Count;
-			int enabledProcessCount = enabledPostProcesses.Count;
-		#else
+			/* 有効なプロセス数を求める */
 			int enabledOpaqueProcessCount = EnabledProcessCount( 
 				opaqueProcesses, ref depthTextureMode, ref highDynamicRangeTarget);
 			int enabledProcessCount = EnabledProcessCount( 
 				postProcesses, ref depthTextureMode, ref highDynamicRangeTarget);
-		#endif
+			
 			/* [2019.4.1f1]
 			   SetTargetBuffers の引数に Display.main.*****Buffer を渡しても実機では正しく動作しない。
 			   エディタ上では動作し、SetTargetBuffers を呼び出す前と同じ状態に戻る。
@@ -355,11 +321,9 @@ namespace RenderPipeline
 				commandBufferOpaqueProcesses.Clear();
 				commandBufferOpaqueProcesses.SetProjectionMatrix( Matrix4x4.Ortho( 0, 1, 0, 1, 0, 1));
 				commandBufferOpaqueProcesses.SetViewMatrix( Matrix4x4.identity);
+				ResetTemporaryRT( commandBufferOpaqueProcesses);
 				
-				var usedTemporaries = new Dictionary<int, TemporaryTarget>();
-				var recycleTemporaries = new Dictionary<int, TemporaryTarget>();
 				var context = new TargetContext();
-				int temporaryCount = 0;
 				
 				if( OverrideTargetBuffers == false)
 				{
@@ -373,62 +337,36 @@ namespace RenderPipeline
 					context.SetSource0( colorBuffer);
 					context.SetTarget0( colorBuffer);
 				}
-				for( i0 = 0; i0 < enabledOpaqueProcesses.Count; ++i0)
+				for( i0 = 0, process = null; i0 < opaqueProcesses.Length; ++i0)
 				{
-					foreach( var userdTemporary in usedTemporaries.Values)
+					nextProcess = opaqueProcesses[ i0];
+					
+					if( (nextProcess?.Valid() ?? false) != false)
 					{
-						if( context.ConfirmUsePropertyId( userdTemporary.propertyId) == false)
+						if( process != null)
 						{
-							if( recycleTemporaries.ContainsKey( userdTemporary.propertyId) == false)
-							{
-								recycleTemporaries.Add( userdTemporary.propertyId, userdTemporary);
-							}
+							RecycleTemporaryRT( context);
+							process.BuildCommandBuffer( this, commandBufferOpaqueProcesses, context, nextProcess);
+							context.Next();
 						}
+						process = nextProcess;
 					}
-					if( i0 == enabledOpaqueProcesses.Count - 1)
+				}
+				if( process != null)
+				{
+					RecycleTemporaryRT( context);
+					
+					if( OverrideTargetBuffers == false)
 					{
-						if( OverrideTargetBuffers == false)
-						{
-							context.SetTarget0( BuiltinRenderTextureType.CameraTarget);
-						}
-						else
-						{
-							context.SetTarget0( colorBuffer);
-						}
-						nextProcess = null;
+						context.SetTarget0( BuiltinRenderTextureType.CameraTarget);
 					}
 					else
 					{
-						nextProcess = enabledOpaqueProcesses[ i0 + 1];
+						context.SetTarget0( colorBuffer);
 					}
-					enabledOpaqueProcesses[ i0].BuildCommandBuffer( this,
-						commandBufferOpaqueProcesses, context, nextProcess,
-						(width, height, depth, filterMode, format) =>
-						{
-							foreach( var recycleTemporary in recycleTemporaries.Values)
-							{
-								if( recycleTemporary.width == width
-								||	recycleTemporary.height == height
-								||	recycleTemporary.depth == depth
-								||	recycleTemporary.filterMode == filterMode
-								||	recycleTemporary.format == format)
-								{
-									recycleTemporaries.Remove( recycleTemporary.propertyId);
-									return recycleTemporary.propertyId;
-								}
-							}
-							int temporary = Shader.PropertyToID( "CameraPipeline::OpaqueTemporary" + temporaryCount);
-							commandBufferOpaqueProcesses.GetTemporaryRT( temporary, width, height, depth, filterMode, format);
-							usedTemporaries.Add( temporary, new TemporaryTarget( temporary, width, height, depth, filterMode, format));
-							++temporaryCount;
-							return temporary;
-						});
-					context.Next();
+					process.BuildCommandBuffer( this, commandBufferOpaqueProcesses, context, null);
 				}
-				foreach( var userdTemporaryId in usedTemporaries.Keys)
-				{
-					commandBufferOpaqueProcesses.ReleaseTemporaryRT( userdTemporaryId);
-				}
+				ReleaseTemporaryRT();
 				cacheCamera.AddCommandBuffer( CameraEvent.BeforeImageEffectsOpaque, commandBufferOpaqueProcesses);
 			}
 			/* 半透明系プロセス+FinalPass */
@@ -439,13 +377,11 @@ namespace RenderPipeline
 				commandBufferPostProcesses.Clear();
 				commandBufferPostProcesses.SetProjectionMatrix( Matrix4x4.Ortho( 0, 1, 0, 1, 0, 1));
 				commandBufferPostProcesses.SetViewMatrix( Matrix4x4.identity);
+				ResetTemporaryRT( commandBufferPostProcesses);
 				
 				if( enabledProcessCount > 0)
 				{
-					var usedTemporaries = new Dictionary<int, TemporaryTarget>();
-					var recycleTemporaries = new Dictionary<int, TemporaryTarget>();
 					var context = new TargetContext();
-					int temporaryCount = 0;
 					
 					if( OverrideTargetBuffers == false)
 					{
@@ -459,55 +395,28 @@ namespace RenderPipeline
 						context.SetSource0( colorBuffer);
 						context.SetTarget0( colorBuffer);
 					}
-					for( i0 = 0; i0 < enabledPostProcesses.Count; ++i0)
+					for( i0 = 0, process = null; i0 < postProcesses.Length; ++i0)
 					{
-						foreach( var userdTemporary in usedTemporaries.Values)
+						nextProcess = postProcesses[ i0];
+						
+						if( (nextProcess?.Valid() ?? false) != false)
 						{
-							if( context.ConfirmUsePropertyId( userdTemporary.propertyId) == false)
+							if( process != null)
 							{
-								if( recycleTemporaries.ContainsKey( userdTemporary.propertyId) == false)
-								{
-									recycleTemporaries.Add( userdTemporary.propertyId, userdTemporary);
-								}
+								RecycleTemporaryRT( context);
+								process.BuildCommandBuffer( this, commandBufferPostProcesses, context, nextProcess);
+								context.Next();
 							}
+							process = nextProcess;
 						}
-						if( i0 == enabledPostProcesses.Count - 1)
-						{
-							context.SetTarget0( BuiltinRenderTextureType.CameraTarget);
-							nextProcess = null;
-						}
-						else
-						{
-							nextProcess = enabledPostProcesses[ i0 + 1];
-						}
-						enabledPostProcesses[ i0].BuildCommandBuffer( this,
-							commandBufferPostProcesses, context, nextProcess,
-							(width, height, depth, filterMode, format) =>
-							{
-								foreach( var recycleTemporary in recycleTemporaries.Values)
-								{
-									if( recycleTemporary.width == width
-									||	recycleTemporary.height == height
-									||	recycleTemporary.depth == depth
-									||	recycleTemporary.filterMode == filterMode
-									||	recycleTemporary.format == format)
-									{
-										recycleTemporaries.Remove( recycleTemporary.propertyId);
-										return recycleTemporary.propertyId;
-									}
-								}
-								int temporary = Shader.PropertyToID( "CameraPipeline::PostTemporary" + temporaryCount);
-								commandBufferPostProcesses.GetTemporaryRT( temporary, width, height, depth, filterMode, format);
-								usedTemporaries.Add( temporary, new TemporaryTarget( temporary, width, height, depth, filterMode, format));
-								++temporaryCount;
-								return temporary;
-							});
-						context.Next();
 					}
-					foreach( var userdTemporaryId in usedTemporaries.Keys)
+					if( process != null)
 					{
-						commandBufferPostProcesses.ReleaseTemporaryRT( userdTemporaryId);
+						RecycleTemporaryRT( context);
+						context.SetTarget0( BuiltinRenderTextureType.CameraTarget);
+						process.BuildCommandBuffer( this, commandBufferPostProcesses, context, null);
 					}
+					ReleaseTemporaryRT();
 				}
 				else
 				{
@@ -546,24 +455,6 @@ namespace RenderPipeline
 		internal void DrawFill( CommandBuffer commandBuffer, Material material, int shaderPass)
 		{
 			commandBuffer.DrawMesh( fillMesh, Matrix4x4.identity, material, 0, shaderPass);
-		}
-		sealed class TemporaryTarget
-		{
-			public TemporaryTarget( int propertyId, int width, int height, int depth, FilterMode filterMode, RenderTextureFormat format)
-			{
-				this.propertyId = propertyId;
-				this.width = width;
-				this.height = height;
-				this.depth = depth;
-				this.filterMode = filterMode;
-				this.format = format;
-			}
-			public int propertyId;
-			public int width;
-			public int height;
-			public int depth;
-			public FilterMode filterMode;
-			public RenderTextureFormat format;
 		}
 		internal Camera CacheCamera
 		{
