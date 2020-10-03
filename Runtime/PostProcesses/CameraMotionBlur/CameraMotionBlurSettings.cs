@@ -34,7 +34,7 @@ namespace RenderPipeline
 			get{ return sampleQuality; }
 			set{ sampleQuality = value; }
 		}
-		internal override void ClearCache()
+		public void ClearCache()
 		{
 			cacheEnabled = null;
 			cacheDistance = null;

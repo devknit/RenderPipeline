@@ -11,7 +11,7 @@ namespace RenderPipeline
 		public VignetteProperties properties = default;
 	}
 	[System.Serializable]
-	public sealed class VignetteProperties : Properties
+	public sealed class VignetteProperties : IUbarProperties
 	{
 		public bool Enabled
 		{
@@ -48,7 +48,7 @@ namespace RenderPipeline
 			get{ return rounded; }
 			set{ rounded = value; }
 		}
-		internal override void ClearCache()
+		public void ClearCache()
 		{
 			cacheEnabled = null;
 			cacheColor = null;
@@ -58,7 +58,7 @@ namespace RenderPipeline
 			cacheRoundness = null;
 			cacheRounded = null;
 		}
-		internal bool CheckParameterChange( Material material)
+		public bool UpdateProperties( Material material)
 		{
 			bool rebuild = false;
 			

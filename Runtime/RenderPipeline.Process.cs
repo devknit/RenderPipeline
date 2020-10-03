@@ -87,40 +87,17 @@ namespace RenderPipeline
 					rebuild = true;
 				}
 			}
-			
-			/* post ubar */
-			UbarProcess ubarProcess = null;
-			
-			for( i0 = 0; i0 < postProcesses.Length; ++i0)
+			if( JoinUbar( opaqueProcesses) != false)
 			{
-				if( postProcesses[ i0] is UbarProperty ubarProperty)
-				{
-					if( ubarProcess == null)
-					{
-						if( PostUbar == null)
-						{
-							ubarProcess = new UbarProcess( ubarShader);
-							ubarProcess.Create();
-							PostUbar = ubarProcess;
-							rebuild = true;
-						}
-						else
-						{
-							ubarProcess = PostUbar;
-							ubarProcess.ResetProperty();
-						}
-					}
-					ubarProcess.SetProperty( ubarProperty);
-				}
+				rebuild = true;
 			}
-			if( ubarProcess == null)
+			if( JoinUbar( postProcesses) != false)
 			{
-				PostUbar?.Dispose();
-				PostUbar = null;
 				rebuild = true;
 			}
 			return rebuild;
 		}
+		
 		bool VerifyProcess( GameObject gameObject, System.Type type, IPostProcess[] processes, int index)
 		{
 			var component = gameObject.GetComponent( type) as PostProcess;
@@ -142,6 +119,42 @@ namespace RenderPipeline
 			}
 			return false;
 		}
+		bool JoinUbar( IPostProcess[] processes)
+		{
+			int ubarIndex = processes.Length - 1;
+			UbarProcess ubarProcess = null;
+			bool rebuild = false;
+			
+			for( int i0 = 0; i0 < processes.Length; ++i0)
+			{
+				if( processes[ i0] is UbarProperty ubarProperty)
+				{
+					if( ubarProcess == null)
+					{
+						if( processes[ ubarIndex] == null)
+						{
+							ubarProcess = new UbarProcess( ubarShader);
+							ubarProcess.Create();
+							processes[ ubarIndex] = ubarProcess;
+							rebuild = true;
+						}
+						else
+						{
+							ubarProcess = processes[ ubarIndex] as UbarProcess;
+							ubarProcess.ResetProperty();
+						}
+					}
+					ubarProcess.SetProperty( ubarProperty);
+				}
+			}
+			if( ubarProcess == null)
+			{
+				processes[ ubarIndex]?.Dispose();
+				processes[ ubarIndex] = null;
+				rebuild = true;
+			}
+			return rebuild;
+		}
 
 		const int kOpaquePriorityEdgeDetection = 0;
 		const int kOpaquePrioritySSAO = 1;
@@ -154,6 +167,7 @@ namespace RenderPipeline
 		const int kPostPriorityFXAA = 5;
 		const int kPostPriorityScreenBlend = 6;
 		const int kPostPriorityVignette = 7;
+		const int kPostPriorityFlip = 8;
 		
 		static readonly (System.Type, int)[] kOpaqueProcesses = new []
 		{
@@ -170,6 +184,7 @@ namespace RenderPipeline
 			(typeof( FXAA), kPostPriorityFXAA),
 			(typeof( ScreenBlend), kPostPriorityScreenBlend),
 			(typeof( Vignette), kPostPriorityVignette),
+			(typeof( Flip), kPostPriorityFlip),
 		};
 	}
 }

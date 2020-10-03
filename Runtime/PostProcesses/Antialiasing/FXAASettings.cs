@@ -29,7 +29,7 @@ namespace RenderPipeline
 			get{ return sharpness; }
 			set{ sharpness = value; }
 		}
-		internal override void ClearCache()
+		public void ClearCache()
 		{
 			cacheEnabled = null;
 			cacheThreshold = null;

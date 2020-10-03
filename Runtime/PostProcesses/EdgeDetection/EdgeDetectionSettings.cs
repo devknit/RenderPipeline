@@ -54,7 +54,7 @@ namespace RenderPipeline
 			get{ return stencilCompare; }
 			set{ stencilCompare = value; }
 		}
-		internal override void ClearCache()
+		public void ClearCache()
 		{
 			cacheEnabled = null;
 			cacheDetectType = null;

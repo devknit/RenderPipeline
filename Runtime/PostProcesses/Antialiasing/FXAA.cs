@@ -61,7 +61,7 @@ namespace RenderPipeline
 		{
 			return DepthTextureMode.None;
 		}
-		public override bool IsHighDynamicRange()
+		public override bool IsRequiredHighDynamicRange()
 		{
 			return false;
 		}

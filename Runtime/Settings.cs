@@ -7,8 +7,23 @@ namespace RenderPipeline
 	public abstract class Settings : ScriptableObject
 	{
 	}
-	public abstract class Properties
+	public interface Properties
 	{
-		internal abstract void ClearCache();
+		bool Enabled
+		{
+			get;
+			set;
+		}
+		void ClearCache();
+	}
+	internal interface IUbarProperties
+	{
+		bool Enabled
+		{
+			get;
+			set;
+		}
+		void ClearCache();
+		bool UpdateProperties( Material material);
 	}
 }

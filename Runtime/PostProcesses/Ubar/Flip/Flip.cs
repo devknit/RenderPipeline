@@ -5,9 +5,9 @@ using UnityEngine.Rendering;
 namespace RenderPipeline
 {
 	[System.Serializable]
-	public sealed partial class Vignette : UbarProperty
+	public sealed partial class Flip : UbarProperty
 	{
-		public VignetteProperties Properties
+		public FlipProperties Properties
 		{
 			get{ return (sharedSettings != null)? sharedSettings.properties : properties; }
 		}
@@ -25,8 +25,8 @@ namespace RenderPipeline
 		}
 		
 		[SerializeField]
-        VignetteSettings sharedSettings = default;
+        FlipSettings sharedSettings = default;
         [SerializeField]
-        VignetteProperties properties = default;
+        FlipProperties properties = default;
 	}
 }

@@ -13,6 +13,8 @@
 			#pragma vertex vert
 			#pragma fragment frag
 			#pragma multi_compile_local _ _VIGNETTE
+			#pragma multi_compile_local _ _FLIP_X
+			#pragma multi_compile_local _ _FLIP_Y
 			#include "../Ubar/Vignette/Shaders/Vignette.cginc"
 			
 			UNITY_DECLARE_SCREENSPACE_TEXTURE( _MainTex);
@@ -37,6 +39,12 @@
 				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO( o);
 				o.pos = UnityObjectToClipPos( i.pos);
 				o.uv = UnityStereoTransformScreenSpaceTex( i.uv);
+			#if defined(_FLIP_X)
+				o.uv.x = 1.0 - o.uv.x;
+			#endif
+			#if defined(_FLIP_Y)
+				o.uv.y = 1.0 - o.uv.y;
+			#endif
 			}
 			fixed4 frag( VertexOutput i) : SV_Target
 			{

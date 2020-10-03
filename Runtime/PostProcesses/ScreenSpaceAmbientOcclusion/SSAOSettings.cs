@@ -49,7 +49,7 @@ namespace RenderPipeline
 			get{ return area; }
 			set{ area = value; }
 		}
-		internal override void ClearCache()
+		public void ClearCache()
 		{
 			cacheEnabled = null;
 			cacheFastMode = null;

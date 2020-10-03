@@ -30,7 +30,7 @@ namespace RenderPipeline
 			get{ return color; }
 			set{ color = value; }
 		}
-		internal override void ClearCache()
+		public void ClearCache()
 		{
 			cacheEnabled = null;
 			cacheFlipHorizontal = null;

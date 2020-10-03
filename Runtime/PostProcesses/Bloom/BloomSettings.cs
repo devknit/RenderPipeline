@@ -93,7 +93,7 @@ namespace RenderPipeline
 		{
 			get{ return cacheScreenHeight ?? 0; }
 		}
-		internal override void ClearCache()
+		public void ClearCache()
 		{
 			cacheEnabled = null;
 			cacheThresholds = null;

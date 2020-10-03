@@ -1,6 +1,8 @@
 ﻿
 using UnityEngine;
 using UnityEngine.Rendering;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace RenderPipeline
 {
@@ -41,13 +43,22 @@ namespace RenderPipeline
 		{
 			if( material != null)
 			{
-				return vignette?.Enabled ?? false;
+				foreach( var property in properties)
+				{
+					if( property.GetProperties().Enabled != false)
+					{
+						return true;
+					}
+				}
 			}
 			return false;
 		}
 		public void ClearPropertiesCache()
 		{
-			vignette?.ClearCache();
+			foreach( var property in properties)
+			{
+				property.GetProperties().ClearCache();
+			}
 		}
 		public bool UpdateProperties( RenderPipeline pipeline, bool clearCache)
 		{
@@ -55,11 +66,14 @@ namespace RenderPipeline
 			
 			if( clearCache != false)
 			{
-				vignette?.ClearCache();
+				ClearPropertiesCache();
 			}
-			if( (vignette?.CheckParameterChange( material) ?? false) != false)
+			foreach( var property in properties)
 			{
-				rebuild = true;
+				if( property.GetProperties().UpdateProperties( material) != false)
+				{
+					rebuild = true;
+				}
 			}
 			return rebuild;
 		}
@@ -71,7 +85,7 @@ namespace RenderPipeline
 		{
 			return DepthTextureMode.None;
 		}
-		public bool IsHighDynamicRange()
+		public bool IsRequiredHighDynamicRange()
 		{
 			return false;
 		}
@@ -107,13 +121,13 @@ namespace RenderPipeline
 		}
 		internal void ResetProperty()
 		{
-			vignette = null;
+			properties.Clear();
 		}
 		internal void SetProperty( UbarProperty property)
 		{
-			if( property is Vignette vignetteProcess)
+			if( property != null)
 			{
-				vignette = vignetteProcess.Properties;
+				properties.Add( property);
 			}
 		}
 		
@@ -122,6 +136,6 @@ namespace RenderPipeline
 		[System.NonSerialized]
 		Material material;
 		[System.NonSerialized]
-		internal VignetteProperties vignette = null;
+		List<UbarProperty> properties = new List<UbarProperty>();
 	}
 }

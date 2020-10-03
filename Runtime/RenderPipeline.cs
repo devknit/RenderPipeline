@@ -223,7 +223,7 @@ namespace RenderPipeline
 				{
 					depthTextureMode |= process.GetDepthTextureMode();
 					
-					if( process.IsHighDynamicRange() != false)
+					if( process.IsRequiredHighDynamicRange() != false)
 					{
 						highDynamicRangeTarget = true;
 					}

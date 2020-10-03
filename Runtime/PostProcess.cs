@@ -49,12 +49,12 @@ namespace RenderPipeline
 		 */
 		DepthTextureMode GetDepthTextureMode();
 		/**
-		 * \brief High Dynamic Range が必要かどうかを確認します。
+		 * \brief High Dynamic Range が必須かどうかを確認します。
 		 * \return 確認結果。以下の値が返ります。
 		 * \retval true HDRが必要な場合に返ります。
 		 * \retval false HDRが不要な場合に返ります。
 		 */
-		bool IsHighDynamicRange();
+		bool IsRequiredHighDynamicRange();
 		/**
 		 * \brief ステンシルのハッシュ値を取得する。
 		 * \return ステンシルのハッシュが返ります。
@@ -74,7 +74,7 @@ namespace RenderPipeline
 		public abstract bool UpdateProperties( RenderPipeline pipeline, bool clearCache);
 		public abstract CameraEvent GetCameraEvent();
 		public abstract DepthTextureMode GetDepthTextureMode();
-		public abstract bool IsHighDynamicRange();
+		public abstract bool IsRequiredHighDynamicRange();
 		public abstract void BuildCommandBuffer( RenderPipeline pipeline,
 			CommandBuffer commandBuffer, TargetContext context, IPostProcess nextProcess);
 		
@@ -94,11 +94,48 @@ namespace RenderPipeline
 			return false;
 		}
 	}
+	public interface IUbarProperty<T> where T : Properties
+	{
+		T Properties
+		{
+			get;
+		}
+	}
 	public abstract class UbarProperty : InternalProcess
 	{
+		public override void Create()
+		{
+		}
+		public override void Dispose()
+		{
+		}
+		public override bool RestoreMaterials()
+		{
+			return false;
+		}
+		public override bool Valid()
+		{
+			return false;
+		}
+		public override void ClearPropertiesCache()
+		{
+		}
+		public override bool UpdateProperties( RenderPipeline pipeline, bool clearCache)
+		{
+			return false;
+		}
+		public override bool IsRequiredHighDynamicRange()
+		{
+			return false;
+		}
+		public override void BuildCommandBuffer( RenderPipeline pipeline,
+			CommandBuffer commandBuffer, TargetContext context, IPostProcess nextProcess)
+		{
+		}
 		internal virtual bool Independent()
 		{
 			return GetDepthStencilHashCode() != DepthStencil.kDefaultHash;
 		}
+		internal abstract IUbarProperties GetProperties();
 	}
 }
