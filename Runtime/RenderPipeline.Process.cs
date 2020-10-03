@@ -9,183 +9,158 @@ namespace RenderPipeline
 	{
 		public EdgeDetection EdgeDetection
 		{
-			get{ return opaqueProcesses[ kOpaquePriorityEdgeDetection] as EdgeDetection; }
+			get{ return FindProcess<EdgeDetection>(); }
 		}
 		public SSAO SSAO
 		{
-			get{ return opaqueProcesses[ kOpaquePrioritySSAO] as SSAO; }
-		}
-		public UbarProcess OpaqueUbar
-		{
-			get{ return opaqueProcesses[ opaqueProcesses.Length - 1] as UbarProcess; }
-			set{ opaqueProcesses[ opaqueProcesses.Length - 1] = value; }
+			get{ return FindProcess<SSAO>(); }
 		}
 		public Bloom Bloom
 		{
-			get{ return postProcesses[ kPostPriorityBloom] as Bloom; }
+			get{ return FindProcess<Bloom>(); }
 		}
 		public DepthOfField DepthOfField
 		{
-			get{ return postProcesses[ kPostPriorityDepthOfField] as DepthOfField; }
+			get{ return FindProcess<DepthOfField>(); }
 		}
 		public CameraMotionBlur CameraMotionBlur
 		{
-			get{ return postProcesses[ kPostPriorityCameraMotionBlur] as CameraMotionBlur; }
+			get{ return FindProcess<CameraMotionBlur>(); }
 		}
 		public Mosaic Mosaic
 		{
-			get{ return postProcesses[ kPostPriorityMosaic] as Mosaic; }
+			get{ return FindProcess<Mosaic>(); }
 		}
 		public FXAA FXAA
 		{
-			get{ return postProcesses[ kPostPriorityFXAA] as FXAA; }
+			get{ return FindProcess<FXAA>(); }
 		}
 		public ScreenBlend ScreenBlend
 		{
-			get{ return postProcesses[ kPostPriorityScreenBlend] as ScreenBlend; }
+			get{ return FindProcess<ScreenBlend>(); }
 		}
-		public UbarProcess PostUbar
+		T FindProcess<T>() where T : PostProcess
 		{
-			get{ return postProcesses[ postProcesses.Length - 1] as UbarProcess; }
-			set{ postProcesses[ postProcesses.Length - 1] = value as UbarProcess; }
+			for( int i0 = 0; i0 < postProcesses.Length; ++i0)
+			{
+				if( postProcesses[ i0] is T t)
+				{
+					return t;
+				}
+			}
+			return null;
 		}
 		bool CollectionProcesses()
 		{
 			GameObject targetObject = (postProcessesTarget != null)? postProcessesTarget : gameObject;
 			bool rebuild = false;
 			
-		#if UNITY_EDITOR
-			if( (opaqueProcesses?.Length ?? 0) != kOpaqueProcesses.Length + 1)
-			{
-				opaqueProcesses = new IPostProcess[ kOpaqueProcesses.Length + 1];
-				rebuild = true;
-			}
-			if( (postProcesses?.Length ?? 0) != kPostProcesses.Length + 1)
-			{
-				postProcesses = new IPostProcess[ kPostProcesses.Length + 1];
-				rebuild = true;
-			}
-		#endif
-			(System.Type type, int index) composition;
-			int i0;
+			PostProcess[] components = targetObject.GetComponents<PostProcess>();
+			var collection = new List<IPostProcess>();
+			IPostProcess component;
+			UbarProcess opaqueUbar, newOpaqueUbar = null;
+			UbarProcess postUbar, newPostUbar = null;
+			int i0, i1;
 			
-			for( i0 = 0; i0 < kOpaqueProcesses.Length; ++i0)
-			{
-				composition = kOpaqueProcesses[ i0];
-				
-				if( VerifyProcess( targetObject, composition.type, opaqueProcesses, composition.index) != false)
-				{
-					rebuild = true;
-				}
-			}
-			for( i0 = 0; i0 < kPostProcesses.Length; ++i0)
-			{
-				composition = kPostProcesses[ i0];
-				
-				if( VerifyProcess( targetObject, composition.type, postProcesses, composition.index) != false)
-				{
-					rebuild = true;
-				}
-			}
-			if( JoinUbar( opaqueProcesses) != false)
-			{
-				rebuild = true;
-			}
-			if( JoinUbar( postProcesses) != false)
-			{
-				rebuild = true;
-			}
-			return rebuild;
-		}
-		
-		bool VerifyProcess( GameObject gameObject, System.Type type, IPostProcess[] processes, int index)
-		{
-			var component = gameObject.GetComponent( type) as PostProcess;
+			opaqueUbar = postProcesses[ postProcesses.Length - 2] as UbarProcess;
+			postUbar = postProcesses[ postProcesses.Length - 1] as UbarProcess;
+			postProcesses[ postProcesses.Length - 2] = null;
+			postProcesses[ postProcesses.Length - 1] = null;
 			
-			if( object.ReferenceEquals( processes[ index], component) == false)
+			for( i1 = 0; i1 < components.Length; ++i1)
 			{
-				if( object.ReferenceEquals( processes[ index], null) == false)
+				component = components[ i1];
+				
+				for( i0 = 0; i0 < postProcesses.Length; ++i0)
 				{
-					processes[ index].Dispose();
-					processes[ index] = null;
+					if( object.ReferenceEquals( postProcesses[ i0], component) != false)
+					{
+						postProcesses[ i0] = null;
+						break;
+					}
 				}
-				if( object.ReferenceEquals( component, null) == false)
+				if( i0 == postProcesses.Length)
 				{
 					component.Create();
 					component.UpdateProperties( this, true);
-					processes[ index] = component;
+					rebuild = true;
 				}
-				return true;
+				collection.Add( component);
 			}
-			return false;
-		}
-		bool JoinUbar( IPostProcess[] processes)
-		{
-			int ubarIndex = processes.Length - 1;
-			UbarProcess ubarProcess = null;
-			bool rebuild = false;
-			
-			for( int i0 = 0; i0 < processes.Length; ++i0)
+			for( i0 = 0; i0 < postProcesses.Length; ++i0)
 			{
-				if( processes[ i0] is UbarProperty ubarProperty)
+				if( object.ReferenceEquals( postProcesses[ i0], null) == false)
 				{
-					if( ubarProcess == null)
+					postProcesses[ i0].Dispose();
+					rebuild = true;
+				}
+			}
+			collection.Add( null);
+			collection.Add( null);
+			postProcesses = collection.ToArray();
+			
+			for( i0 = 0; i0 < postProcesses.Length; ++i0)
+			{
+				if( postProcesses[ i0] is UbarProperty ubarProperty)
+				{
+					switch( ubarProperty.GetCameraEvent())
 					{
-						if( processes[ ubarIndex] == null)
+						case CameraEvent.BeforeImageEffectsOpaque:
 						{
-							ubarProcess = new UbarProcess( ubarShader);
-							ubarProcess.Create();
-							processes[ ubarIndex] = ubarProcess;
-							rebuild = true;
+							if( newOpaqueUbar == null)
+							{
+								if( opaqueUbar == null)
+								{
+									newOpaqueUbar = new UbarProcess( ubarShader);
+									newOpaqueUbar.Create();
+									rebuild = true;
+								}
+								else
+								{
+									newOpaqueUbar = opaqueUbar;
+									newOpaqueUbar.ResetProperty();
+								}
+							}
+							newOpaqueUbar.SetProperty( ubarProperty);
+							break;
 						}
-						else
+						case CameraEvent.BeforeImageEffects:
 						{
-							ubarProcess = processes[ ubarIndex] as UbarProcess;
-							ubarProcess.ResetProperty();
+							if( newPostUbar == null)
+							{
+								if( postUbar == null)
+								{
+									newPostUbar = new UbarProcess( ubarShader);
+									newPostUbar.Create();
+									rebuild = true;
+								}
+								else
+								{
+									newPostUbar = postUbar;
+									newPostUbar.ResetProperty();
+								}
+							}
+							newPostUbar.SetProperty( ubarProperty);
+							break;
 						}
 					}
-					ubarProcess.SetProperty( ubarProperty);
 				}
 			}
-			if( ubarProcess == null)
+			if( newOpaqueUbar == null && opaqueUbar != null)
 			{
-				processes[ ubarIndex]?.Dispose();
-				processes[ ubarIndex] = null;
+				opaqueUbar.Dispose();
 				rebuild = true;
 			}
+			if( newPostUbar == null && postUbar != null)
+			{
+				postUbar.Dispose();
+				rebuild = true;
+			}
+			postProcesses[ postProcesses.Length - 2] = newOpaqueUbar;
+			postProcesses[ postProcesses.Length - 1] = newPostUbar;
+			
 			return rebuild;
 		}
-
-		const int kOpaquePriorityEdgeDetection = 0;
-		const int kOpaquePrioritySSAO = 1;
-		
-		const int kPostPriorityBloom = 0;
-		const int kPostPriorityDepthOfField = 1;
-		const int kPostPriorityCameraMotionBlur = 2;
-		const int kPostPriorityGlitch = 3;
-		const int kPostPriorityMosaic = 4;
-		const int kPostPriorityFXAA = 5;
-		const int kPostPriorityScreenBlend = 6;
-		const int kPostPriorityVignette = 7;
-		const int kPostPriorityFlip = 8;
-		
-		static readonly (System.Type, int)[] kOpaqueProcesses = new []
-		{
-			(typeof( EdgeDetection), kOpaquePriorityEdgeDetection),
-			(typeof( SSAO), kOpaquePrioritySSAO),
-		};
-		static readonly (System.Type, int)[] kPostProcesses = new []
-		{
-			(typeof( Bloom), kPostPriorityBloom),
-			(typeof( DepthOfField), kPostPriorityDepthOfField),
-			(typeof( CameraMotionBlur), kPostPriorityCameraMotionBlur),
-			(typeof( Glitch), kPostPriorityGlitch),
-			(typeof( Mosaic), kPostPriorityMosaic),
-			(typeof( FXAA), kPostPriorityFXAA),
-			(typeof( ScreenBlend), kPostPriorityScreenBlend),
-			(typeof( Vignette), kPostPriorityVignette),
-			(typeof( Flip), kPostPriorityFlip),
-		};
 	}
 }
 	

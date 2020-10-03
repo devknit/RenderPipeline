@@ -60,10 +60,6 @@ namespace RenderPipeline
 		}
 		void ClearPropertiesCache()
 		{
-			for( int i0 = 0; i0 < opaqueProcesses.Length; ++i0)
-			{
-				opaqueProcesses[ i0]?.ClearPropertiesCache();
-			}
 			for( int i0 = 0; i0 < postProcesses.Length; ++i0)
 			{
 				postProcesses[ i0]?.ClearPropertiesCache();
@@ -77,10 +73,6 @@ namespace RenderPipeline
 		#endif
 			RemoveCommandBuffers();
 			
-			for( int i0 = 0; i0 < opaqueProcesses.Length; ++i0)
-			{
-				opaqueProcesses[ i0]?.Dispose();
-			}
 			for( int i0 = 0; i0 < postProcesses.Length; ++i0)
 			{
 				postProcesses[ i0]?.Dispose();
@@ -151,10 +143,6 @@ namespace RenderPipeline
 				cacheCamera.allowMSAA = false;
 				isRebuildCommandBuffers = true;
 			}
-			if( RestoreAndCheckParameter( opaqueProcesses, fourceCacheClear) != false)
-			{
-				isRebuildCommandBuffers = true;
-			}
 			if( RestoreAndCheckParameter( postProcesses, fourceCacheClear) != false)
 			{
 				isRebuildCommandBuffers = true;
@@ -210,7 +198,7 @@ namespace RenderPipeline
 				commandBufferPostProcesses = null;
 			}
 		}
-		int EnabledProcessCount( IPostProcess[] processes, ref DepthTextureMode depthTextureMode, ref bool highDynamicRangeTarget)
+		int EnabledProcessCount( IPostProcess[] processes, CameraEvent cameraEvent, ref DepthTextureMode depthTextureMode, ref bool highDynamicRangeTarget)
 		{
 			IPostProcess process;
 			int i0, count = 0;
@@ -219,15 +207,18 @@ namespace RenderPipeline
 			{
 				process = processes[ i0];
 				
-				if( (process?.Valid() ?? false) != false)
+				if( process != null)
 				{
-					depthTextureMode |= process.GetDepthTextureMode();
-					
-					if( process.IsRequiredHighDynamicRange() != false)
+					if( process.GetCameraEvent() == cameraEvent && process.Valid() != false)
 					{
-						highDynamicRangeTarget = true;
+						depthTextureMode |= process.GetDepthTextureMode();
+						
+						if( process.IsRequiredHighDynamicRange() != false)
+						{
+							highDynamicRangeTarget = true;
+						}
+						++count;
 					}
-					++count;
 				}
 			}
 			return count;
@@ -245,9 +236,11 @@ namespace RenderPipeline
 			
 			/* 有効なプロセス数を求める */
 			int enabledOpaqueProcessCount = EnabledProcessCount( 
-				opaqueProcesses, ref depthTextureMode, ref highDynamicRangeTarget);
+				postProcesses, CameraEvent.BeforeImageEffectsOpaque, 
+				ref depthTextureMode, ref highDynamicRangeTarget);
 			int enabledProcessCount = EnabledProcessCount( 
-				postProcesses, ref depthTextureMode, ref highDynamicRangeTarget);
+				postProcesses, CameraEvent.BeforeImageEffects,
+				ref depthTextureMode, ref highDynamicRangeTarget);
 			
 			/* [2019.4.1f1]
 			   SetTargetBuffers の引数に Display.main.*****Buffer を渡しても実機では正しく動作しない。
@@ -351,11 +344,15 @@ namespace RenderPipeline
 					context.SetSource0( colorBuffer);
 					context.SetTarget0( colorBuffer);
 				}
-				for( i0 = 0, process = null; i0 < opaqueProcesses.Length; ++i0)
+				for( i0 = 0, process = null; i0 < postProcesses.Length; ++i0)
 				{
-					nextProcess = opaqueProcesses[ i0];
+					nextProcess = postProcesses[ i0];
 					
-					if( (nextProcess?.Valid() ?? false) != false)
+					if( nextProcess?.GetCameraEvent() != CameraEvent.BeforeImageEffectsOpaque)
+					{
+						continue;
+					}
+					if( nextProcess.Valid() != false)
 					{
 						if( nextProcess is UbarProperty ubarProperty)
 						{
@@ -420,7 +417,11 @@ namespace RenderPipeline
 					{
 						nextProcess = postProcesses[ i0];
 						
-						if( (nextProcess?.Valid() ?? false) != false)
+						if( nextProcess?.GetCameraEvent() != CameraEvent.BeforeImageEffects)
+						{
+							continue;
+						}
+						if( nextProcess.Valid() != false)
 						{
 							if( nextProcess is UbarProperty ubarProperty)
 							{
@@ -540,8 +541,7 @@ namespace RenderPipeline
 		RenderTexture depthBuffer;
 		bool isRebuildCommandBuffers;
 		
-		IPostProcess[] opaqueProcesses = new IPostProcess[ kOpaqueProcesses.Length + 1];
-		IPostProcess[] postProcesses = new IPostProcess[ kPostProcesses.Length + 1];
+		IPostProcess[] postProcesses = new IPostProcess[ 2];
 		CommandBuffer commandBufferDepthTexture;
 		CommandBuffer commandBufferOpaqueProcesses;
 		CommandBuffer commandBufferPostProcesses;
