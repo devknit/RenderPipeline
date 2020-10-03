@@ -5,7 +5,7 @@ using UnityEngine.Rendering;
 namespace RenderPipeline
 {
 	[System.Serializable]
-	public sealed partial class Vignette : UbarProcess
+	public sealed partial class Vignette : UbarProperty
 	{
 		public VignetteProperties Properties
 		{

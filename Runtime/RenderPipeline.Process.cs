@@ -15,6 +15,11 @@ namespace RenderPipeline
 		{
 			get{ return opaqueProcesses[ kOpaquePrioritySSAO] as SSAO; }
 		}
+		public UbarProcess OpaqueUbar
+		{
+			get{ return opaqueProcesses[ opaqueProcesses.Length - 1] as UbarProcess; }
+			set{ opaqueProcesses[ opaqueProcesses.Length - 1] = value; }
+		}
 		public Bloom Bloom
 		{
 			get{ return postProcesses[ kPostPriorityBloom] as Bloom; }
@@ -39,26 +44,32 @@ namespace RenderPipeline
 		{
 			get{ return postProcesses[ kPostPriorityScreenBlend] as ScreenBlend; }
 		}
+		public UbarProcess PostUbar
+		{
+			get{ return postProcesses[ postProcesses.Length - 1] as UbarProcess; }
+			set{ postProcesses[ postProcesses.Length - 1] = value as UbarProcess; }
+		}
 		bool CollectionProcesses()
 		{
 			GameObject targetObject = (postProcessesTarget != null)? postProcessesTarget : gameObject;
 			bool rebuild = false;
 			
 		#if UNITY_EDITOR
-			if( (opaqueProcesses?.Length ?? 0) != kOpaqueProcesses.Length)
+			if( (opaqueProcesses?.Length ?? 0) != kOpaqueProcesses.Length + 1)
 			{
-				opaqueProcesses = new PostProcess[ kOpaqueProcesses.Length];
+				opaqueProcesses = new IPostProcess[ kOpaqueProcesses.Length + 1];
 				rebuild = true;
 			}
-			if( (postProcesses?.Length ?? 0) != kPostProcesses.Length)
+			if( (postProcesses?.Length ?? 0) != kPostProcesses.Length + 1)
 			{
-				postProcesses = new PostProcess[ kPostProcesses.Length];
+				postProcesses = new IPostProcess[ kPostProcesses.Length + 1];
 				rebuild = true;
 			}
 		#endif
 			(System.Type type, int index) composition;
+			int i0;
 			
-			for( int i0 = 0; i0 < kOpaqueProcesses.Length; ++i0)
+			for( i0 = 0; i0 < kOpaqueProcesses.Length; ++i0)
 			{
 				composition = kOpaqueProcesses[ i0];
 				
@@ -67,7 +78,7 @@ namespace RenderPipeline
 					rebuild = true;
 				}
 			}
-			for( int i0 = 0; i0 < kPostProcesses.Length; ++i0)
+			for( i0 = 0; i0 < kPostProcesses.Length; ++i0)
 			{
 				composition = kPostProcesses[ i0];
 				
@@ -75,6 +86,38 @@ namespace RenderPipeline
 				{
 					rebuild = true;
 				}
+			}
+			
+			/* post ubar */
+			UbarProcess ubarProcess = null;
+			
+			for( i0 = 0; i0 < postProcesses.Length; ++i0)
+			{
+				if( postProcesses[ i0] is UbarProperty ubarProperty)
+				{
+					if( ubarProcess == null)
+					{
+						if( PostUbar == null)
+						{
+							ubarProcess = new UbarProcess( ubarShader);
+							ubarProcess.Create();
+							PostUbar = ubarProcess;
+							rebuild = true;
+						}
+						else
+						{
+							ubarProcess = PostUbar;
+							ubarProcess.ResetProperty();
+						}
+					}
+					ubarProcess.SetProperty( ubarProperty);
+				}
+			}
+			if( ubarProcess == null)
+			{
+				PostUbar?.Dispose();
+				PostUbar = null;
+				rebuild = true;
 			}
 			return rebuild;
 		}

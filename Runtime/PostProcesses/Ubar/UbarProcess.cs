@@ -5,8 +5,12 @@ using UnityEngine.Rendering;
 namespace RenderPipeline
 {
 	[System.Serializable]
-	public sealed class Ubar : IPostProcess
+	public sealed class UbarProcess : IPostProcess
 	{
+		public UbarProcess( Shader ubarShader)
+		{
+			shader = ubarShader;
+		}
 		public void Create()
 		{
 			if( shader != null && material == null)
@@ -101,12 +105,23 @@ namespace RenderPipeline
 		{
 			return DepthStencil.kDefaultHash;
 		}
+		internal void ResetProperty()
+		{
+			vignette = null;
+		}
+		internal void SetProperty( UbarProperty property)
+		{
+			if( property is Vignette vignetteProcess)
+			{
+				vignette = vignetteProcess.Properties;
+			}
+		}
 		
-		[SerializeField]
-        Shader shader = default;
+		[System.NonSerialized]
+        Shader shader;
 		[System.NonSerialized]
 		Material material;
 		[System.NonSerialized]
-		VignetteProperties vignette = default;
+		internal VignetteProperties vignette = null;
 	}
 }

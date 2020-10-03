@@ -33,9 +33,9 @@ namespace RenderPipeline
 			fillMesh.Optimize();
 			fillMesh.UploadMeshData( true);
 			
-			if( shaderCopy != null && materialCopy == null)
+			if( copyShader != null && copyMaterial == null)
 			{
-				materialCopy = new Material( shaderCopy);
+				copyMaterial = new Material( copyShader);
 			}
 			CollectionProcesses();
 			RebuildCommandBuffers();
@@ -95,15 +95,10 @@ namespace RenderPipeline
 				depthBuffer.Release();
 				depthBuffer = null;
 			}
-			if( materialColor != null)
+			if( copyMaterial != null)
 			{
-				ObjectUtility.Release( materialColor);
-				materialColor = null;
-			}
-			if( materialCopy != null)
-			{
-				ObjectUtility.Release( materialCopy);
-				materialCopy = null;
+				ObjectUtility.Release( copyMaterial);
+				copyMaterial = null;
 			}
 			if( fillMesh != null)
 			{
@@ -139,9 +134,9 @@ namespace RenderPipeline
 				cacheDefaultDepthTextureMode = defaultDepthTextureMode;
 				isRebuildCommandBuffers = true;
 			}
-			if( shaderCopy != null && materialCopy == null)
+			if( copyShader != null && copyMaterial == null)
 			{
-				materialCopy = new Material( shaderCopy);
+				copyMaterial = new Material( copyShader);
 			}
 		#endif
 			if( OverrideTargetBuffers != false)
@@ -176,6 +171,14 @@ namespace RenderPipeline
 			for( int i0 = 0; i0 < processes.Length; ++i0)
 			{
 				bool cacheClear = fourceCacheClear;
+				
+				if( processes[ i0] is UbarProperty ubarProperty)
+				{
+					if( ubarProperty.Independent() == false)
+					{
+						continue;
+					}
+				}
 			#if UNITY_EDITOR
 				if( (processes[ i0]?.RestoreMaterials() ?? false) != false)
 				{
@@ -305,11 +308,22 @@ namespace RenderPipeline
 					commandBufferDepthTexture.SetProjectionMatrix( Matrix4x4.Ortho( 0, 1, 0, 1, 0, 1));
 					commandBufferDepthTexture.SetViewMatrix( Matrix4x4.identity);
 					
-					var depthTexture = new RenderTargetIdentifier( kShaderPropertyDepthTextureId);
-					commandBufferDepthTexture.GetTemporaryRT( kShaderPropertyDepthTextureId, 
-						-1, -1, 0, FilterMode.Bilinear, RenderTextureFormat.RFloat); //EDGE(WebGL)だとRFloatが使えない；
-					Blit( commandBufferDepthTexture, depthBuffer, depthTexture);
-					commandBufferDepthTexture.SetGlobalTexture( kShaderPropertyCameraDepthTexture, depthTexture);
+					RenderTextureFormat format = RenderTextureFormat.R8;
+					
+					//EDGE(WebGL)だとRFloatが使えない；
+					if( SystemInfo.SupportsRenderTextureFormat( RenderTextureFormat.RHalf) != false)
+					{
+						format = RenderTextureFormat.RHalf;
+					}
+					if( SystemInfo.SupportsRenderTextureFormat( RenderTextureFormat.RFloat) != false)
+					{
+						format = RenderTextureFormat.RFloat;
+					}
+					var overrideDepthTexture = new RenderTargetIdentifier( ShaderProperty.OverrideDepthTexture);
+					commandBufferDepthTexture.GetTemporaryRT( ShaderProperty.OverrideDepthTexture, 
+						-1, -1, 0, FilterMode.Bilinear, format);
+					Blit( commandBufferDepthTexture, depthBuffer, overrideDepthTexture);
+					commandBufferDepthTexture.SetGlobalTexture( ShaderProperty.CameraDepthTexture, overrideDepthTexture);
 					cacheCamera.AddCommandBuffer( CameraEvent.AfterForwardOpaque, commandBufferDepthTexture);
 				}
 			}
@@ -343,6 +357,13 @@ namespace RenderPipeline
 					
 					if( (nextProcess?.Valid() ?? false) != false)
 					{
+						if( nextProcess is UbarProperty ubarProperty)
+						{
+							if( ubarProperty.Independent() == false)
+							{
+								continue;
+							}
+						}
 						if( process != null)
 						{
 							RecycleTemporaryRT( context);
@@ -401,6 +422,13 @@ namespace RenderPipeline
 						
 						if( (nextProcess?.Valid() ?? false) != false)
 						{
+							if( nextProcess is UbarProperty ubarProperty)
+							{
+								if( ubarProperty.Independent() == false)
+								{
+									continue;
+								}
+							}
 							if( process != null)
 							{
 								RecycleTemporaryRT( context);
@@ -424,7 +452,7 @@ namespace RenderPipeline
 				}
 				if( (depthTextureMode & DepthTextureMode.Depth) != 0 && OverrideCameraDepthTexture != false)
 				{
-					commandBufferPostProcesses.ReleaseTemporaryRT( kShaderPropertyDepthTextureId);
+					commandBufferPostProcesses.ReleaseTemporaryRT( ShaderProperty.OverrideDepthTexture);
 					depthTextureMode &= ~DepthTextureMode.Depth;
 				}
 				cacheCamera.AddCommandBuffer( CameraEvent.BeforeImageEffects, commandBufferPostProcesses);
@@ -436,7 +464,7 @@ namespace RenderPipeline
 		}
 		internal void Blit( CommandBuffer commandBuffer, RenderTargetIdentifier source, RenderTargetIdentifier destination)
 		{
-			if( materialCopy != null)
+			if( copyMaterial != null)
 			{
 				commandBuffer.SetRenderTarget( 
 					destination, 
@@ -444,8 +472,8 @@ namespace RenderPipeline
 					RenderBufferStoreAction.Store,
 					RenderBufferLoadAction.DontCare,
 					RenderBufferStoreAction.DontCare);
-				commandBuffer.SetGlobalTexture( kShaderPropertyMainTex, source);
-				DrawFill( commandBuffer, materialCopy, 0);
+				commandBuffer.SetGlobalTexture( ShaderProperty.MainTex, source);
+				DrawFill( commandBuffer, copyMaterial, 0);
 			}
 			else
 			{
@@ -484,10 +512,6 @@ namespace RenderPipeline
 				return false;
 			}
 		}
-		static readonly int kShaderPropertyMainTex = Shader.PropertyToID( "_MainTex");
-		static readonly int kShaderPropertyColor = Shader.PropertyToID( "_Color");
-		static readonly int kShaderPropertyDepthTextureId = Shader.PropertyToID( "CameraPipeline::DepthTexture");
-		static readonly int kShaderPropertyCameraDepthTexture = Shader.PropertyToID( "_CameraDepthTexture");
 		
 		const string kTipsOverrideTargetBuffers = 
 			"レンダリングパスでUpdateDepthTextureが処理されていない状態でも_CameraDepthTextureに深度情報が書き込まれるようになります。\n\n" +
@@ -497,7 +521,9 @@ namespace RenderPipeline
 			"※ポストプロセスの使用状況によって_CameraDepthTextureに書き込まれない場合があるため、強制する場合は DefaultDepthTextureMode の Depth を有効にしてください。";
 		
 		[SerializeField]
-		Shader shaderCopy = default;
+		Shader copyShader = default;
+		[SerializeField]
+		Shader ubarShader = default;
 		[SerializeField]
 		DepthTextureMode defaultDepthTextureMode = default;
 		[SerializeField, TooltipAttribute( kTipsOverrideTargetBuffers)]
@@ -509,14 +535,13 @@ namespace RenderPipeline
 		GameObject postProcessesTarget = default;
 		
 		Mesh fillMesh;
-		Material materialCopy;
-		Material materialColor;
+		Material copyMaterial;
 		RenderTexture colorBuffer;
 		RenderTexture depthBuffer;
 		bool isRebuildCommandBuffers;
 		
-		IPostProcess[] opaqueProcesses = new IPostProcess[ kOpaqueProcesses.Length];
-		IPostProcess[] postProcesses = new IPostProcess[ kPostProcesses.Length];
+		IPostProcess[] opaqueProcesses = new IPostProcess[ kOpaqueProcesses.Length + 1];
+		IPostProcess[] postProcesses = new IPostProcess[ kPostProcesses.Length + 1];
 		CommandBuffer commandBufferDepthTexture;
 		CommandBuffer commandBufferOpaqueProcesses;
 		CommandBuffer commandBufferPostProcesses;

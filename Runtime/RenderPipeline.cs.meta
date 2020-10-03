@@ -4,8 +4,8 @@ MonoImporter:
   externalObjects: {}
   serializedVersion: 2
   defaultReferences:
-  - shaderCopy: {fileID: 4800000, guid: c1427d45e629b8c4e99eacf095ed424b, type: 3}
-  - shaderColor: {fileID: 4800000, guid: e2a8fdeb4818646408c6ef8b585fde75, type: 3}
+  - copyShader: {fileID: 4800000, guid: c1427d45e629b8c4e99eacf095ed424b, type: 3}
+  - ubarShader: {fileID: 4800000, guid: 90e6f74ff7033e644850981624d2f53b, type: 3}
   - postProcessesTarget: {instanceID: 0}
   executionOrder: 0
   icon: {instanceID: 0}

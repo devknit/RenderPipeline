@@ -94,7 +94,11 @@ namespace RenderPipeline
 			return false;
 		}
 	}
-	public abstract class UbarProcess : InternalProcess
+	public abstract class UbarProperty : InternalProcess
 	{
+		internal virtual bool Independent()
+		{
+			return GetDepthStencilHashCode() != DepthStencil.kDefaultHash;
+		}
 	}
 }
