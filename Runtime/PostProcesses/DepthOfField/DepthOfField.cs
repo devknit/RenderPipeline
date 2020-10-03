@@ -56,7 +56,7 @@ namespace RenderPipeline
 			cacheHighResolution = null;
 			cacheVisualizeFocus = null;
 		}
-		public override bool UpdateProperties( bool clearCache)
+		public override bool UpdateProperties( RenderPipeline pipeline, bool clearCache)
 		{
 			bool rebuild = false;
 			
@@ -113,7 +113,7 @@ namespace RenderPipeline
 					blurWidth = Mathf.Max( maxBlurSize, 0.0f);
 					cacheMaxBlurSize = maxBlurSize;
 				}
-				Camera cacheCamera = Pipeline.CacheCamera;
+				Camera cacheCamera = pipeline.CacheCamera;
 				
 				float focalDistance01 = (focalTransform == null)?
 					cacheCamera.WorldToViewportPoint( 
@@ -145,11 +145,11 @@ namespace RenderPipeline
 		{
 			return false;
 		}
-		public override void BuildCommandBuffer( 
-			CommandBuffer commandBuffer, TargetContext context, 
+		public override void BuildCommandBuffer( RenderPipeline pipeline,
+			CommandBuffer commandBuffer, TargetContext context, IPostProcess nextProcess,
 			System.Func<int, int, int, FilterMode, RenderTextureFormat, int> GetTemporaryRT)
 		{
-			if( context.CompareSource0ToTarget0() != false && NextProcess != null)
+			if( context.CompareSource0ToTarget0() != false && nextProcess != null)
 			{
 				var renderTextureFormat = RenderTextureFormat.ARGB32;
 				
@@ -168,7 +168,7 @@ namespace RenderPipeline
 					RenderBufferStoreAction.Store,
 					RenderBufferLoadAction.DontCare,	
 					RenderBufferStoreAction.DontCare);
-				Pipeline.DrawFill( commandBuffer, material, 7);
+				pipeline.DrawFill( commandBuffer, material, 7);
 			}
 			else
 			{
@@ -181,7 +181,7 @@ namespace RenderPipeline
 					RenderBufferLoadAction.DontCare,	
 					RenderBufferStoreAction.DontCare);
 				commandBuffer.SetGlobalTexture( ShaderProperty.MainTex, context.source0);
-				Pipeline.DrawFill( commandBuffer, material, 0);
+				pipeline.DrawFill( commandBuffer, material, 0);
 				
 				int pass = (blurQuality == BlurQuality.kLow)? 2 : 3;
 				
@@ -194,7 +194,7 @@ namespace RenderPipeline
 						RenderBufferLoadAction.DontCare,	
 						RenderBufferStoreAction.DontCare);
 					commandBuffer.SetGlobalTexture( ShaderProperty.MainTex, alphaDepthTarget);
-					Pipeline.DrawFill( commandBuffer, material, pass);
+					pipeline.DrawFill( commandBuffer, material, pass);
 				}
 				else
 				{
@@ -214,7 +214,7 @@ namespace RenderPipeline
 						RenderBufferLoadAction.DontCare,	
 						RenderBufferStoreAction.DontCare);
 					commandBuffer.SetGlobalTexture( ShaderProperty.MainTex, alphaDepthTarget);
-					Pipeline.DrawFill( commandBuffer, material, 1);
+					pipeline.DrawFill( commandBuffer, material, 1);
 					
 					commandBuffer.SetRenderTarget( 
 						lowDiscTarget, 
@@ -223,7 +223,7 @@ namespace RenderPipeline
 						RenderBufferLoadAction.DontCare,	
 						RenderBufferStoreAction.DontCare);
 					commandBuffer.SetGlobalTexture( ShaderProperty.MainTex, lowBlurTarget);
-					Pipeline.DrawFill( commandBuffer, material, pass);
+					pipeline.DrawFill( commandBuffer, material, pass);
 					
 					switch( blurQuality)
 					{
@@ -251,7 +251,7 @@ namespace RenderPipeline
 						RenderBufferStoreAction.DontCare);
 					commandBuffer.SetGlobalTexture( ShaderProperty.MainTex, alphaDepthTarget);
 					commandBuffer.SetGlobalTexture( kShaderPropertyLowRez, lowDiscTarget);
-					Pipeline.DrawFill( commandBuffer, material, pass);
+					pipeline.DrawFill( commandBuffer, material, pass);
 					
 					commandBuffer.ReleaseTemporaryRT( kShaderPropertyLowBlurTarget);
 					commandBuffer.ReleaseTemporaryRT( kShaderPropertyLowDiscTarget);

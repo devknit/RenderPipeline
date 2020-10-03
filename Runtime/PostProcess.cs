@@ -34,7 +34,7 @@ namespace RenderPipeline
 		 * \brief プロパティを更新します。
 		 * \param clearCache [in] true の場合キャッシュをクリアします。
 		 */
-		bool UpdateProperties( bool clearCache);
+		bool UpdateProperties( RenderPipeline pipeline, bool clearCache);
 		/**
 		 * \brief プロセスを実行するイベントを取得します。
 		 * \return カメライベント。以下の値が現状有効値として返ります。
@@ -61,8 +61,8 @@ namespace RenderPipeline
 		 */
 		long GetDepthStencilHashCode();
 		
-		void BuildCommandBuffer( 
-			CommandBuffer commandBuffer, TargetContext context, 
+		void BuildCommandBuffer( RenderPipeline pipeline,
+			CommandBuffer commandBuffer, TargetContext context, IPostProcess nextProcess,
 			System.Func<int, int, int, FilterMode, RenderTextureFormat, int> GetTemporaryRT);
 	}
 	public abstract class PostProcess : MonoBehaviour, IPostProcess
@@ -72,52 +72,31 @@ namespace RenderPipeline
 		public abstract bool RestoreMaterials();
 		public abstract bool Valid();
 		public abstract void ClearPropertiesCache();
-		public abstract bool UpdateProperties( bool clearCache);
+		public abstract bool UpdateProperties( RenderPipeline pipeline, bool clearCache);
 		public abstract CameraEvent GetCameraEvent();
 		public abstract DepthTextureMode GetDepthTextureMode();
 		public abstract bool IsHighDynamicRange();
-		public abstract void BuildCommandBuffer( 
-			CommandBuffer commandBuffer, TargetContext context, 
+		public abstract void BuildCommandBuffer( RenderPipeline pipeline,
+			CommandBuffer commandBuffer, TargetContext context, IPostProcess nextProcess,
 			System.Func<int, int, int, FilterMode, RenderTextureFormat, int> GetTemporaryRT);
 		
 		public virtual long GetDepthStencilHashCode()
 		{
 			return DepthStencil.kDefaultHash;
 		}
-		protected RenderPipeline Pipeline
-	#if UNITY_EDITOR
-			{ get; private set; }
-	#else
-			;
-	#endif
-		protected IPostProcess NextProcess
-	#if UNITY_EDITOR
-			{ get; private set; }
-	#else
-			;
-	#endif
-		internal void Initialize( RenderPipeline pipeline)
-		{
-			Pipeline = pipeline;
-		}
-		internal void SetNextProcess( IPostProcess nextProcess)
-		{
-			NextProcess = nextProcess;
-		}
 	}
-	public abstract class InternalPostProcess : PostProcess
+	public abstract class InternalProcess : PostProcess
 	{
 		internal bool DuplicateMRT()
 		{
 			if( SystemInfo.supportedRenderTargetCount > 1)
 			{
-				return OnDuplicate();
+				return false;
 			}
 			return false;
 		}
-		protected virtual bool OnDuplicate()
-		{
-			return false;
-		}
+	}
+	public abstract class UbarProcess : InternalProcess
+	{
 	}
 }

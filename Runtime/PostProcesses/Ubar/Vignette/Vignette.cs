@@ -5,9 +5,9 @@ using UnityEngine.Rendering;
 namespace RenderPipeline
 {
 	[System.Serializable]
-	public sealed partial class Glitch : PostProcess
+	public sealed partial class Vignette : UbarProcess
 	{
-		public GlitchProperties Properties
+		public VignetteProperties Properties
 		{
 			get{ return (sharedSettings != null)? sharedSettings.properties : properties; }
 		}
@@ -94,11 +94,11 @@ namespace RenderPipeline
 		}
 		
 		[SerializeField]
-		GlitchSettings sharedSettings = default;
+        VignetteSettings sharedSettings = default;
+        [SerializeField]
+        VignetteProperties properties = default;
 		[SerializeField]
-		GlitchProperties properties = default;
-		[SerializeField]
-		Shader shader = default;
+        Shader shader = default;
 		[System.NonSerialized]
 		Material material;
 	}

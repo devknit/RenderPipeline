@@ -40,6 +40,12 @@ namespace RenderPipeline
 			}
 			CollectionProcesses();
 			RebuildCommandBuffers();
+		#if UNITY_EDITOR
+			UnityEditor.EditorApplication.projectChanged += () =>
+			{
+				ClearPropertiesCache();
+			};
+		#endif
 		}
 	#if UNITY_EDITOR
 		void OnDisable()
@@ -51,7 +57,10 @@ namespace RenderPipeline
 			cacheCamera.allowMSAA = false;
 			
 			RemoveCommandBuffers();
-			
+			ClearPropertiesCache();
+		}
+		void ClearPropertiesCache()
+		{
 			for( int i0 = 0; i0 < opaqueProcesses.Length; ++i0)
 			{
 				opaqueProcesses[ i0]?.ClearPropertiesCache();
@@ -174,7 +183,7 @@ namespace RenderPipeline
 					cacheClear = true;
 				}
 			#endif
-				if( (processes[ i0]?.UpdateProperties( cacheClear) ?? false) != false)
+				if( (processes[ i0]?.UpdateProperties( this, cacheClear) ?? false) != false)
 				{
 					rebuild = true;
 				}
@@ -218,24 +227,39 @@ namespace RenderPipeline
 					{
 						highDynamicRangeTarget = true;
 					}
-					if( prevProcess is PostProcess entity)
-					{
-						entity.SetNextProcess( process);
-					}
 					prevProcess = process;
 				}
 			}
-			if( prevProcess is PostProcess lastEntity)
-			{
-				lastEntity.SetNextProcess( null);
-			}
 			return enabledProcesses;
+		}
+		int EnabledProcessCount( IPostProcess[] processes, ref DepthTextureMode depthTextureMode, ref bool highDynamicRangeTarget)
+		{
+			IPostProcess process;
+			int i0, count = 0;
+			
+			for( i0 = 0; i0 < processes.Length; ++i0)
+			{
+				process = processes[ i0];
+				
+				if( (process?.Valid() ?? false) != false)
+				{
+					depthTextureMode |= process.GetDepthTextureMode();
+					
+					if( process.IsHighDynamicRange() != false)
+					{
+						highDynamicRangeTarget = true;
+					}
+					++count;
+				}
+			}
+			return count;
 		}
 		void RebuildCommandBuffers()
 		{
 			var depthTextureMode = defaultDepthTextureMode;
 			bool highDynamicRangeTarget = false;
 			bool forceIntoRenderTexture = false;
+			IPostProcess nextProcess;
 			int i0;
 			
 			/* 既存のコマンドバッファを解放する */
@@ -246,7 +270,16 @@ namespace RenderPipeline
 				opaqueProcesses, ref depthTextureMode, ref highDynamicRangeTarget);
 			List<IPostProcess> enabledPostProcesses = CollectionEnabledProcesses( 
 				postProcesses, ref depthTextureMode, ref highDynamicRangeTarget);
-			
+				
+		#if true
+			int enabledOpaqueProcessCount = enabledOpaqueProcesses.Count;
+			int enabledProcessCount = enabledPostProcesses.Count;
+		#else
+			int enabledOpaqueProcessCount = EnabledProcessCount( 
+				opaqueProcesses, ref depthTextureMode, ref highDynamicRangeTarget);
+			int enabledProcessCount = EnabledProcessCount( 
+				postProcesses, ref depthTextureMode, ref highDynamicRangeTarget);
+		#endif
 			/* [2019.4.1f1]
 			   SetTargetBuffers の引数に Display.main.*****Buffer を渡しても実機では正しく動作しない。
 			   エディタ上では動作し、SetTargetBuffers を呼び出す前と同じ状態に戻る。
@@ -315,7 +348,7 @@ namespace RenderPipeline
 				}
 			}
 			/* 不透明系プロセス */
-			if( enabledOpaqueProcesses.Count > 0)
+			if( enabledOpaqueProcessCount > 0)
 			{
 				commandBufferOpaqueProcesses = new CommandBuffer();
 				commandBufferOpaqueProcesses.name = "CameraPipeline::OpaqueProcesses";
@@ -362,9 +395,14 @@ namespace RenderPipeline
 						{
 							context.SetTarget0( colorBuffer);
 						}
+						nextProcess = null;
 					}
-					enabledOpaqueProcesses[ i0].BuildCommandBuffer( 
-						commandBufferOpaqueProcesses, context, 
+					else
+					{
+						nextProcess = enabledOpaqueProcesses[ i0 + 1];
+					}
+					enabledOpaqueProcesses[ i0].BuildCommandBuffer( this,
+						commandBufferOpaqueProcesses, context, nextProcess,
 						(width, height, depth, filterMode, format) =>
 						{
 							foreach( var recycleTemporary in recycleTemporaries.Values)
@@ -394,7 +432,7 @@ namespace RenderPipeline
 				cacheCamera.AddCommandBuffer( CameraEvent.BeforeImageEffectsOpaque, commandBufferOpaqueProcesses);
 			}
 			/* 半透明系プロセス+FinalPass */
-			if( enabledPostProcesses.Count > 0 || OverrideTargetBuffers != false)
+			if( enabledProcessCount > 0 || OverrideTargetBuffers != false)
 			{
 				commandBufferPostProcesses = new CommandBuffer();
 				commandBufferPostProcesses.name = "CameraPipeline::PostProcesses";
@@ -402,7 +440,7 @@ namespace RenderPipeline
 				commandBufferPostProcesses.SetProjectionMatrix( Matrix4x4.Ortho( 0, 1, 0, 1, 0, 1));
 				commandBufferPostProcesses.SetViewMatrix( Matrix4x4.identity);
 				
-				if( enabledPostProcesses.Count > 0)
+				if( enabledProcessCount > 0)
 				{
 					var usedTemporaries = new Dictionary<int, TemporaryTarget>();
 					var recycleTemporaries = new Dictionary<int, TemporaryTarget>();
@@ -436,9 +474,14 @@ namespace RenderPipeline
 						if( i0 == enabledPostProcesses.Count - 1)
 						{
 							context.SetTarget0( BuiltinRenderTextureType.CameraTarget);
+							nextProcess = null;
 						}
-						enabledPostProcesses[ i0].BuildCommandBuffer( 
-							commandBufferPostProcesses, context, 
+						else
+						{
+							nextProcess = enabledPostProcesses[ i0 + 1];
+						}
+						enabledPostProcesses[ i0].BuildCommandBuffer( this,
+							commandBufferPostProcesses, context, nextProcess,
 							(width, height, depth, filterMode, format) =>
 							{
 								foreach( var recycleTemporary in recycleTemporaries.Values)

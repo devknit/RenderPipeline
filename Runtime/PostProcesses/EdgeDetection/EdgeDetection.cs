@@ -45,7 +45,7 @@ namespace RenderPipeline
 		{
 			Properties.ClearCache();
 		}
-		public override bool UpdateProperties( bool clearCache)
+		public override bool UpdateProperties( RenderPipeline pipeline, bool clearCache)
 		{
 			if( clearCache != false)
 			{
@@ -65,14 +65,14 @@ namespace RenderPipeline
 		{
 			return false;
 		}
-		public override void BuildCommandBuffer( 
-			CommandBuffer commandBuffer, TargetContext context, 
+		public override void BuildCommandBuffer( RenderPipeline pipeline,
+			CommandBuffer commandBuffer, TargetContext context, IPostProcess nextProcess,
 			System.Func<int, int, int, FilterMode, RenderTextureFormat, int> GetTemporaryRT)
 		{
 			if( context.CompareSource0ToTarget0() != false)
 			{
 				int temporary = GetTemporaryRT( -1, -1, 0, FilterMode.Bilinear, TextureUtil.DefaultHDR);
-				if( NextProcess == null)
+				if( nextProcess == null)
 				{
 					commandBuffer.Blit( context.source0, temporary);
 					context.SetSource0( temporary);
@@ -93,7 +93,7 @@ namespace RenderPipeline
 				RenderBufferLoadAction.Load,	
 				RenderBufferStoreAction.DontCare);
 			commandBuffer.SetGlobalTexture( ShaderProperty.MainTex, context.source0);
-			Pipeline.DrawFill( commandBuffer, material, (int)Properties.DetectType);
+			pipeline.DrawFill( commandBuffer, material, (int)Properties.DetectType);
 			context.duplicated = false;
 		}
 		public override long GetDepthStencilHashCode()

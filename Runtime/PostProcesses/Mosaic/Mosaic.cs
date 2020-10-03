@@ -5,7 +5,7 @@ using UnityEngine.Rendering;
 namespace RenderPipeline
 {
 	[System.Serializable]
-	public sealed partial class Mosaic : InternalPostProcess
+	public sealed partial class Mosaic : InternalProcess
 	{
 		public override void Create()
 		{
@@ -51,7 +51,7 @@ namespace RenderPipeline
 		{
 			return CameraEvent.BeforeImageEffects;
 		}
-		public override bool UpdateProperties( bool clearCache)
+		public override bool UpdateProperties( RenderPipeline pipeline, bool clearCache)
 		{
 			bool rebuild = false;
 			
@@ -125,8 +125,8 @@ namespace RenderPipeline
 		{
 			return false;
 		}
-		public override void BuildCommandBuffer( 
-			CommandBuffer commandBuffer, TargetContext context, 
+		public override void BuildCommandBuffer( RenderPipeline pipeline,
+			CommandBuffer commandBuffer, TargetContext context, IPostProcess nextProcess,
 			System.Func<int, int, int, FilterMode, RenderTextureFormat, int> GetTemporaryRT)
 		{
 			if( context.duplicated != false)
@@ -142,14 +142,14 @@ namespace RenderPipeline
 					renderTextureFormat = RenderTextureFormat.RGB111110Float;
 				}
 				int temporary = GetTemporaryRT( -1, -1, 0, FilterMode.Bilinear, renderTextureFormat);
-				if( NextProcess == null)
+				if( nextProcess == null)
 				{
-					Pipeline.Blit( commandBuffer, context.source0, new RenderTargetIdentifier( temporary));
+					pipeline.Blit( commandBuffer, context.source0, new RenderTargetIdentifier( temporary));
 					context.SetSource0( temporary);
 				}
 				else
 				{
-					Pipeline.Blit( commandBuffer, context.target0, new RenderTargetIdentifier( temporary));
+					pipeline.Blit( commandBuffer, context.target0, new RenderTargetIdentifier( temporary));
 					context.SetTarget0( temporary);
 				}
 			}
@@ -167,13 +167,8 @@ namespace RenderPipeline
 				RenderBufferLoadAction.Load,	
 				RenderBufferStoreAction.DontCare);
 			commandBuffer.SetGlobalTexture( ShaderProperty.MainTex, context.source0);
-			Pipeline.DrawFill( commandBuffer, material, 0);
+			pipeline.DrawFill( commandBuffer, material, 0);
 			context.duplicated = false;
-		}
-		protected override bool OnDuplicate()
-		{
-			return NextProcess != null;
-			//return true;
 		}
 		
 		static readonly int kShaderPropertyPixelation = Shader.PropertyToID( "_Pixelation");

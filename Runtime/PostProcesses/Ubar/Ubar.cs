@@ -5,20 +5,16 @@ using UnityEngine.Rendering;
 namespace RenderPipeline
 {
 	[System.Serializable]
-	public sealed partial class Glitch : PostProcess
+	public sealed class Ubar : IPostProcess
 	{
-		public GlitchProperties Properties
-		{
-			get{ return (sharedSettings != null)? sharedSettings.properties : properties; }
-		}
-		public override void Create()
+		public void Create()
 		{
 			if( shader != null && material == null)
 			{
 				material = new Material( shader);
 			}
 		}
-		public override void Dispose()
+		public void Dispose()
 		{
 			if( material != null)
 			{
@@ -26,7 +22,7 @@ namespace RenderPipeline
 				material = null;
 			}
 		}
-		public override bool RestoreMaterials()
+		public bool RestoreMaterials()
 		{
 			bool rebuild = false;
 			
@@ -37,35 +33,45 @@ namespace RenderPipeline
 			}
 			return rebuild;
 		}
-		public override bool Valid()
+		public bool Valid()
 		{
-			return Properties.Enabled != false && material != null;
+			if( material != null)
+			{
+				return vignette?.Enabled ?? false;
+			}
+			return false;
 		}
-		public override void ClearPropertiesCache()
+		public void ClearPropertiesCache()
 		{
-			Properties.ClearCache();
+			vignette?.ClearCache();
 		}
-		public override bool UpdateProperties( RenderPipeline pipeline, bool clearCache)
+		public bool UpdateProperties( RenderPipeline pipeline, bool clearCache)
 		{
+			bool rebuild = false;
+			
 			if( clearCache != false)
 			{
-				Properties.ClearCache();
+				vignette?.ClearCache();
 			}
-			return Properties.CheckParameterChange( material);
+			if( (vignette?.CheckParameterChange( material) ?? false) != false)
+			{
+				rebuild = true;
+			}
+			return rebuild;
 		}
-		public override CameraEvent GetCameraEvent()
+		public CameraEvent GetCameraEvent()
 		{
 			return CameraEvent.BeforeImageEffects;
 		}
-		public override DepthTextureMode GetDepthTextureMode()
+		public DepthTextureMode GetDepthTextureMode()
 		{
 			return DepthTextureMode.None;
 		}
-		public override bool IsHighDynamicRange()
+		public bool IsHighDynamicRange()
 		{
 			return false;
 		}
-		public override void BuildCommandBuffer( RenderPipeline pipeline,
+		public void BuildCommandBuffer( RenderPipeline pipeline,
 			CommandBuffer commandBuffer, TargetContext context, IPostProcess nextProcess,
 			System.Func<int, int, int, FilterMode, RenderTextureFormat, int> GetTemporaryRT)
 		{
@@ -92,14 +98,16 @@ namespace RenderPipeline
 			pipeline.DrawFill( commandBuffer, material, 0);
 			context.duplicated = false;
 		}
+		public long GetDepthStencilHashCode()
+		{
+			return DepthStencil.kDefaultHash;
+		}
 		
 		[SerializeField]
-		GlitchSettings sharedSettings = default;
-		[SerializeField]
-		GlitchProperties properties = default;
-		[SerializeField]
-		Shader shader = default;
+        Shader shader = default;
 		[System.NonSerialized]
 		Material material;
+		[System.NonSerialized]
+		VignetteProperties vignette = default;
 	}
 }

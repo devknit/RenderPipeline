@@ -55,13 +55,13 @@ namespace RenderPipeline
 		{
 			return CameraEvent.BeforeImageEffects;
 		}
-		public override bool UpdateProperties( bool clearCache)
+		public override bool UpdateProperties( RenderPipeline pipeline, bool clearCache)
 		{
 			if( clearCache != false)
 			{
 				Properties.ClearCache();
 			}
-			return Properties.CheckParameterChange( material, Pipeline.CacheCamera, (width, height) => 
+			return Properties.CheckParameterChange( material, pipeline.CacheCamera, (width, height) => 
 			{
 				descriptor = new RenderTextureDescriptor( width, height, TextureUtil.DefaultHDR);
 				descriptor.useMipMap = false;
@@ -76,14 +76,14 @@ namespace RenderPipeline
 		{
 			return false;
 		}
-		public override void BuildCommandBuffer( 
-			CommandBuffer commandBuffer, TargetContext context, 
+		public override void BuildCommandBuffer( RenderPipeline pipeline,
+			CommandBuffer commandBuffer, TargetContext context, IPostProcess nextProcess,
 			System.Func<int, int, int, FilterMode, RenderTextureFormat, int> GetTemporaryRT)
 		{
 			if( context.CompareSource0ToTarget0() != false)
 			{
 				int temporary = GetTemporaryRT( -1, -1, 0, FilterMode.Bilinear, TextureUtil.DefaultHDR);
-				if( NextProcess == null)
+				if( nextProcess == null)
 				{
 					commandBuffer.Blit( context.source0, temporary);
 					context.SetSource0( temporary);
@@ -104,7 +104,7 @@ namespace RenderPipeline
 				RenderBufferLoadAction.DontCare,	
 				RenderBufferStoreAction.DontCare);
 			commandBuffer.SetGlobalTexture( ShaderProperty.MainTex, context.source0);
-			Pipeline.DrawFill( commandBuffer, material, 0);
+			pipeline.DrawFill( commandBuffer, material, 0);
 			
 			/**/
 			commandBuffer.SetRenderTarget( 
@@ -115,7 +115,7 @@ namespace RenderPipeline
 				RenderBufferStoreAction.DontCare);
 			commandBuffer.SetGlobalTexture( ShaderProperty.MainTex, context.source0);
 			commandBuffer.SetGlobalTexture( kShaderPropertyBlurTex, blurTarget);
-			Pipeline.DrawFill( commandBuffer, material, 1);
+			pipeline.DrawFill( commandBuffer, material, 1);
 			
 			commandBuffer.ReleaseTemporaryRT( kShaderTargetBlur);
 			context.duplicated = false;

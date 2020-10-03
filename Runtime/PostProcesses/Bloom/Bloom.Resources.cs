@@ -19,7 +19,6 @@ namespace RenderPipeline
 					{
 						material.DisableKeyword( kShaderKeywordLDR);
 					}
-					Debug.Log( Properties.Thresholds);
 					material.SetFloat( kShaderPropertyThresholds, Properties.Thresholds);
 				}
 				else

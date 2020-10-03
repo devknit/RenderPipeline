@@ -91,9 +91,8 @@ namespace RenderPipeline
 				}
 				if( object.ReferenceEquals( component, null) == false)
 				{
-					component.Initialize( this);
 					component.Create();
-					component.UpdateProperties( true);
+					component.UpdateProperties( this, true);
 					processes[ index] = component;
 				}
 				return true;
@@ -111,6 +110,7 @@ namespace RenderPipeline
 		const int kPostPriorityMosaic = 4;
 		const int kPostPriorityFXAA = 5;
 		const int kPostPriorityScreenBlend = 6;
+		const int kPostPriorityVignette = 7;
 		
 		static readonly (System.Type, int)[] kOpaqueProcesses = new []
 		{
@@ -126,6 +126,7 @@ namespace RenderPipeline
 			(typeof( Mosaic), kPostPriorityMosaic),
 			(typeof( FXAA), kPostPriorityFXAA),
 			(typeof( ScreenBlend), kPostPriorityScreenBlend),
+			(typeof( Vignette), kPostPriorityVignette),
 		};
 	}
 }
