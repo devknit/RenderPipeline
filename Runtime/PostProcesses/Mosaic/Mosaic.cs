@@ -5,7 +5,7 @@ using UnityEngine.Rendering;
 namespace RenderPipeline
 {
 	[System.Serializable]
-	public sealed partial class Mosaic : PostProcess
+	public sealed partial class Mosaic : InternalPostProcess
 	{
 		public override void Create()
 		{
@@ -142,14 +142,14 @@ namespace RenderPipeline
 					renderTextureFormat = RenderTextureFormat.RGB111110Float;
 				}
 				int temporary = GetTemporaryRT( -1, -1, 0, FilterMode.Bilinear, renderTextureFormat);
-				if( nextProcess == null)
+				if( NextProcess == null)
 				{
-					pipeline.Blit( commandBuffer, context.source0, new RenderTargetIdentifier( temporary));
+					Pipeline.Blit( commandBuffer, context.source0, new RenderTargetIdentifier( temporary));
 					context.SetSource0( temporary);
 				}
 				else
 				{
-					pipeline.Blit( commandBuffer, context.target0, new RenderTargetIdentifier( temporary));
+					Pipeline.Blit( commandBuffer, context.target0, new RenderTargetIdentifier( temporary));
 					context.SetTarget0( temporary);
 				}
 			}
@@ -166,13 +166,13 @@ namespace RenderPipeline
 				context.depthBuffer,
 				RenderBufferLoadAction.Load,	
 				RenderBufferStoreAction.DontCare);
-			commandBuffer.SetGlobalTexture( kShaderPropertyMainTex, context.source0);
-			pipeline.DrawFill( commandBuffer, material, 0);
+			commandBuffer.SetGlobalTexture( ShaderProperty.MainTex, context.source0);
+			Pipeline.DrawFill( commandBuffer, material, 0);
 			context.duplicated = false;
 		}
 		protected override bool OnDuplicate()
 		{
-			return nextProcess != null;
+			return NextProcess != null;
 			//return true;
 		}
 		

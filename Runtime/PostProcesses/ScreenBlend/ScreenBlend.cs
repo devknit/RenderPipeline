@@ -72,7 +72,7 @@ namespace RenderPipeline
 			if( context.CompareSource0ToTarget0() != false)
 			{
 				int temporary = GetTemporaryRT( -1, -1, 0, FilterMode.Bilinear, TextureUtil.DefaultHDR);
-				if( nextProcess == null)
+				if( NextProcess == null)
 				{
 					commandBuffer.Blit( context.source0, temporary);
 					context.SetSource0( temporary);
@@ -88,8 +88,8 @@ namespace RenderPipeline
 				RenderBufferStoreAction.Store,
 				RenderBufferLoadAction.DontCare,	
 				RenderBufferStoreAction.DontCare);
-			commandBuffer.SetGlobalTexture( kShaderPropertyMainTex, context.source0);
-			pipeline.DrawFill( commandBuffer, material, 0);
+			commandBuffer.SetGlobalTexture( ShaderProperty.MainTex, context.source0);
+			Pipeline.DrawFill( commandBuffer, material, 0);
 			context.duplicated = false;
 		}
 		const string kShaderKeywordFlipHorizontal = "FLIPHORIZONTAL";

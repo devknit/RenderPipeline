@@ -85,7 +85,7 @@ namespace RenderPipeline
 			if( context.CompareSource0ToTarget0() != false)
 			{
 				int temporary = GetTemporaryRT( -1, -1, 0, FilterMode.Bilinear, TextureUtil.DefaultHDR);
-				if( nextProcess == null)
+				if( NextProcess == null)
 				{
 					commandBuffer.Blit( context.source0, temporary);
 					context.SetSource0( temporary);
@@ -103,8 +103,8 @@ namespace RenderPipeline
 					RenderBufferStoreAction.Store,
 					RenderBufferLoadAction.DontCare,	
 					RenderBufferStoreAction.DontCare);
-				commandBuffer.SetGlobalTexture( kShaderPropertyMainTex, context.source0);
-				pipeline.DrawFill( commandBuffer, material, 0);
+				commandBuffer.SetGlobalTexture( ShaderProperty.MainTex, context.source0);
+				Pipeline.DrawFill( commandBuffer, material, 0);
 			}
 			else
 			{
@@ -122,8 +122,8 @@ namespace RenderPipeline
 				{
 					commandBuffer.ClearRenderTarget( false, true, Color.black, 0);
 				}
-				commandBuffer.SetGlobalTexture( kShaderPropertyMainTex, context.source0);
-				pipeline.DrawFill( commandBuffer, material, 0);
+				commandBuffer.SetGlobalTexture( ShaderProperty.MainTex, context.source0);
+				Pipeline.DrawFill( commandBuffer, material, 0);
 				
 				/**/
 				var halfTarget = new RenderTargetIdentifier( kShaderTargetHalf);
@@ -139,8 +139,8 @@ namespace RenderPipeline
 				{
 					commandBuffer.ClearRenderTarget( false, true, Color.black, 0);
 				}
-				commandBuffer.SetGlobalTexture( kShaderPropertyMainTex, shadeTarget);
-				pipeline.DrawFill( commandBuffer, material, 1);
+				commandBuffer.SetGlobalTexture( ShaderProperty.MainTex, shadeTarget);
+				Pipeline.DrawFill( commandBuffer, material, 1);
 				
 				/**/
 				var quarterTarget = new RenderTargetIdentifier( kShaderTargetQuarter);
@@ -156,8 +156,8 @@ namespace RenderPipeline
 				{
 					commandBuffer.ClearRenderTarget( false, true, Color.black, 0);
 				}
-				commandBuffer.SetGlobalTexture( kShaderPropertyMainTex, halfTarget);
-				pipeline.DrawFill( commandBuffer, material, 1);
+				commandBuffer.SetGlobalTexture( ShaderProperty.MainTex, halfTarget);
+				Pipeline.DrawFill( commandBuffer, material, 1);
 				
 				/**/
 				commandBuffer.SetRenderTarget( 
@@ -166,9 +166,9 @@ namespace RenderPipeline
 					RenderBufferStoreAction.Store,
 					RenderBufferLoadAction.DontCare,	
 					RenderBufferStoreAction.DontCare);
-				commandBuffer.SetGlobalTexture( kShaderPropertyMainTex, context.source0);
+				commandBuffer.SetGlobalTexture( ShaderProperty.MainTex, context.source0);
 				commandBuffer.SetGlobalTexture( kShaderPropertyBlurTex, quarterTarget);
-				pipeline.DrawFill( commandBuffer, material, 2);
+				Pipeline.DrawFill( commandBuffer, material, 2);
 				
 				commandBuffer.ReleaseTemporaryRT( kShaderTargetShade);
 				commandBuffer.ReleaseTemporaryRT( kShaderTargetHalf);

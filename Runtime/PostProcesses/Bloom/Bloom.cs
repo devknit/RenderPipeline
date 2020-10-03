@@ -133,7 +133,7 @@ namespace RenderPipeline
 			if( context.CompareSource0ToTarget0() != false)
 			{
 				int temporary = GetTemporaryRT( -1, -1, 0, FilterMode.Bilinear, TextureUtil.DefaultHDR);
-				if( nextProcess == null)
+				if( NextProcess == null)
 				{
 					commandBuffer.Blit( context.source0, temporary);
 					context.SetSource0( temporary);
@@ -156,7 +156,7 @@ namespace RenderPipeline
 			{
 				commandBuffer.ClearRenderTarget( false, true, Color.black, 0);
 			}
-			commandBuffer.SetGlobalTexture( kShaderPropertyMainTex, context.source0);
+			commandBuffer.SetGlobalTexture( ShaderProperty.MainTex, context.source0);
 			commandBuffer.DrawMesh( brightnessExtractionMesh, Matrix4x4.identity, material, 0, 0);
 		
 			var gaussianBlurHorizontalTarget = new RenderTargetIdentifier( kShaderPropertyGaussianBlurHorizontalTarget);
@@ -172,7 +172,7 @@ namespace RenderPipeline
 			{
 				commandBuffer.ClearRenderTarget( false, true, Color.black, 0);
 			}
-			commandBuffer.SetGlobalTexture( kShaderPropertyMainTex, brightnessExtractionTarget);
+			commandBuffer.SetGlobalTexture( ShaderProperty.MainTex, brightnessExtractionTarget);
 			commandBuffer.DrawMesh( blurHorizontalMesh, Matrix4x4.identity, material, 0, 1);
 			
 			var gaussianBlurVerticalTarget = new RenderTargetIdentifier( kShaderPropertyGaussianBlurVerticalTarget);
@@ -188,7 +188,7 @@ namespace RenderPipeline
 			{
 				commandBuffer.ClearRenderTarget( false, true, Color.black, 0);
 			}
-			commandBuffer.SetGlobalTexture( kShaderPropertyMainTex, kShaderPropertyGaussianBlurHorizontalTarget);
+			commandBuffer.SetGlobalTexture( ShaderProperty.MainTex, kShaderPropertyGaussianBlurHorizontalTarget);
 			commandBuffer.DrawMesh( blurVerticalMesh, Matrix4x4.identity, material, 0, 1);
 			
 			if( combinePassCount > 1)
@@ -203,7 +203,7 @@ namespace RenderPipeline
 				{
 					commandBuffer.ClearRenderTarget( false, true, Color.black, 0);
 				}
-				commandBuffer.SetGlobalTexture( kShaderPropertyMainTex, gaussianBlurVerticalTarget);
+				commandBuffer.SetGlobalTexture( ShaderProperty.MainTex, gaussianBlurVerticalTarget);
 				commandBuffer.DrawMesh( combineMesh, Matrix4x4.identity, material, 0, 2);
 				commandBuffer.SetGlobalTexture( kShaderPropertyBloomTex, gaussianBlurVerticalTarget);
 				commandBuffer.SetGlobalTexture( kShaderPropertyBloomCombinedTex, kShaderPropertyGaussianBlurHorizontalTarget);
@@ -212,9 +212,9 @@ namespace RenderPipeline
 			{
 				commandBuffer.SetGlobalTexture( kShaderPropertyBloomCombinedTex, gaussianBlurVerticalTarget);
 			}
-			commandBuffer.SetGlobalTexture( kShaderPropertyMainTex, context.source0);
+			commandBuffer.SetGlobalTexture( ShaderProperty.MainTex, context.source0);
 			
-			if( nextProcess?.DuplicateMRT() != false)
+			if( ((NextProcess as InternalPostProcess)?.DuplicateMRT() ?? false) != false)
 			{
 				int temporary = GetTemporaryRT( -1, -1, 0, FilterMode.Bilinear, TextureUtil.DefaultHDR);
 				context.SetTarget1( temporary);
@@ -226,7 +226,7 @@ namespace RenderPipeline
 					context.depthBuffer,
 					RenderBufferLoadAction.DontCare,
 					RenderBufferStoreAction.DontCare));
-				pipeline.DrawFill( commandBuffer, material, 4);
+				Pipeline.DrawFill( commandBuffer, material, 4);
 				context.duplicated = true;
 			}
 			else
@@ -237,7 +237,7 @@ namespace RenderPipeline
 					RenderBufferStoreAction.Store,
 					RenderBufferLoadAction.DontCare,	
 					RenderBufferStoreAction.DontCare);
-				pipeline.DrawFill( commandBuffer, material, 3);
+				Pipeline.DrawFill( commandBuffer, material, 3);
 				context.duplicated = false;
 			}
 			commandBuffer.ReleaseTemporaryRT( kShaderPropertyGaussianBlurVerticalTarget);

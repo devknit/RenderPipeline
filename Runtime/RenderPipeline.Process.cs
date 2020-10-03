@@ -78,7 +78,7 @@ namespace RenderPipeline
 			}
 			return rebuild;
 		}
-		bool VerifyProcess( GameObject gameObject, System.Type type, PostProcess[] processes, int index)
+		bool VerifyProcess( GameObject gameObject, System.Type type, IPostProcess[] processes, int index)
 		{
 			var component = gameObject.GetComponent( type) as PostProcess;
 			

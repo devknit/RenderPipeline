@@ -161,7 +161,7 @@ namespace RenderPipeline
 				RebuildCommandBuffers();
 			}
 		}
-		bool RestoreAndCheckParameter( PostProcess[] processes, bool fourceCacheClear)
+		bool RestoreAndCheckParameter( IPostProcess[] processes, bool fourceCacheClear)
 		{
 			bool rebuild = false;
 			
@@ -199,68 +199,54 @@ namespace RenderPipeline
 				commandBufferPostProcesses = null;
 			}
 		}
+		List<IPostProcess> CollectionEnabledProcesses( IPostProcess[] processes, ref DepthTextureMode depthTextureMode, ref bool highDynamicRangeTarget)
+		{
+			var enabledProcesses = new List<IPostProcess>();
+			IPostProcess process, prevProcess;
+			int i0;
+			
+			for( i0 = 0, prevProcess = null; i0 < processes.Length; ++i0)
+			{
+				process = processes[ i0];
+				
+				if( (process?.Valid() ?? false) != false)
+				{
+					enabledProcesses.Add( process);
+					depthTextureMode |= process.GetDepthTextureMode();
+					
+					if( process.IsHighDynamicRange() != false)
+					{
+						highDynamicRangeTarget = true;
+					}
+					if( prevProcess is PostProcess entity)
+					{
+						entity.SetNextProcess( process);
+					}
+					prevProcess = process;
+				}
+			}
+			if( prevProcess is PostProcess lastEntity)
+			{
+				lastEntity.SetNextProcess( null);
+			}
+			return enabledProcesses;
+		}
 		void RebuildCommandBuffers()
 		{
-			var enabledOpaqueProcesses = new List<PostProcess>();
-			var enabledPostProcesses = new List<PostProcess>();
 			var depthTextureMode = defaultDepthTextureMode;
 			bool highDynamicRangeTarget = false;
 			bool forceIntoRenderTexture = false;
-			PostProcess process, prevProcess;
 			int i0;
 			
 			/* 既存のコマンドバッファを解放する */
 			RemoveCommandBuffers();
 			
-			/* 有効なプロセスを収集すると共にバッファの属性を求める */
-			for( i0 = 0, prevProcess = null; i0 < opaqueProcesses.Length; ++i0)
-			{
-				process = opaqueProcesses[ i0];
-				
-				if( (process?.Valid() ?? false) != false)
-				{
-					enabledOpaqueProcesses.Add( process);
-					depthTextureMode |= process.GetDepthTextureMode();
-					
-					if( process.IsHighDynamicRange() != false)
-					{
-						highDynamicRangeTarget = true;
-					}
-					if( prevProcess != null)
-					{
-						prevProcess.SetNextProcess( process);
-					}
-					prevProcess = process;
-				}
-			}
-			if( prevProcess != null)
-			{
-				prevProcess.SetNextProcess( null);
-			}
-			for( i0 = 0, prevProcess = null; i0 < postProcesses.Length; ++i0)
-			{
-				process = postProcesses[ i0];
-				
-				if( (process?.Valid() ?? false) != false)
-				{
-					enabledPostProcesses.Add( process);
-					depthTextureMode |= process.GetDepthTextureMode();
-					
-					if( process.IsHighDynamicRange() != false)
-					{
-						highDynamicRangeTarget = true;
-					}
-					if( prevProcess != null)
-					{
-						prevProcess.SetNextProcess( process);
-					}
-					prevProcess = process;
-				}
-			}
-			if( prevProcess != null)
-			{
-				prevProcess.SetNextProcess( null);
-			}
+			/* 有効なプロセスを収集する */
+			List<IPostProcess> enabledOpaqueProcesses = CollectionEnabledProcesses( 
+				opaqueProcesses, ref depthTextureMode, ref highDynamicRangeTarget);
+			List<IPostProcess> enabledPostProcesses = CollectionEnabledProcesses( 
+				postProcesses, ref depthTextureMode, ref highDynamicRangeTarget);
+			
 			/* [2019.4.1f1]
 			   SetTargetBuffers の引数に Display.main.*****Buffer を渡しても実機では正しく動作しない。
 			   エディタ上では動作し、SetTargetBuffers を呼び出す前と同じ状態に戻る。
@@ -595,8 +581,8 @@ namespace RenderPipeline
 		RenderTexture depthBuffer;
 		bool isRebuildCommandBuffers;
 		
-		PostProcess[] opaqueProcesses = new PostProcess[ kOpaqueProcesses.Length];
-		PostProcess[] postProcesses = new PostProcess[ kPostProcesses.Length];
+		IPostProcess[] opaqueProcesses = new IPostProcess[ kOpaqueProcesses.Length];
+		IPostProcess[] postProcesses = new IPostProcess[ kPostProcesses.Length];
 		CommandBuffer commandBufferDepthTexture;
 		CommandBuffer commandBufferOpaqueProcesses;
 		CommandBuffer commandBufferPostProcesses;
