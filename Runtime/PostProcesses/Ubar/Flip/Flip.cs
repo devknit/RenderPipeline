@@ -11,9 +11,9 @@ namespace RenderPipeline
 		{
 			get{ return (sharedSettings != null)? sharedSettings.properties : properties; }
 		}
-		public override CameraEvent GetCameraEvent()
+		public override PostProcessEvent GetPostProcessEvent()
 		{
-			return CameraEvent.BeforeImageEffects;
+			return PostProcessEvent.BeforeImageEffects;
 		}
 		internal override IUbarProperties GetProperties()
 		{

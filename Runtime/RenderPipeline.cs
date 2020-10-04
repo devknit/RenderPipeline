@@ -198,7 +198,7 @@ namespace RenderPipeline
 				commandBufferPostProcesses = null;
 			}
 		}
-		int EnabledProcessCount( IPostProcess[] processes, CameraEvent cameraEvent, ref DepthTextureMode depthTextureMode, ref bool highDynamicRangeTarget)
+		int EnabledProcessCount( IPostProcess[] processes, PostProcessEvent postProcessEvent, ref DepthTextureMode depthTextureMode, ref bool highDynamicRangeTarget)
 		{
 			IPostProcess process;
 			int i0, count = 0;
@@ -207,7 +207,7 @@ namespace RenderPipeline
 			{
 				process = processes[ i0];
 				
-				if( process?.GetCameraEvent() != cameraEvent)
+				if( process?.GetPostProcessEvent() != postProcessEvent)
 				{
 					continue;
 				}
@@ -237,10 +237,10 @@ namespace RenderPipeline
 			
 			/* 有効なプロセス数を求める */
 			int enabledOpaqueProcessCount = EnabledProcessCount( 
-				postProcesses, CameraEvent.BeforeImageEffectsOpaque, 
+				postProcesses, PostProcessEvent.BeforeImageEffectsOpaque, 
 				ref depthTextureMode, ref highDynamicRangeTarget);
 			int enabledProcessCount = EnabledProcessCount( 
-				postProcesses, CameraEvent.BeforeImageEffects,
+				postProcesses, PostProcessEvent.BeforeImageEffects,
 				ref depthTextureMode, ref highDynamicRangeTarget);
 			
 			/* [2019.4.1f1]
@@ -349,7 +349,7 @@ namespace RenderPipeline
 				{
 					nextProcess = postProcesses[ i0];
 					
-					if( nextProcess?.GetCameraEvent() != CameraEvent.BeforeImageEffectsOpaque)
+					if( nextProcess?.GetPostProcessEvent() != PostProcessEvent.BeforeImageEffectsOpaque)
 					{
 						continue;
 					}
@@ -418,7 +418,7 @@ namespace RenderPipeline
 					{
 						nextProcess = postProcesses[ i0];
 						
-						if( nextProcess?.GetCameraEvent() != CameraEvent.BeforeImageEffects)
+						if( nextProcess?.GetPostProcessEvent() != PostProcessEvent.BeforeImageEffects)
 						{
 							continue;
 						}

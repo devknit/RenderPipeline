@@ -19,6 +19,10 @@ namespace RenderPipeline
 		{
 			return (long)reference << 48 | (long)readMask << 40 | (long)writeMask << 32 | (long)compFunc << 24 | (long)passOp << 16 | (long)failOp << 8 | (long)zFailOp;
 		}
+		public static bool HasIndependent( long hash)
+		{
+			return (kDefaultHash & 0xffffffff) != (hash & 0xffffffff);
+		}
 		public static byte GetDepthStencilReference( long hash)
 		{
 			return (byte)((hash >> 48) & 0xff);

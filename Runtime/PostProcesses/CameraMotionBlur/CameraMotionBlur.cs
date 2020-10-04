@@ -51,9 +51,9 @@ namespace RenderPipeline
 		{
 			Properties.ClearCache();
 		}
-		public override CameraEvent GetCameraEvent()
+		public override PostProcessEvent GetPostProcessEvent()
 		{
-			return CameraEvent.BeforeImageEffects;
+			return PostProcessEvent.BeforeImageEffects;
 		}
 		public override bool UpdateProperties( RenderPipeline pipeline, bool clearCache)
 		{

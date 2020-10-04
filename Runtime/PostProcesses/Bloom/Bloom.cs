@@ -114,9 +114,9 @@ namespace RenderPipeline
 			}
 			return (updateFlags & BloomProperties.kRebuild) != 0;
 		}
-		public override CameraEvent GetCameraEvent()
+		public override PostProcessEvent GetPostProcessEvent()
 		{
-			return CameraEvent.BeforeImageEffects;
+			return PostProcessEvent.BeforeImageEffects;
 		}
 		public override DepthTextureMode GetDepthTextureMode()
 		{

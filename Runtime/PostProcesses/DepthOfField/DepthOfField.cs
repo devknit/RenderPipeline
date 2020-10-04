@@ -133,9 +133,9 @@ namespace RenderPipeline
 			}
 			return rebuild;
 		}
-		public override CameraEvent GetCameraEvent()
+		public override PostProcessEvent GetPostProcessEvent()
 		{
-			return CameraEvent.BeforeImageEffects;
+			return PostProcessEvent.BeforeImageEffects;
 		}
 		public override DepthTextureMode GetDepthTextureMode()
 		{

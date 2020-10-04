@@ -38,11 +38,11 @@ namespace RenderPipeline
 		/**
 		 * \brief プロセスを実行するイベントを取得します。
 		 * \return カメライベント。以下の値が現状有効値として返ります。
-		 * \retval CameraEvent.BeforeImageEffectsOpaque
-		 * \retval CameraEvent.BeforeImageEffects 
+		 * \retval PostProcessEvent.BeforeImageEffectsOpaque
+		 * \retval PostProcessEvent.BeforeImageEffects 
 		 \ \note https://docs.unity3d.com/2019.2/Documentation/uploads/SL/CameraRenderFlowCmdBuffers.png
 		 */
-		CameraEvent GetCameraEvent();
+		PostProcessEvent GetPostProcessEvent();
 		/**
 		 * \brief カメラの深度テクスチャレンダリングモードを取得します。
 		 * \return 深度テクスチャモードが返ります。
@@ -72,7 +72,7 @@ namespace RenderPipeline
 		public abstract bool Valid();
 		public abstract void ClearPropertiesCache();
 		public abstract bool UpdateProperties( RenderPipeline pipeline, bool clearCache);
-		public abstract CameraEvent GetCameraEvent();
+		public abstract PostProcessEvent GetPostProcessEvent();
 		public abstract DepthTextureMode GetDepthTextureMode();
 		public abstract bool IsRequiredHighDynamicRange();
 		public abstract void BuildCommandBuffer( RenderPipeline pipeline,
@@ -149,7 +149,7 @@ namespace RenderPipeline
 		}
 		internal virtual bool Independent()
 		{
-			return GetDepthStencilHashCode() != DepthStencil.kDefaultHash;
+			return DepthStencil.HasIndependent( GetDepthStencilHashCode());
 		}
 		internal abstract IUbarProperties GetProperties();
 		

@@ -53,9 +53,9 @@ namespace RenderPipeline
 			}
 			return Properties.UpdateProperties( material, false);
 		}
-		public override CameraEvent GetCameraEvent()
+		public override PostProcessEvent GetPostProcessEvent()
 		{
-			return CameraEvent.BeforeImageEffectsOpaque;
+			return PostProcessEvent.BeforeImageEffectsOpaque;
 		}
 		public override DepthTextureMode GetDepthTextureMode()
 		{

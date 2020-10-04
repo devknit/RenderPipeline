@@ -47,9 +47,9 @@ namespace RenderPipeline
 			cacheStencilReadMask = null;
 			cacheStencilCompare = null;
 		}
-		public override CameraEvent GetCameraEvent()
+		public override PostProcessEvent GetPostProcessEvent()
 		{
-			return CameraEvent.BeforeImageEffects;
+			return PostProcessEvent.BeforeImageEffects;
 		}
 		public override bool UpdateProperties( RenderPipeline pipeline, bool clearCache)
 		{

@@ -9,10 +9,10 @@ namespace RenderPipeline
 	[System.Serializable]
 	public sealed class UbarProcess : IPostProcess
 	{
-		public UbarProcess( Shader ubarShader, CameraEvent ubarCameraEvent)
+		public UbarProcess( Shader ubarShader, PostProcessEvent ubarPostProcessEvent)
 		{
 			shader = ubarShader;
-			cameraEvent = ubarCameraEvent;
+			postProcessEvent = ubarPostProcessEvent;
 		}
 		public void Create()
 		{
@@ -84,9 +84,9 @@ namespace RenderPipeline
 			}
 			return rebuild;
 		}
-		public CameraEvent GetCameraEvent()
+		public PostProcessEvent GetPostProcessEvent()
 		{
-			return cameraEvent;
+			return postProcessEvent;
 		}
 		public DepthTextureMode GetDepthTextureMode()
 		{
@@ -143,7 +143,7 @@ namespace RenderPipeline
 		[System.NonSerialized]
 		Material material;
 		[System.NonSerialized]
-		CameraEvent cameraEvent;
+		PostProcessEvent postProcessEvent;
 		[System.NonSerialized]
 		List<UbarProperty> properties = new List<UbarProperty>();
 	}

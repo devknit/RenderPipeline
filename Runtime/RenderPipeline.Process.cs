@@ -103,15 +103,15 @@ namespace RenderPipeline
 			{
 				if( postProcesses[ i0] is UbarProperty ubarProperty)
 				{
-					switch( ubarProperty.GetCameraEvent())
+					switch( ubarProperty.GetPostProcessEvent())
 					{
-						case CameraEvent.BeforeImageEffectsOpaque:
+						case PostProcessEvent.BeforeImageEffectsOpaque:
 						{
 							if( newOpaqueUbar == null)
 							{
 								if( opaqueUbar == null)
 								{
-									newOpaqueUbar = new UbarProcess( ubarShader, CameraEvent.BeforeImageEffectsOpaque);
+									newOpaqueUbar = new UbarProcess( ubarShader, PostProcessEvent.BeforeImageEffectsOpaque);
 									newOpaqueUbar.Create();
 									rebuild = true;
 								}
@@ -124,13 +124,13 @@ namespace RenderPipeline
 							newOpaqueUbar.SetProperty( ubarProperty);
 							break;
 						}
-						case CameraEvent.BeforeImageEffects:
+						case PostProcessEvent.BeforeImageEffects:
 						{
 							if( newPostUbar == null)
 							{
 								if( postUbar == null)
 								{
-									newPostUbar = new UbarProcess( ubarShader, CameraEvent.BeforeImageEffects);
+									newPostUbar = new UbarProcess( ubarShader, PostProcessEvent.BeforeImageEffects);
 									newPostUbar.Create();
 									rebuild = true;
 								}
