@@ -128,6 +128,10 @@ namespace RenderPipeline
 		}
 		internal void ResetProperty()
 		{
+			foreach( var property in properties)
+			{
+				property.GetProperties().UpdateProperties( material, true);
+			}
 			properties.Clear();
 		}
 		internal void SetProperty( UbarProperty property)

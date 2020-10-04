@@ -18,6 +18,10 @@ namespace RenderPipeline
 			get{ return enabled; }
 			set{ enabled = value; }
 		}
+		public PostProcessEvent Phase
+		{
+			get{ return phase; }
+		}
 		public Color Color
 		{
 			get{ return color; }
@@ -151,6 +155,8 @@ namespace RenderPipeline
 		
 		[SerializeField]
 		bool enabled = true;
+		[SerializeField]
+		PostProcessEvent phase = PostProcessEvent.BeforeImageEffectsOpaque;
 		[SerializeField]
 		Color color = new Color( 0.5f, 0.7f, 0.8f);
 		[SerializeField]

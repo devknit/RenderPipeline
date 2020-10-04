@@ -82,6 +82,20 @@ namespace RenderPipeline
 		{
 			return DepthStencil.kDefaultHash;
 		}
+		
+	#if UNITY_EDITOR
+		internal bool ChangePostProcessEvent()
+		{
+			PostProcessEvent postProcessEvent = GetPostProcessEvent();
+			if( cachePostProcessEvent != postProcessEvent)
+			{
+				cachePostProcessEvent = postProcessEvent;
+				return true;
+			}
+			return false;
+		}
+		PostProcessEvent? cachePostProcessEvent;
+	#endif
 	}
 	public abstract class InternalProcess : PostProcess
 	{
@@ -119,6 +133,7 @@ namespace RenderPipeline
 		}
 		public override void ClearPropertiesCache()
 		{
+			cacheIndependent = null;
 		}
 		public override bool UpdateProperties( RenderPipeline pipeline, bool clearCache)
 		{
@@ -143,6 +158,7 @@ namespace RenderPipeline
 			if( cacheIndependent != independent)
 			{
 				cacheIndependent = independent;
+				ClearPropertiesCache();
 				rebuild = true;
 			}
 			return independent;

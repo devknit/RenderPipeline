@@ -60,9 +60,9 @@ namespace RenderPipeline
 		}
 		void ClearPropertiesCache()
 		{
-			for( int i0 = 0; i0 < postProcesses.Length; ++i0)
+			for( int i0 = 0; i0 < caches.Length; ++i0)
 			{
-				postProcesses[ i0]?.ClearPropertiesCache();
+				caches[ i0]?.ClearPropertiesCache();
 			}
 		}
 	#endif
@@ -73,9 +73,9 @@ namespace RenderPipeline
 		#endif
 			RemoveCommandBuffers();
 			
-			for( int i0 = 0; i0 < postProcesses.Length; ++i0)
+			for( int i0 = 0; i0 < caches.Length; ++i0)
 			{
-				postProcesses[ i0]?.Dispose();
+				caches[ i0]?.Dispose();
 			}
 			if( colorBuffer != null)
 			{
@@ -143,42 +143,36 @@ namespace RenderPipeline
 				cacheCamera.allowMSAA = false;
 				isRebuildCommandBuffers = true;
 			}
-			if( RestoreAndCheckParameter( postProcesses, fourceCacheClear) != false)
+			for( int i0 = 0; i0 < caches.Length; ++i0)
 			{
-				isRebuildCommandBuffers = true;
+				IPostProcess process = caches[ i0];
+				bool cacheClear = fourceCacheClear;
+				
+				if( process != null)
+				{
+					if( process is UbarProperty ubarProperty)
+					{
+						if( ubarProperty.HasIndependent( ref isRebuildCommandBuffers) == false)
+						{
+							continue;
+						}
+					}
+				#if UNITY_EDITOR
+					if( process.RestoreMaterials() != false)
+					{
+						cacheClear = true;
+					}
+				#endif
+					if( process.UpdateProperties( this, cacheClear) != false)
+					{
+						isRebuildCommandBuffers = true;
+					}
+				}
 			}
 			if( isRebuildCommandBuffers != false)
 			{
 				RebuildCommandBuffers();
 			}
-		}
-		bool RestoreAndCheckParameter( IPostProcess[] processes, bool fourceCacheClear)
-		{
-			bool rebuild = false;
-			
-			for( int i0 = 0; i0 < processes.Length; ++i0)
-			{
-				bool cacheClear = fourceCacheClear;
-				
-				if( processes[ i0] is UbarProperty ubarProperty)
-				{
-					if( ubarProperty.HasIndependent( ref rebuild) == false)
-					{
-						continue;
-					}
-				}
-			#if UNITY_EDITOR
-				if( (processes[ i0]?.RestoreMaterials() ?? false) != false)
-				{
-					cacheClear = true;
-				}
-			#endif
-				if( (processes[ i0]?.UpdateProperties( this, cacheClear) ?? false) != false)
-				{
-					rebuild = true;
-				}
-			}
-			return rebuild;
 		}
 		void RemoveCommandBuffers()
 		{
@@ -198,14 +192,14 @@ namespace RenderPipeline
 				commandBufferPostProcesses = null;
 			}
 		}
-		int EnabledProcessCount( IPostProcess[] processes, PostProcessEvent postProcessEvent, ref DepthTextureMode depthTextureMode, ref bool highDynamicRangeTarget)
+		int EnabledProcessCount( IPostProcess[] caches, PostProcessEvent postProcessEvent, ref DepthTextureMode depthTextureMode, ref bool highDynamicRangeTarget)
 		{
 			IPostProcess process;
 			int i0, count = 0;
 			
-			for( i0 = 0; i0 < processes.Length; ++i0)
+			for( i0 = 0; i0 < caches.Length; ++i0)
 			{
-				process = processes[ i0];
+				process = caches[ i0];
 				
 				if( process?.GetPostProcessEvent() != postProcessEvent)
 				{
@@ -237,10 +231,10 @@ namespace RenderPipeline
 			
 			/* 有効なプロセス数を求める */
 			int enabledOpaqueProcessCount = EnabledProcessCount( 
-				postProcesses, PostProcessEvent.BeforeImageEffectsOpaque, 
+				caches, PostProcessEvent.BeforeImageEffectsOpaque, 
 				ref depthTextureMode, ref highDynamicRangeTarget);
 			int enabledProcessCount = EnabledProcessCount( 
-				postProcesses, PostProcessEvent.BeforeImageEffects,
+				caches, PostProcessEvent.BeforeImageEffects,
 				ref depthTextureMode, ref highDynamicRangeTarget);
 			
 			/* [2019.4.1f1]
@@ -345,9 +339,9 @@ namespace RenderPipeline
 					context.SetSource0( colorBuffer);
 					context.SetTarget0( colorBuffer);
 				}
-				for( i0 = 0, process = null; i0 < postProcesses.Length; ++i0)
+				for( i0 = 0, process = null; i0 < caches.Length; ++i0)
 				{
-					nextProcess = postProcesses[ i0];
+					nextProcess = caches[ i0];
 					
 					if( nextProcess?.GetPostProcessEvent() != PostProcessEvent.BeforeImageEffectsOpaque)
 					{
@@ -414,9 +408,9 @@ namespace RenderPipeline
 						context.SetSource0( colorBuffer);
 						context.SetTarget0( colorBuffer);
 					}
-					for( i0 = 0, process = null; i0 < postProcesses.Length; ++i0)
+					for( i0 = 0, process = null; i0 < caches.Length; ++i0)
 					{
-						nextProcess = postProcesses[ i0];
+						nextProcess = caches[ i0];
 						
 						if( nextProcess?.GetPostProcessEvent() != PostProcessEvent.BeforeImageEffects)
 						{
@@ -543,7 +537,8 @@ namespace RenderPipeline
 		RenderTexture depthBuffer;
 		bool isRebuildCommandBuffers;
 		
-		IPostProcess[] postProcesses = new IPostProcess[ 2];
+	//	IPostProcess[] postProcesses = new IPostProcess[ 2];
+		IPostProcess[] caches = new IPostProcess[ 2];
 		CommandBuffer commandBufferDepthTexture;
 		CommandBuffer commandBufferOpaqueProcesses;
 		CommandBuffer commandBufferPostProcesses;

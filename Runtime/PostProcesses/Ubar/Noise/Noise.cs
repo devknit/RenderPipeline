@@ -43,6 +43,7 @@ namespace RenderPipeline
 		}
 		public override void ClearPropertiesCache()
 		{
+			base.ClearPropertiesCache();
 			Properties.ClearCache();
 		}
 		public override bool UpdateProperties( RenderPipeline pipeline, bool clearCache)
@@ -55,7 +56,7 @@ namespace RenderPipeline
 		}
 		public override PostProcessEvent GetPostProcessEvent()
 		{
-			return PostProcessEvent.BeforeImageEffectsOpaque;
+			return Properties.Phase;
 		}
 		public override DepthTextureMode GetDepthTextureMode()
 		{
