@@ -5,9 +5,9 @@ using UnityEngine.Rendering;
 namespace RenderPipeline
 {
 	[System.Serializable]
-	public sealed partial class EdgeDetection : PostProcess
+	public sealed partial class Noise : UbarProperty
 	{
-		public EdgeDetectionProperties Properties
+		public NoiseProperties Properties
 		{
 			get{ return (sharedSettings != null)? sharedSettings.properties : properties; }
 		}
@@ -51,7 +51,7 @@ namespace RenderPipeline
 			{
 				Properties.ClearCache();
 			}
-			return Properties.CheckParameterChange( material);
+			return Properties.UpdateProperties( material, false);
 		}
 		public override CameraEvent GetCameraEvent()
 		{
@@ -59,11 +59,7 @@ namespace RenderPipeline
 		}
 		public override DepthTextureMode GetDepthTextureMode()
 		{
-			return DepthTextureMode.Depth;
-		}
-		public override bool IsRequiredHighDynamicRange()
-		{
-			return false;
+			return DepthTextureMode.None;
 		}
 		public override void BuildCommandBuffer( RenderPipeline pipeline,
 			CommandBuffer commandBuffer, TargetContext context, IPostProcess nextProcess)
@@ -93,19 +89,23 @@ namespace RenderPipeline
 				RenderBufferLoadAction.Load,	
 				RenderBufferStoreAction.DontCare);
 			commandBuffer.SetGlobalTexture( ShaderProperty.MainTex, context.source0);
-			pipeline.DrawFill( commandBuffer, material, (int)Properties.DetectType);
+			pipeline.DrawFill( commandBuffer, material, 0);
 			context.duplicated = false;
 		}
 		public override long GetDepthStencilHashCode()
 		{
 			return Properties.GetDepthStencilHashCode();
 		}
+		internal override IUbarProperties GetProperties()
+		{
+			return Properties;
+		}
 		
 		[SerializeField]
-		EdgeDetectionSettings sharedSettings = default;
-		[SerializeField]
-		EdgeDetectionProperties properties = default;
-		[SerializeField]
+        NoiseSettings sharedSettings = default;
+        [SerializeField]
+        NoiseProperties properties = default;
+        [SerializeField]
 		Shader shader = default;
 		[System.NonSerialized]
 		Material material;

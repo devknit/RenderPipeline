@@ -58,7 +58,7 @@ namespace RenderPipeline
 			cacheRoundness = null;
 			cacheRounded = null;
 		}
-		public bool UpdateProperties( Material material)
+		public bool UpdateProperties( Material material, bool forcedDisable)
 		{
 			bool rebuild = false;
 			
@@ -67,7 +67,7 @@ namespace RenderPipeline
 				rebuild = true;
 				cacheEnabled = enabled;
 			}
-			if( enabled != false)
+			if( enabled != false && forcedDisable == false)
 			{
 				if( material.IsKeywordEnabled( kShaderKeywordVignette) == false)
 				{

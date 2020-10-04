@@ -124,6 +124,10 @@ namespace RenderPipeline
 		{
 			return false;
 		}
+		public override DepthTextureMode GetDepthTextureMode()
+		{
+			return DepthTextureMode.None;
+		}
 		public override bool IsRequiredHighDynamicRange()
 		{
 			return false;
@@ -132,10 +136,23 @@ namespace RenderPipeline
 			CommandBuffer commandBuffer, TargetContext context, IPostProcess nextProcess)
 		{
 		}
+		internal bool HasIndependent( ref bool rebuild)
+		{
+			bool independent = Independent();
+			
+			if( cacheIndependent != independent)
+			{
+				cacheIndependent = independent;
+				rebuild = true;
+			}
+			return independent;
+		}
 		internal virtual bool Independent()
 		{
 			return GetDepthStencilHashCode() != DepthStencil.kDefaultHash;
 		}
 		internal abstract IUbarProperties GetProperties();
+		
+		bool? cacheIndependent;
 	}
 }

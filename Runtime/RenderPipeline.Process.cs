@@ -111,7 +111,7 @@ namespace RenderPipeline
 							{
 								if( opaqueUbar == null)
 								{
-									newOpaqueUbar = new UbarProcess( ubarShader);
+									newOpaqueUbar = new UbarProcess( ubarShader, CameraEvent.BeforeImageEffectsOpaque);
 									newOpaqueUbar.Create();
 									rebuild = true;
 								}
@@ -130,7 +130,7 @@ namespace RenderPipeline
 							{
 								if( postUbar == null)
 								{
-									newPostUbar = new UbarProcess( ubarShader);
+									newPostUbar = new UbarProcess( ubarShader, CameraEvent.BeforeImageEffects);
 									newPostUbar.Create();
 									rebuild = true;
 								}

@@ -1,5 +1,12 @@
-﻿Shader "Hidden/RenderPipeline/Ubar"
+﻿Shader "Hidden/RenderPipeline/Noise"
 {
+	Properties
+	{
+		_StencilRef( "Stencil Reference", Range( 0, 255)) = 0
+		_StencilReadMask( "Stencil Read Mask", Range( 0, 255)) = 255
+		[Enum( UnityEngine.Rendering.CompareFunction)]
+		_StencilComp( "Stencil Comparison Function", float) = 8	/* Always */
+	}
 	SubShader
 	{
 		Cull Off
@@ -7,20 +14,20 @@
 		ZTest Always
 		Blend Off
 		
+		Stencil
+		{
+			Ref [_StencilRef]
+			ReadMask [_StencilReadMask]
+			Comp [_StencilComp]
+		}
 		Pass
 		{
 			CGPROGRAM
 			#pragma vertex vert
 			#pragma fragment frag
-			#pragma multi_compile_local _ _VIGNETTE
-			#pragma multi_compile_local _ _NOISE
-			#pragma multi_compile_local _ _FLIP_X
-			#pragma multi_compile_local _ _FLIP_Y
-			#include "../Ubar/Vignette/Shaders/Vignette.cginc"
-			#include "../Ubar/Noise/Shaders/Noise.cginc"
+			#include "Noise.cginc"
 			
 			UNITY_DECLARE_SCREENSPACE_TEXTURE( _MainTex);
-			float4 _MainTex_TexelSize;
 			
 			struct VertexInput
 			{
@@ -42,24 +49,11 @@
 				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO( o);
 				o.pos = UnityObjectToClipPos( i.pos);
 				o.uv = UnityStereoTransformScreenSpaceTex( i.uv);
-			#if defined(_FLIP_X)
-				o.uv.x = 1.0 - o.uv.x;
-			#endif
-			#if defined(_FLIP_Y)
-				o.uv.y = 1.0 - o.uv.y;
-			#endif
 			}
 			fixed4 frag( VertexOutput i) : SV_Target
 			{
 				UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX( i);
-				fixed4 color = UNITY_SAMPLE_SCREENSPACE_TEXTURE( _MainTex, i.uv);
-			#if defined(_NOISE)
-				color = Noise( color, i.uv);
-			#endif
-			#if defined(_VIGNETTE)
-				color = Vignette( color, i.uv);
-			#endif
-				return color;
+				return Noise( UNITY_SAMPLE_SCREENSPACE_TEXTURE( _MainTex, i.uv), i.uv);
 			}
 			ENDCG
 		}

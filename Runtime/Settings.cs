@@ -24,6 +24,6 @@ namespace RenderPipeline
 			set;
 		}
 		void ClearCache();
-		bool UpdateProperties( Material material);
+		bool UpdateProperties( Material material, bool forcedDisable);
 	}
 }

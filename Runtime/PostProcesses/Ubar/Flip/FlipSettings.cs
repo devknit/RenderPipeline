@@ -34,7 +34,7 @@ namespace RenderPipeline
 			cacheX = null;
 			cacheY = null;
 		}
-		public bool UpdateProperties( Material material)
+		public bool UpdateProperties( Material material, bool forcedDisable)
 		{
 			bool rebuild = false;
 			
@@ -43,7 +43,7 @@ namespace RenderPipeline
 				rebuild = true;
 				cacheEnabled = enabled;
 			}
-			if( enabled != false)
+			if( enabled != false && forcedDisable == false)
 			{
 				if( cacheX != x)
 				{

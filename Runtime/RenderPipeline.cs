@@ -162,7 +162,7 @@ namespace RenderPipeline
 				
 				if( processes[ i0] is UbarProperty ubarProperty)
 				{
-					if( ubarProperty.Independent() == false)
+					if( ubarProperty.HasIndependent( ref rebuild) == false)
 					{
 						continue;
 					}
@@ -207,18 +207,19 @@ namespace RenderPipeline
 			{
 				process = processes[ i0];
 				
-				if( process != null)
+				if( process?.GetCameraEvent() != cameraEvent)
 				{
-					if( process.GetCameraEvent() == cameraEvent && process.Valid() != false)
+					continue;
+				}
+				if( process.Valid() != false)
+				{
+					depthTextureMode |= process.GetDepthTextureMode();
+					
+					if( process.IsRequiredHighDynamicRange() != false)
 					{
-						depthTextureMode |= process.GetDepthTextureMode();
-						
-						if( process.IsRequiredHighDynamicRange() != false)
-						{
-							highDynamicRangeTarget = true;
-						}
-						++count;
+						highDynamicRangeTarget = true;
 					}
+					++count;
 				}
 			}
 			return count;
@@ -436,6 +437,7 @@ namespace RenderPipeline
 								process.BuildCommandBuffer( this, commandBufferPostProcesses, context, nextProcess);
 								context.Next();
 							}
+							
 							process = nextProcess;
 						}
 					}

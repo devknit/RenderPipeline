@@ -15,10 +15,6 @@ namespace RenderPipeline
 		{
 			return CameraEvent.BeforeImageEffects;
 		}
-		public override DepthTextureMode GetDepthTextureMode()
-		{
-			return DepthTextureMode.None;
-		}
 		internal override IUbarProperties GetProperties()
 		{
 			return Properties;

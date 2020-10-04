@@ -1,43 +1,47 @@
 ﻿
 using UnityEngine;
 using UnityEngine.Rendering;
-using System.Collections.Generic;
 
 namespace RenderPipeline
 {
-	public enum DetectType : int
-	{
-		kCheap,
-		kThin
-	}
-	[CreateAssetMenu( menuName="RenderPipeline/EdgeDetection", fileName="PostProcessEdgeDetection", order=1200)]
-	public sealed class EdgeDetectionSettings : Settings
+	[CreateAssetMenu( menuName="RenderPipeline/Noise", fileName="PostProcessNoise", order=1200)]
+	public sealed class NoiseSettings : Settings
 	{
 		[SerializeField]
-		public EdgeDetectionProperties properties = default;
+		public NoiseProperties properties = default;
 	}
 	[System.Serializable]
-	public sealed class EdgeDetectionProperties : Properties
+	public sealed class NoiseProperties : IUbarProperties
 	{
 		public bool Enabled
 		{
 			get{ return enabled; }
 			set{ enabled = value; }
 		}
-		public DetectType DetectType
+		public Color Color
 		{
-			get{ return detectType; }
-			set{ detectType = value; }
+			get{ return color; }
+			set{ color = value; }
 		}
-		public Color EdgeColor
+		public float Speed
 		{
-			get{ return edgeColor; }
-			set{ edgeColor = value; }
+			get{ return speed; }
+			set{ speed = value; }
 		}
-		public int SampleDistance
+		public float Interval
 		{
-			get{ return sampleDistance; }
-			set{ sampleDistance = value; }
+			get{ return interval; }
+			set{ interval = value; }
+		}
+		public float Edge0
+		{
+			get{ return edge0; }
+			set{ edge0 = value; }
+		}
+		public float Edge1
+		{
+			get{ return edge1; }
+			set{ edge1 = value; }
 		}
 		internal byte StencilReference
 		{
@@ -57,14 +61,16 @@ namespace RenderPipeline
 		public void ClearCache()
 		{
 			cacheEnabled = null;
-			cacheDetectType = null;
-			cacheEdgeColor = null;
-			cacheSampleDistance = null;
+			cacheColor = null;
+			cacheSpeed = null;
+			cacheInterval = null;
+			cacheEdge0 = null;
+			cacheEdge1 = null;
 			cacheStencilReference = null;
 			cacheStencilReadMask = null;
 			cacheStencilCompare = null;
 		}
-		internal bool CheckParameterChange( Material material)
+		public bool UpdateProperties( Material material, bool forcedDisable)
 		{
 			bool rebuild = false;
 			
@@ -73,34 +79,38 @@ namespace RenderPipeline
 				rebuild = true;
 				cacheEnabled = enabled;
 			}
-			if( enabled != false)
+			if( enabled != false && forcedDisable == false)
 			{
-				if( cacheDetectType != detectType)
+				if( material.IsKeywordEnabled( kShaderKeywordNoise) == false)
 				{
-					cacheDetectType = detectType;
-					rebuild = true;
+					material.EnableKeyword( kShaderKeywordNoise);
 				}
-				if( cacheEdgeColor != edgeColor)
+				if( cacheColor != color)
 				{
-					material.SetColor( kShaderPropertyEdgeColor, edgeColor);
-					cacheEdgeColor = edgeColor;
+					material.SetColor( kShaderPropertyColor, color);
+					cacheColor = color;
 				}
-				if( cacheSampleDistance != sampleDistance)
+				if( cacheSpeed != speed
+				||	cacheInterval != interval
+				||	cacheEdge0 != edge0
+				||	cacheEdge1 != edge1)
 				{
-					sampleDistance = Mathf.Clamp( sampleDistance, 0, 5);
-					material.SetFloat( kShaderPropertySampleDistance, sampleDistance);
-					cacheSampleDistance = sampleDistance;
+					material.SetVector( kShaderPropertyParam, new Vector4( interval, edge0, edge1, speed));
+					cacheInterval = interval;
+					cacheEdge0 = edge0;
+					cacheEdge1 = edge1;
+					cacheSpeed = speed;
 				}
 				if( cacheStencilReference != stencilReference)
 				{
 					stencilReference = (byte)Mathf.Clamp( stencilReference, 0, 255);
-					material.SetInt( kShaderPropertyStencilRef, stencilReference);
+					material.SetInt( ShaderProperty.StencilReference, stencilReference);
 					cacheStencilReference = stencilReference;
 				}
 				if( cacheStencilReadMask != stencilReadMask)
 				{
 					stencilReadMask = (byte)Mathf.Clamp( stencilReadMask, 0, 255);
-					material.SetInt( kShaderPropertyStencilReadMask, stencilReadMask);
+					material.SetInt( ShaderProperty.StencilReadMask, stencilReadMask);
 					cacheStencilReadMask = stencilReadMask;
 				}
 				if( cacheStencilCompare != stencilCompare)
@@ -120,9 +130,13 @@ namespace RenderPipeline
 					{
 						rebuild = true;
 					}
-					material.SetInt( kShaderPropertyStencilComp, (int)stencilCompare);
+					material.SetInt( ShaderProperty.StencilCompare, (int)stencilCompare);
 					cacheStencilCompare = stencilCompare;
 				}
+			}
+			else if( material.IsKeywordEnabled( kShaderKeywordNoise) != false)
+			{
+				material.DisableKeyword( kShaderKeywordNoise);
 			}
 			return rebuild;
 		}
@@ -131,20 +145,22 @@ namespace RenderPipeline
 			return DepthStencil.GetHashCode( stencilReference, stencilReadMask, 255, stencilCompare);
 		}
 		
-		static readonly int kShaderPropertyEdgeColor = Shader.PropertyToID( "_EdgeColor");
-		static readonly int kShaderPropertySampleDistance = Shader.PropertyToID( "_SampleDistance");
-		static readonly int kShaderPropertyStencilRef = Shader.PropertyToID( "_StencilRef");
-		static readonly int kShaderPropertyStencilReadMask = Shader.PropertyToID( "_StencilReadMask");
-		static readonly int kShaderPropertyStencilComp = Shader.PropertyToID( "_StencilComp");
+		const string kShaderKeywordNoise = "_NOISE";
+		static readonly int kShaderPropertyColor = Shader.PropertyToID( "_NoiseColor");
+		static readonly int kShaderPropertyParam = Shader.PropertyToID( "_NoiseParam");
 		
 		[SerializeField]
 		bool enabled = true;
 		[SerializeField]
-		DetectType detectType = DetectType.kThin;
+		Color color = new Color( 0.5f, 0.7f, 0.8f);
 		[SerializeField]
-		Color edgeColor = new Color32( 0, 0, 0, 255);
-		[SerializeField, Range( 0, 5)]
-		int sampleDistance = 2;
+		float speed = 1.0f;
+		[SerializeField]
+		float interval = 5.0f; 
+		[SerializeField, Range( 0, 1)]
+		float edge0 = 0.0f;
+		[SerializeField, Range( 0, 1)]
+		float edge1 = 1.0f;
 		[SerializeField, Range(0, 255)]
 		byte stencilReference = 0;
 		[SerializeField, Range(0, 255)]
@@ -155,12 +171,16 @@ namespace RenderPipeline
 		[System.NonSerialized]
 		bool? cacheEnabled;
 		[System.NonSerialized]
-        DetectType? cacheDetectType;
-        [System.NonSerialized]
-        Color? cacheEdgeColor;
-        [System.NonSerialized]
-        int? cacheSampleDistance;
-        [System.NonSerialized]
+		Color? cacheColor;
+		[System.NonSerialized]
+		float? cacheSpeed;
+		[System.NonSerialized]
+		float? cacheInterval;
+		[System.NonSerialized]
+		float? cacheEdge0;
+		[System.NonSerialized]
+		float? cacheEdge1;
+		[System.NonSerialized]
         byte? cacheStencilReference;
         [System.NonSerialized]
         byte? cacheStencilReadMask;

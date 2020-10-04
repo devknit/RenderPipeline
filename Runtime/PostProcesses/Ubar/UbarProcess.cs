@@ -9,9 +9,10 @@ namespace RenderPipeline
 	[System.Serializable]
 	public sealed class UbarProcess : IPostProcess
 	{
-		public UbarProcess( Shader ubarShader)
+		public UbarProcess( Shader ubarShader, CameraEvent ubarCameraEvent)
 		{
 			shader = ubarShader;
+			cameraEvent = ubarCameraEvent;
 		}
 		public void Create()
 		{
@@ -45,9 +46,12 @@ namespace RenderPipeline
 			{
 				foreach( var property in properties)
 				{
-					if( property.GetProperties().Enabled != false)
+					if( property.Independent() == false)
 					{
-						return true;
+						if( property.GetProperties().Enabled != false)
+						{
+							return true;
+						}
 					}
 				}
 			}
@@ -57,7 +61,10 @@ namespace RenderPipeline
 		{
 			foreach( var property in properties)
 			{
-				property.GetProperties().ClearCache();
+				if( property.Independent() == false)
+				{
+					property.GetProperties().ClearCache();
+				}
 			}
 		}
 		public bool UpdateProperties( RenderPipeline pipeline, bool clearCache)
@@ -70,7 +77,7 @@ namespace RenderPipeline
 			}
 			foreach( var property in properties)
 			{
-				if( property.GetProperties().UpdateProperties( material) != false)
+				if( property.GetProperties().UpdateProperties( material, property.Independent()) != false)
 				{
 					rebuild = true;
 				}
@@ -79,7 +86,7 @@ namespace RenderPipeline
 		}
 		public CameraEvent GetCameraEvent()
 		{
-			return CameraEvent.BeforeImageEffects;
+			return cameraEvent;
 		}
 		public DepthTextureMode GetDepthTextureMode()
 		{
@@ -135,6 +142,8 @@ namespace RenderPipeline
         Shader shader;
 		[System.NonSerialized]
 		Material material;
+		[System.NonSerialized]
+		CameraEvent cameraEvent;
 		[System.NonSerialized]
 		List<UbarProperty> properties = new List<UbarProperty>();
 	}
