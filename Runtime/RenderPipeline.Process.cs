@@ -9,37 +9,37 @@ namespace RenderPipeline
 	{
 		public EdgeDetection EdgeDetection
 		{
-			get{ return FindProcess<EdgeDetection>(); }
+			get{ return FindPostProcess<EdgeDetection>(); }
 		}
 		public SSAO SSAO
 		{
-			get{ return FindProcess<SSAO>(); }
+			get{ return FindPostProcess<SSAO>(); }
 		}
 		public Bloom Bloom
 		{
-			get{ return FindProcess<Bloom>(); }
+			get{ return FindPostProcess<Bloom>(); }
 		}
 		public DepthOfField DepthOfField
 		{
-			get{ return FindProcess<DepthOfField>(); }
+			get{ return FindPostProcess<DepthOfField>(); }
 		}
 		public CameraMotionBlur CameraMotionBlur
 		{
-			get{ return FindProcess<CameraMotionBlur>(); }
+			get{ return FindPostProcess<CameraMotionBlur>(); }
 		}
 		public Mosaic Mosaic
 		{
-			get{ return FindProcess<Mosaic>(); }
+			get{ return FindPostProcess<Mosaic>(); }
 		}
 		public FXAA FXAA
 		{
-			get{ return FindProcess<FXAA>(); }
+			get{ return FindPostProcess<FXAA>(); }
 		}
 		public ScreenBlend ScreenBlend
 		{
-			get{ return FindProcess<ScreenBlend>(); }
+			get{ return FindPostProcess<ScreenBlend>(); }
 		}
-		T FindProcess<T>() where T : PostProcess
+		public T FindPostProcess<T>() where T : PostProcess
 		{
 			for( int i0 = 0; i0 < caches.Length; ++i0)
 			{
