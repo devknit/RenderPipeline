@@ -88,8 +88,7 @@ namespace RenderPipeline
 					RenderBufferLoadAction.Load    :
 					RenderBufferLoadAction.DontCare,
 				RenderBufferStoreAction.Store,
-				(pipeline.OverrideCameraDepthTexture != false)?
-					context.depthBuffer : BuiltinRenderTextureType.RenderTexture,
+				pipeline.DepthStencilBuffer,
 				RenderBufferLoadAction.Load,	
 				RenderBufferStoreAction.DontCare);
 			commandBuffer.SetGlobalTexture( ShaderProperty.MainTex, context.source0);

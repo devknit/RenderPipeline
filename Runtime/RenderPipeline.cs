@@ -485,6 +485,21 @@ namespace RenderPipeline
 		{
 			get => cacheCamera;
 		}
+		internal RenderTargetIdentifier DepthStencilBuffer
+		{
+			get
+			{
+				if( OverrideCameraDepthTexture != false)
+				{
+					return depthBuffer;
+				}
+			#if UNITY_EDITOR
+				return BuiltinRenderTextureType.RenderTexture;
+			#else
+				return BuiltinRenderTextureType.CameraTarget;
+			#endif
+			}
+		}
 		internal bool OverrideTargetBuffers
 		{
 			get

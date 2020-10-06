@@ -156,7 +156,7 @@ namespace RenderPipeline
 					RenderBufferLoadAction.Load    :
 					RenderBufferLoadAction.DontCare,	
 				RenderBufferStoreAction.Store,
-				context.depthBuffer,
+				pipeline.DepthStencilBuffer,
 				RenderBufferLoadAction.Load,	
 				RenderBufferStoreAction.DontCare);
 			commandBuffer.SetGlobalTexture( ShaderProperty.MainTex, context.source0);
