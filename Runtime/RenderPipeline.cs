@@ -274,6 +274,7 @@ namespace RenderPipeline
 							colorBufferFormat = RenderTextureFormat.DefaultHDR;
 						}
 						colorBuffer = new RenderTexture( targetWidth, targetHeight, 0, colorBufferFormat);
+						colorBuffer.filterMode = FilterMode.Point;
 						colorBuffer.name = "CameraPipeline::ColorBuffer";
 					}
 					if( refreshDepthBuffer != false)
@@ -283,6 +284,7 @@ namespace RenderPipeline
 							depthBuffer.Release();
 						}
 						depthBuffer = new RenderTexture( targetWidth, targetHeight, 24, RenderTextureFormat.Depth);
+						depthBuffer.filterMode = FilterMode.Point;
 						depthBuffer.name = "CameraPipeline::DepthBuffer";
 					}
 				}
@@ -448,7 +450,7 @@ namespace RenderPipeline
 					if( process != null)
 					{
 						RecycleTemporaryRT( context);
-						context.SetTarget0( -1);
+						context.SetTarget0( BuiltinRenderTextureType.CameraTarget);
 						process.BuildCommandBuffer( this, commandBufferPostProcesses, context, null);
 					}
 					ReleaseTemporaryRT();
@@ -456,7 +458,7 @@ namespace RenderPipeline
 				else
 				{
 					commandBufferPostProcesses.SetRenderTarget( 
-						-1, 
+						BuiltinRenderTextureType.CameraTarget, 
 						RenderBufferLoadAction.DontCare,
 						RenderBufferStoreAction.Store,
 						RenderBufferLoadAction.DontCare,
