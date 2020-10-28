@@ -89,6 +89,7 @@ namespace RenderPipeline
 				RenderBufferLoadAction.Load,	
 				RenderBufferStoreAction.DontCare);
 			commandBuffer.SetGlobalTexture( ShaderProperty.MainTex, context.source0);
+			pipeline.SetViewport( commandBuffer, nextProcess);
 			pipeline.DrawFill( commandBuffer, material, 0);
 			context.duplicated = false;
 		}

@@ -114,6 +114,7 @@ namespace RenderPipeline
 				RenderBufferStoreAction.DontCare);
 			commandBuffer.SetGlobalTexture( ShaderProperty.MainTex, context.source0);
 			commandBuffer.SetGlobalTexture( kShaderPropertyBlurTex, blurTarget);
+			pipeline.SetViewport( commandBuffer, nextProcess);
 			pipeline.DrawFill( commandBuffer, material, 1);
 			
 			commandBuffer.ReleaseTemporaryRT( kShaderTargetBlur);

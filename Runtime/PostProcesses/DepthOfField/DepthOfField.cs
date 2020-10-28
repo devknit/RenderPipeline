@@ -187,6 +187,7 @@ namespace RenderPipeline
 						RenderBufferLoadAction.DontCare,	
 						RenderBufferStoreAction.DontCare);
 					commandBuffer.SetGlobalTexture( ShaderProperty.MainTex, alphaDepthTarget);
+					pipeline.SetViewport( commandBuffer, nextProcess);
 					pipeline.DrawFill( commandBuffer, material, pass);
 				}
 				else
@@ -244,6 +245,7 @@ namespace RenderPipeline
 						RenderBufferStoreAction.DontCare);
 					commandBuffer.SetGlobalTexture( ShaderProperty.MainTex, alphaDepthTarget);
 					commandBuffer.SetGlobalTexture( kShaderPropertyLowRez, lowDiscTarget);
+					pipeline.SetViewport( commandBuffer, nextProcess);
 					pipeline.DrawFill( commandBuffer, material, pass);
 					
 					commandBuffer.ReleaseTemporaryRT( kShaderPropertyLowBlurTarget);

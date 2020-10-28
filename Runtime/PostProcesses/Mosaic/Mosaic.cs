@@ -128,27 +128,54 @@ namespace RenderPipeline
 		public override void BuildCommandBuffer( RenderPipeline pipeline,
 			CommandBuffer commandBuffer, TargetContext context, IPostProcess nextProcess)
 		{
+		#if false
 			if( context.duplicated != false)
 			{
 				context.Copy( TargetType.kSource0, TargetType.kSource1);
 			}
-			else if( context.CompareSource0ToTarget0() != false)
+			else 
+		#endif
+			if( context.CompareSource0ToTarget0() != false)
 			{
 				int temporary = pipeline.GetTemporaryRT();
 				if( nextProcess == null)
 				{
-					pipeline.Blit( commandBuffer, context.source0, new RenderTargetIdentifier( temporary));
+					commandBuffer.SetRenderTarget( 
+						new RenderTargetIdentifier( temporary), 
+						RenderBufferLoadAction.DontCare,
+						RenderBufferStoreAction.Store,
+						RenderBufferLoadAction.DontCare,
+						RenderBufferStoreAction.DontCare);
+					commandBuffer.SetGlobalTexture( ShaderProperty.MainTex, context.source0);
+					pipeline.SetViewport( commandBuffer, nextProcess);
+					pipeline.DrawCopy( commandBuffer);
 					context.SetSource0( temporary);
 				}
 				else
 				{
-					pipeline.Blit( commandBuffer, context.target0, new RenderTargetIdentifier( temporary));
+					commandBuffer.SetRenderTarget( 
+						new RenderTargetIdentifier( temporary), 
+						RenderBufferLoadAction.DontCare,
+						RenderBufferStoreAction.Store,
+						RenderBufferLoadAction.DontCare,
+						RenderBufferStoreAction.DontCare);
+					commandBuffer.SetGlobalTexture( ShaderProperty.MainTex, context.target0);
+					pipeline.SetViewport( commandBuffer, nextProcess);
+					pipeline.DrawCopy( commandBuffer);
 					context.SetTarget0( temporary);
 				}
 			}
 			else
 			{
-				commandBuffer.Blit( context.source0, context.target0);
+				commandBuffer.SetRenderTarget( 
+					context.target0, 
+					RenderBufferLoadAction.DontCare,
+					RenderBufferStoreAction.Store,
+					RenderBufferLoadAction.DontCare,
+					RenderBufferStoreAction.DontCare);
+				commandBuffer.SetGlobalTexture( ShaderProperty.MainTex, context.source0);
+				pipeline.SetViewport( commandBuffer, nextProcess);
+				pipeline.DrawCopy( commandBuffer);
 			}
 			commandBuffer.SetRenderTarget( 
 				context.target0, 
@@ -160,6 +187,7 @@ namespace RenderPipeline
 				RenderBufferLoadAction.Load,	
 				RenderBufferStoreAction.DontCare);
 			commandBuffer.SetGlobalTexture( ShaderProperty.MainTex, context.source0);
+			pipeline.SetViewport( commandBuffer, nextProcess);
 			pipeline.DrawFill( commandBuffer, material, 0);
 			context.duplicated = false;
 		}

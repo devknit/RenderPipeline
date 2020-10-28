@@ -103,6 +103,7 @@ namespace RenderPipeline
 					RenderBufferLoadAction.DontCare,	
 					RenderBufferStoreAction.DontCare);
 				commandBuffer.SetGlobalTexture( ShaderProperty.MainTex, context.source0);
+				pipeline.SetViewport( commandBuffer, nextProcess);
 				pipeline.DrawFill( commandBuffer, material, 0);
 			}
 			else

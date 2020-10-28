@@ -29,16 +29,16 @@ namespace RenderPipeline.Editor
 				
 				if( overrideTargetBuffers.boolValue != false)
 				{
-					var overrideTargetResolution = serializedObject.FindProperty( "overrideTargetResolution");
+					var resolutionScale = serializedObject.FindProperty( "resolutionScale");
 					var overrideCameraDepthTexture = serializedObject.FindProperty( "overrideCameraDepthTexture");
 					
-					if( overrideTargetResolution != null || overrideCameraDepthTexture != null)
+					if( resolutionScale != null || overrideCameraDepthTexture != null)
 					{
 						EditorGUI.indentLevel++;
 						
-						if( overrideTargetResolution != null)
+						if( resolutionScale != null)
 						{
-							EditorGUILayout.PropertyField( overrideTargetResolution, true);
+							EditorGUILayout.PropertyField( resolutionScale, true);
 						}
 						if( overrideCameraDepthTexture != null)
 						{

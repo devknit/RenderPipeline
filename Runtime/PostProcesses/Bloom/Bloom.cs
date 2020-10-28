@@ -225,6 +225,7 @@ namespace RenderPipeline
 					context.depthBuffer,
 					RenderBufferLoadAction.DontCare,
 					RenderBufferStoreAction.DontCare));
+				pipeline.SetViewport( commandBuffer, nextProcess);
 				pipeline.DrawFill( commandBuffer, material, 4);
 				context.duplicated = true;
 			}
@@ -236,6 +237,7 @@ namespace RenderPipeline
 					RenderBufferStoreAction.Store,
 					RenderBufferLoadAction.DontCare,	
 					RenderBufferStoreAction.DontCare);
+				pipeline.SetViewport( commandBuffer, nextProcess);
 				pipeline.DrawFill( commandBuffer, material, 3);
 				context.duplicated = false;
 			}

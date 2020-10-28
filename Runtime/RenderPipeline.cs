@@ -9,14 +9,6 @@ namespace RenderPipeline
 	[RequireComponent( typeof( Camera))]
 	public sealed partial class RenderPipeline : MonoBehaviour
 	{
-		public int ScreenWidth
-		{
-			get{ return (cacheScreenWidth.HasValue != false)? cacheScreenWidth.Value : Screen.width; }
-		}
-		public int ScreenHeight
-		{
-			get{ return (cacheScreenHeight.HasValue != false)? cacheScreenHeight.Value : Screen.height; }
-		}
 		void Awake()
 		{
 			cacheCamera = GetComponent<Camera>();
@@ -141,10 +133,7 @@ namespace RenderPipeline
 		#endif
 			if( OverrideTargetBuffers != false)
 			{
-				int targetWidth = (overrideTargetResolution.x < 0)? Screen.width : overrideTargetResolution.x;
-				int targetHeight = (overrideTargetResolution.y < 0)? Screen.height : overrideTargetResolution.y;
-				
-				if( cacheScreenWidth != targetWidth || cacheScreenHeight != targetHeight)
+				if( cacheScreenWidth != Screen.width || cacheScreenHeight != Screen.height || cacheResolutionScale != resolutionScale)
 				{
 					isRebuildCommandBuffers = true;
 				}
@@ -263,8 +252,8 @@ namespace RenderPipeline
 			}
 			else
 			{
-				int targetWidth = (overrideTargetResolution.x < 0)? Screen.width : overrideTargetResolution.x;
-				int targetHeight = (overrideTargetResolution.y < 0)? Screen.height : overrideTargetResolution.y;
+				int targetWidth = (int)((float)Screen.width * resolutionScale);
+				int targetHeight = (int)((float)Screen.height * resolutionScale);
 				bool refreshColorBuffer = colorBuffer == null || colorBuffer.width != targetWidth || colorBuffer.height != targetHeight;
 				bool refreshDepthBuffer = depthBuffer == null || depthBuffer.width != targetWidth || depthBuffer.height != targetHeight;
 				
@@ -298,8 +287,9 @@ namespace RenderPipeline
 					}
 				}
 				cacheCamera.SetTargetBuffers( colorBuffer.colorBuffer, depthBuffer.depthBuffer);
-				cacheScreenWidth = targetWidth;
-				cacheScreenHeight = targetHeight;
+				cacheScreenWidth = Screen.width;
+				cacheScreenHeight = Screen.height;
+				cacheResolutionScale = resolutionScale;
 				
 				if( (depthTextureMode & DepthTextureMode.Depth) != 0 && OverrideCameraDepthTexture != false)
 				{
@@ -323,7 +313,14 @@ namespace RenderPipeline
 					var overrideDepthTexture = new RenderTargetIdentifier( ShaderProperty.OverrideDepthTexture);
 					commandBufferDepthTexture.GetTemporaryRT( ShaderProperty.OverrideDepthTexture, 
 						-1, -1, 0, FilterMode.Bilinear, format);
-					Blit( commandBufferDepthTexture, depthBuffer, overrideDepthTexture);
+					commandBufferDepthTexture.SetRenderTarget( 
+						overrideDepthTexture, 
+						RenderBufferLoadAction.DontCare,
+						RenderBufferStoreAction.Store,
+						RenderBufferLoadAction.DontCare,
+						RenderBufferStoreAction.DontCare);
+					commandBufferDepthTexture.SetGlobalTexture( ShaderProperty.MainTex, depthBuffer);
+					DrawCopy( commandBufferDepthTexture);
 					commandBufferDepthTexture.SetGlobalTexture( ShaderProperty.CameraDepthTexture, overrideDepthTexture);
 					cacheCamera.AddCommandBuffer( CameraEvent.AfterForwardOpaque, commandBufferDepthTexture);
 				}
@@ -451,14 +448,22 @@ namespace RenderPipeline
 					if( process != null)
 					{
 						RecycleTemporaryRT( context);
-						context.SetTarget0( BuiltinRenderTextureType.CameraTarget);
+						context.SetTarget0( -1);
 						process.BuildCommandBuffer( this, commandBufferPostProcesses, context, null);
 					}
 					ReleaseTemporaryRT();
 				}
 				else
 				{
-					Blit( commandBufferPostProcesses, colorBuffer, BuiltinRenderTextureType.CameraTarget);
+					commandBufferPostProcesses.SetRenderTarget( 
+						-1, 
+						RenderBufferLoadAction.DontCare,
+						RenderBufferStoreAction.Store,
+						RenderBufferLoadAction.DontCare,
+						RenderBufferStoreAction.DontCare);
+					commandBufferPostProcesses.SetViewport( new Rect( 0, 0, Screen.width, Screen.height));
+					commandBufferPostProcesses.SetGlobalTexture( ShaderProperty.MainTex, colorBuffer);
+					DrawCopy( commandBufferPostProcesses);
 				}
 				if( (depthTextureMode & DepthTextureMode.Depth) != 0 && OverrideCameraDepthTexture != false)
 				{
@@ -472,27 +477,20 @@ namespace RenderPipeline
 			cacheCamera.forceIntoRenderTexture = forceIntoRenderTexture;
 			isRebuildCommandBuffers = false;
 		}
-		internal void Blit( CommandBuffer commandBuffer, RenderTargetIdentifier source, RenderTargetIdentifier destination)
+		internal void DrawCopy( CommandBuffer commandBuffer)
 		{
-			if( copyMaterial != null)
-			{
-				commandBuffer.SetRenderTarget( 
-					destination, 
-					RenderBufferLoadAction.DontCare,
-					RenderBufferStoreAction.Store,
-					RenderBufferLoadAction.DontCare,
-					RenderBufferStoreAction.DontCare);
-				commandBuffer.SetGlobalTexture( ShaderProperty.MainTex, source);
-				DrawFill( commandBuffer, copyMaterial, 0);
-			}
-			else
-			{
-				commandBuffer.Blit( source, destination);
-			}
+			commandBuffer.DrawMesh( fillMesh, Matrix4x4.identity, copyMaterial, 0, 0);
 		}
 		internal void DrawFill( CommandBuffer commandBuffer, Material material, int shaderPass)
 		{
 			commandBuffer.DrawMesh( fillMesh, Matrix4x4.identity, material, 0, shaderPass);
+		}
+		internal void SetViewport( CommandBuffer commandBuffer, IPostProcess nextProcess)
+		{
+			if( commandBuffer == commandBufferPostProcesses && nextProcess == null)
+			{
+				commandBuffer.SetViewport( new Rect( 0, 0, Screen.width, Screen.height));
+			}
 		}
 		internal Camera CacheCamera
 		{
@@ -537,6 +535,15 @@ namespace RenderPipeline
 				return false;
 			}
 		}
+		internal int ScreenWidth
+		{
+			get{ return (cacheScreenWidth.HasValue != false)? cacheScreenWidth.Value : Screen.width; }
+		}
+		internal int ScreenHeight
+		{
+			get{ return (cacheScreenHeight.HasValue != false)? cacheScreenHeight.Value : Screen.height; }
+		}
+		
 		const string kTipsOverrideTargetBuffers = 
 			"レンダリングパスでUpdateDepthTextureが処理されていない状態でも_CameraDepthTextureに深度情報が書き込まれるようになります。\n\n" +
 			"この機能を有効にした場合、UpdateDepthTextureで行われるDrawCallが無駄になるため、UpdateDepthTextureが発生しない様にする必要があります。\n\n" +
@@ -552,8 +559,8 @@ namespace RenderPipeline
 		DepthTextureMode defaultDepthTextureMode = default;
 		[SerializeField, TooltipAttribute( kTipsOverrideTargetBuffers)]
 		bool overrideTargetBuffers = false;
-		[SerializeField]
-		Vector2Int overrideTargetResolution = new Vector2Int( -1, -1);
+		[SerializeField, Range( 0.1f, 5.0f)]
+		float resolutionScale = 1.0f;
 		[SerializeField]
 		bool overrideCameraDepthTexture = true;
 		
@@ -575,6 +582,7 @@ namespace RenderPipeline
 		Camera cacheCamera;
 		int? cacheScreenWidth;
 		int? cacheScreenHeight;
+		float? cacheResolutionScale;
 	#if UNITY_EDITOR
 		DepthTextureMode? cacheDefaultDepthTextureMode;
 		bool? cacheOverrideTargetBuffers;
