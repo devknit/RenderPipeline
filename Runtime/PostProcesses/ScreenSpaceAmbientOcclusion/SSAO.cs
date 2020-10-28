@@ -51,7 +51,7 @@ namespace RenderPipeline
 			{
 				Properties.ClearCache();
 			}
-			return Properties.CheckParameterChange( material, (width, height) => 
+			return Properties.CheckParameterChange( pipeline, material, (width, height) => 
 			{
 				shadeDescriptor = new RenderTextureDescriptor( width, height, TextureUtil.DefaultHDR);
 				shadeDescriptor.useMipMap = false;

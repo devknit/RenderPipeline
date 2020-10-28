@@ -58,7 +58,7 @@ namespace RenderPipeline
 			cacheRadius = null;
 			cacheArea = null;
 		}
-		internal bool CheckParameterChange( Material material, System.Action<int, int> callback)
+		internal bool CheckParameterChange( RenderPipeline pipeline, Material material, System.Action<int, int> callback)
 		{
 			bool rebuild = false;
 			
@@ -69,12 +69,12 @@ namespace RenderPipeline
 			}
 			if( enabled != false)
 			{
-				if( cacheScreenWidth != Screen.width
-				||	cacheScreenHeight != Screen.height)
+				if( cacheScreenWidth != pipeline.ScreenWidth
+				||	cacheScreenHeight != pipeline.ScreenHeight)
 				{
-					callback?.Invoke( Screen.width, Screen.height);
-					cacheScreenWidth = Screen.width;
-					cacheScreenHeight = Screen.height;
+					callback?.Invoke( pipeline.ScreenWidth, pipeline.ScreenHeight);
+					cacheScreenWidth = pipeline.ScreenWidth;
+					cacheScreenHeight = pipeline.ScreenHeight;
 					rebuild = true;
 				}
 				if( cacheFastMode != fastMode)

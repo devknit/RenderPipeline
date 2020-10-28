@@ -42,7 +42,7 @@ namespace RenderPipeline
 			cacheSampleQuality = null;
 			cacheViewProjection = null;
 		}
-		internal bool CheckParameterChange( Material material, Camera camera, System.Action<int, int> callback)
+		internal bool CheckParameterChange( RenderPipeline pipeline, Material material, System.Action<int, int> callback)
 		{
 			bool rebuild = false;
 			
@@ -53,7 +53,7 @@ namespace RenderPipeline
 			}
 			if( enabled != false)
 			{
-				viewProjection = camera.projectionMatrix * camera.worldToCameraMatrix;
+				viewProjection = pipeline.CacheCamera.projectionMatrix * pipeline.CacheCamera.worldToCameraMatrix;
 				if( cacheViewProjection.HasValue == false)
 				{
 					material.SetMatrix( kShaderPropertyCurrentToPreviousViewProjection, Matrix4x4.identity);
@@ -66,13 +66,13 @@ namespace RenderPipeline
 					cacheViewProjection = viewProjection;
 				}
 				if( cacheDownSample != downSample
-				||	cacheScreenWidth != Screen.width
-				||	cacheScreenHeight != Screen.height)
+				||	cacheScreenWidth != pipeline.ScreenWidth
+				||	cacheScreenHeight != pipeline.ScreenHeight)
 				{
-					callback?.Invoke( Screen.width / downSample, Screen.height / downSample);
+					callback?.Invoke( pipeline.ScreenWidth / downSample, pipeline.ScreenHeight / downSample);
 					cacheDownSample = downSample;
-					cacheScreenWidth = Screen.width;
-					cacheScreenHeight = Screen.height;
+					cacheScreenWidth = pipeline.ScreenWidth;
+					cacheScreenHeight = pipeline.ScreenHeight;
 					rebuild = true;
 				}
 				if( cacheDistance != distance)

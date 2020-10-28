@@ -66,20 +66,20 @@ namespace RenderPipeline
 			}
 			if( enabled != false)
 			{
-				if( cacheWidth != Screen.width
-				||	cacheHeight != Screen.height
+				if( cacheWidth != pipeline.ScreenWidth
+				||	cacheHeight != pipeline.ScreenHeight
 				||	cacheBlockSize != blockSize)
 				{
 					if( blockSize < 1)
 					{
 						blockSize = 1;
 					}
-					float texelWidth = 1.0f / (float)Screen.width * blockSize;
-					float texelHeight = 1.0f / (float)Screen.height * blockSize;
+					float texelWidth = 1.0f / (float)pipeline.ScreenWidth * blockSize;
+					float texelHeight = 1.0f / (float)pipeline.ScreenHeight * blockSize;
 					material.SetVector( kShaderPropertyPixelation, new Vector4(
 						1.0f / texelWidth, 1.0f / texelHeight, texelWidth, texelHeight));
-					cacheWidth = Screen.width;
-					cacheHeight = Screen.height;
+					cacheWidth = pipeline.ScreenWidth;
+					cacheHeight = pipeline.ScreenHeight;
 					cacheBlockSize = blockSize;
 				}
 				if( cacheStencilReference != stencilReference)

@@ -106,7 +106,7 @@ namespace RenderPipeline
 			cacheScreenWidth = null;
 			cacheScreenHeight = null;
 		}
-		internal int CheckParameterChange()
+		internal int CheckParameterChange( RenderPipeline pipeline)
 		{
 			int updateFlags = 0;
 			
@@ -117,11 +117,11 @@ namespace RenderPipeline
 			}
 			if( enabled != false)
 			{
-				if( cacheScreenWidth != Screen.width
-				||	cacheScreenHeight != Screen.height)
+				if( cacheScreenWidth != pipeline.ScreenWidth
+				||	cacheScreenHeight != pipeline.ScreenHeight)
 				{
-					cacheScreenWidth = Screen.width;
-					cacheScreenHeight = Screen.height;
+					cacheScreenWidth = pipeline.ScreenWidth;
+					cacheScreenHeight = pipeline.ScreenHeight;
 					updateFlags |= kChangeScreen;
 				}
 				if( cacheThresholds != thresholds)

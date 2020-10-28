@@ -73,14 +73,14 @@ namespace RenderPipeline
 			{
 				bool updateOffsets = true;
 				
-				if( cacheWidth != Screen.width
-				||	cacheHeight != Screen.height
+				if( cacheWidth != pipeline.ScreenWidth
+				||	cacheHeight != pipeline.ScreenHeight
 				||	cacheHighResolution != highResolution)
 				{
 					rebuild = true;
 					updateOffsets = true;
-					cacheWidth = Screen.width;
-					cacheHeight = Screen.height;
+					cacheWidth = pipeline.ScreenWidth;
+					cacheHeight = pipeline.ScreenHeight;
 					cacheHighResolution = highResolution;
 				}
 				if( cacheBlurQuality != blurQuality
@@ -128,7 +128,7 @@ namespace RenderPipeline
 					material.SetVector( 
 						kShaderPropertyOffsets, (highResolution != false)?
 						new Vector4( 0.025f, blurWidth * 2.0f, 0, 0) : 
-						new Vector4( 0.1f, blurWidth, (Screen.width / (Screen.width >> 1)) * blurWidth, 0));
+						new Vector4( 0.1f, blurWidth, (pipeline.ScreenWidth / (pipeline.ScreenWidth >> 1)) * blurWidth, 0));
 				}
 			}
 			return rebuild;
@@ -191,8 +191,8 @@ namespace RenderPipeline
 				}
 				else
 				{
-					int lowWidth = Screen.width >> 1;
-					int lowHeight = Screen.height >> 1;
+					int lowWidth = pipeline.ScreenWidth >> 1;
+					int lowHeight = pipeline.ScreenHeight >> 1;
 					var lowBlurTarget = new RenderTargetIdentifier( kShaderPropertyLowBlurTarget);
 					var lowDiscTarget = new RenderTargetIdentifier( kShaderPropertyLowDiscTarget);
 					commandBuffer.GetTemporaryRT( kShaderPropertyLowBlurTarget, 

@@ -99,7 +99,7 @@ namespace RenderPipeline
 				cacheSharedSettings = sharedSettings;
 			}
 		#endif
-			updateFlags |= Properties.CheckParameterChange();
+			updateFlags |= Properties.CheckParameterChange( pipeline);
 			
 			if( (updateFlags & BloomProperties.kVerifyDescriptors) != 0)
 			{

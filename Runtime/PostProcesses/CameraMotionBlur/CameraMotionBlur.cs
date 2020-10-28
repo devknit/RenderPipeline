@@ -61,7 +61,7 @@ namespace RenderPipeline
 			{
 				Properties.ClearCache();
 			}
-			return Properties.CheckParameterChange( material, pipeline.CacheCamera, (width, height) => 
+			return Properties.CheckParameterChange( pipeline, material, (width, height) => 
 			{
 				descriptor = new RenderTextureDescriptor( width, height, TextureUtil.DefaultHDR);
 				descriptor.useMipMap = false;
