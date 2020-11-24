@@ -1,4 +1,9 @@
-﻿
+﻿#if !UNITY_EDITOR
+	#if UNITY_IOS || UNITY_ANDROID
+		#define WITH_CLEARRENDERTARGET
+	#endif
+#endif
+
 using UnityEngine;
 using UnityEngine.Rendering;
 using System.Collections.Generic;
@@ -151,10 +156,9 @@ namespace RenderPipeline
 				RenderBufferStoreAction.Store,
 				RenderBufferLoadAction.DontCare,	
 				RenderBufferStoreAction.DontCare);
-			if( SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
-			{
-				commandBuffer.ClearRenderTarget( false, true, Color.black, 0);
-			}
+		#if WITH_CLEARRENDERTARGET
+			commandBuffer.ClearRenderTarget( false, true, Color.black, 0);
+		#endif
 			commandBuffer.SetGlobalTexture( ShaderProperty.MainTex, context.source0);
 			commandBuffer.DrawMesh( brightnessExtractionMesh, Matrix4x4.identity, material, 0, 0);
 		
@@ -167,10 +171,9 @@ namespace RenderPipeline
 				RenderBufferStoreAction.Store,
 				RenderBufferLoadAction.DontCare,	
 				RenderBufferStoreAction.DontCare);
-			if( SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
-			{
-				commandBuffer.ClearRenderTarget( false, true, Color.black, 0);
-			}
+		#if WITH_CLEARRENDERTARGET
+			commandBuffer.ClearRenderTarget( false, true, Color.black, 0);
+		#endif
 			commandBuffer.SetGlobalTexture( ShaderProperty.MainTex, brightnessExtractionTarget);
 			commandBuffer.DrawMesh( blurHorizontalMesh, Matrix4x4.identity, material, 0, 1);
 			
@@ -183,10 +186,9 @@ namespace RenderPipeline
 				RenderBufferStoreAction.Store,
 				RenderBufferLoadAction.DontCare,	
 				RenderBufferStoreAction.DontCare);
-			if( SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
-			{
-				commandBuffer.ClearRenderTarget( false, true, Color.black, 0);
-			}
+		#if WITH_CLEARRENDERTARGET
+			commandBuffer.ClearRenderTarget( false, true, Color.black, 0);
+		#endif
 			commandBuffer.SetGlobalTexture( ShaderProperty.MainTex, kShaderPropertyGaussianBlurHorizontalTarget);
 			commandBuffer.DrawMesh( blurVerticalMesh, Matrix4x4.identity, material, 0, 1);
 			
@@ -198,10 +200,9 @@ namespace RenderPipeline
 					RenderBufferStoreAction.Store,
 					RenderBufferLoadAction.DontCare,	
 					RenderBufferStoreAction.DontCare);
-				if( SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
-				{
-					commandBuffer.ClearRenderTarget( false, true, Color.black, 0);
-				}
+			#if WITH_CLEARRENDERTARGET
+				commandBuffer.ClearRenderTarget( false, true, Color.black, 0);
+			#endif
 				commandBuffer.SetGlobalTexture( ShaderProperty.MainTex, gaussianBlurVerticalTarget);
 				commandBuffer.DrawMesh( combineMesh, Matrix4x4.identity, material, 0, 2);
 				commandBuffer.SetGlobalTexture( kShaderPropertyBloomTex, gaussianBlurVerticalTarget);
