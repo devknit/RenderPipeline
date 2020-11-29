@@ -6,7 +6,7 @@ using UnityEngine.Timeline;
 namespace RenderPipeline
 {
 	[System.Serializable]
-	public sealed class ScreenBlendColorClip : PlayableAsset, ITimelineClipAsset
+	public sealed class VignetteClip : PlayableAsset, ITimelineClipAsset
 	{
 		public ClipCaps clipCaps
 		{
@@ -14,9 +14,9 @@ namespace RenderPipeline
 		}
 		public override Playable CreatePlayable( PlayableGraph graph, GameObject owner)
 		{
-			return ScriptPlayable<ScreenBlendColorBehaviour>.Create( graph, screenBlend);
+			return ScriptPlayable<VignetteBehaviour>.Create( graph, vignette);
 		}
 		
-		public ScreenBlendColorBehaviour screenBlend = new ScreenBlendColorBehaviour();
+		public VignetteBehaviour vignette = new VignetteBehaviour();
 	}
 }

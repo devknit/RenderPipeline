@@ -11,8 +11,8 @@ namespace RenderPipeline
 	public sealed class ScreenBlendColorTweenTrack : TrackAsset
 	{
 		public override Playable CreateTrackMixer( PlayableGraph graph, GameObject go, int inputCount)
-	    {
-	        return ScriptPlayable<ScreenBlendColorTweenMixerBehaviour>.Create( graph, inputCount);
-	    }
+		{
+			return ScriptPlayable<ScreenBlendColorTweenMixerBehaviour>.Create( graph, inputCount);
+		}
 	}
 }
