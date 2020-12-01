@@ -9,7 +9,7 @@ namespace RenderPipeline
 	{
 		public FXAAProperties Properties
 		{
-			get{ return (sharedSettings != null)? sharedSettings.properties : properties; }
+			get{ return (sharedSettings != null && useSharedProperties != false)? sharedSettings.properties : properties; }
 		}
 		public override void Create()
 		{
@@ -39,7 +39,7 @@ namespace RenderPipeline
 		}
 		public override bool Valid()
 		{
-			return Properties.Enabled != false && material != null;
+			return ((sharedSettings != null)? sharedSettings.properties : properties).Enabled != false && material != null;
 		}
 		public override void ClearPropertiesCache()
 		{
@@ -55,7 +55,7 @@ namespace RenderPipeline
 		}
 		public override PostProcessEvent GetPostProcessEvent()
 		{
-			return PostProcessEvent.BeforeImageEffects;
+			return Properties.Phase;
 		}
 		public override DepthTextureMode GetDepthTextureMode()
 		{
@@ -97,6 +97,8 @@ namespace RenderPipeline
 		FXAASettings sharedSettings = default;
 		[SerializeField]
 		FXAAProperties properties = default;
+		[SerializeField]
+		bool useSharedProperties = true;
 		[SerializeField]
 		Shader shader = default;
 		[System.NonSerialized]

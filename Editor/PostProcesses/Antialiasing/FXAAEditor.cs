@@ -12,6 +12,7 @@ namespace RenderPipeline.Editor
 		{
 			SerializedProperty sharedSettings = serializedObject.FindProperty( "sharedSettings");
 			SerializedProperty properties = serializedObject.FindProperty( "properties");
+			SerializedProperty useSharedProperties = serializedObject.FindProperty( "useSharedProperties");
 			
 			if( sharedSettings == null || properties == null)
 			{
@@ -25,10 +26,36 @@ namespace RenderPipeline.Editor
 				
 				if( sharedSettings.objectReferenceValue != null)
 				{
+					EditorGUILayout.PropertyField( useSharedProperties, true);
+					
 					var sharedSettingsObject = new SerializedObject( sharedSettings.objectReferenceValue);
 					sharedSettingsObject.Update();
-					OnPropertiesGUI( sharedSettingsObject.FindProperty( "properties"));
+					
+					Color defaultBackgroundColor = GUI.backgroundColor;
+					GUI.backgroundColor = new Color32( 194, 230, 237, 255);
+					{
+						OnPropertiesGUI( sharedSettingsObject.FindProperty( "properties"), (propertyName) =>
+						{
+							return propertyName.Equals( "enabled") != false;
+						});
+						if( useSharedProperties.boolValue != false)
+						{
+							OnPropertiesGUI( sharedSettingsObject.FindProperty( "properties"), (propertyName) =>
+							{
+								return propertyName.Equals( "enabled") == false;
+							});
+						}
+					}
+					GUI.backgroundColor = defaultBackgroundColor;
 					sharedSettingsObject.ApplyModifiedProperties();
+					
+					if( useSharedProperties.boolValue == false)
+					{
+						OnPropertiesGUI( properties, (propertyName) =>
+						{
+							return propertyName.Equals( "enabled") == false;
+						});
+					}
 				}
 				else
 				{
@@ -37,7 +64,7 @@ namespace RenderPipeline.Editor
 				serializedObject.ApplyModifiedProperties();
 			}
 		}
-		void OnPropertiesGUI( SerializedProperty properties)
+		void OnPropertiesGUI( SerializedProperty properties, System.Func<string, bool> onVerify=null)
 		{
 			if( properties != null)
 			{
@@ -45,9 +72,12 @@ namespace RenderPipeline.Editor
 				
 				while( properties.NextVisible( true) != false)
 				{
-					if( properties.depth == depth)
+					if( (onVerify?.Invoke( properties.name) ?? true) != false)
 					{
-						EditorGUILayout.PropertyField( properties, true);
+						if( properties.depth == depth)
+						{
+							EditorGUILayout.PropertyField( properties, true);
+						}
 					}
 				}
 			}

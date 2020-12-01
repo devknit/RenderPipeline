@@ -15,7 +15,7 @@ namespace RenderPipeline
 	{
 		public BloomProperties Properties
 		{
-			get{ return (sharedSettings != null)? sharedSettings.properties : properties; }
+			get{ return (sharedSettings != null && useSharedProperties != false)? sharedSettings.properties : properties; }
 		}
 		public override void Create()
 		{
@@ -73,7 +73,7 @@ namespace RenderPipeline
 		}
 		public override bool Valid()
 		{
-			return Properties.Enabled != false && material != null;
+			return ((sharedSettings != null)? sharedSettings.properties : properties).Enabled != false && material != null;
 		}
 		public override void ClearPropertiesCache()
 		{
@@ -440,17 +440,17 @@ namespace RenderPipeline
 		static readonly int kShaderPropertyBloomWeightCombined = Shader.PropertyToID( "_BloomWeightCombined");
 		static readonly int kShaderPropertyBloomUvTransformCombined = Shader.PropertyToID( "_BloomUvTransformCombined");
 		
-		
-		
         [SerializeField]
         BloomSettings sharedSettings = default;
         [SerializeField]
         BloomProperties properties = default;
+		[SerializeField]
+		bool useSharedProperties = true;
         [SerializeField]
 		Shader shader = default;
 		
 		Material material;
-	
+		
 		Mesh brightnessExtractionMesh;
 		Mesh blurHorizontalMesh;
 		Mesh blurVerticalMesh;

@@ -19,6 +19,10 @@ namespace RenderPipeline
 			get{ return enabled; }
 			set{ enabled = value; }
 		}
+		public PostProcessEvent Phase
+		{
+			get{ return phase; }
+		}
 		public float Threshold
 		{
 			get{ return threshold; }
@@ -65,6 +69,8 @@ namespace RenderPipeline
 		
 		[SerializeField]
 		bool enabled = true;
+		[SerializeField]
+		PostProcessEvent phase = PostProcessEvent.BeforeImageEffects;
 		[SerializeField]
         float threshold = 0.1f;//0.2f;
         [SerializeField]
