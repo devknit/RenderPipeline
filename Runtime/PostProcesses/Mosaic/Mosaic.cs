@@ -7,6 +7,10 @@ namespace RenderPipeline
 	[System.Serializable]
 	public sealed partial class Mosaic : InternalProcess
 	{
+		public MosaicProperties Properties
+		{
+			get{ return (sharedSettings != null && useSharedProperties != false)? sharedSettings.properties : properties; }
+		}
 		public override void Create()
 		{
 			if( shader != null && material == null)
@@ -35,87 +39,23 @@ namespace RenderPipeline
 		}
 		public override bool Valid()
 		{
-			return enabled != false && material != null;
+			return ((sharedSettings != null)? sharedSettings.properties : properties).Enabled != false && material != null;
 		}
 		public override void ClearPropertiesCache()
 		{
-			cacheEnabled = null;
-			cacheWidth = null;
-			cacheHeight = null;
-			cacheBlockSize = null;
-			cacheStencilReference = null;
-			cacheStencilReadMask = null;
-			cacheStencilCompare = null;
-		}
-		public override PostProcessEvent GetPostProcessEvent()
-		{
-			return PostProcessEvent.BeforeImageEffects;
+			Properties.ClearCache();
 		}
 		public override bool UpdateProperties( RenderPipeline pipeline, bool clearCache)
 		{
-			bool rebuild = false;
-			
 			if( clearCache != false)
 			{
-				ClearPropertiesCache();
+				Properties.ClearCache();
 			}
-			if( cacheEnabled != enabled)
-			{
-				rebuild = true;
-				cacheEnabled = enabled;
-			}
-			if( enabled != false)
-			{
-				if( cacheWidth != pipeline.ScreenWidth
-				||	cacheHeight != pipeline.ScreenHeight
-				||	cacheBlockSize != blockSize)
-				{
-					if( blockSize < 1)
-					{
-						blockSize = 1;
-					}
-					float texelWidth = 1.0f / (float)pipeline.ScreenWidth * blockSize;
-					float texelHeight = 1.0f / (float)pipeline.ScreenHeight * blockSize;
-					material.SetVector( kShaderPropertyPixelation, new Vector4(
-						1.0f / texelWidth, 1.0f / texelHeight, texelWidth, texelHeight));
-					cacheWidth = pipeline.ScreenWidth;
-					cacheHeight = pipeline.ScreenHeight;
-					cacheBlockSize = blockSize;
-				}
-				if( cacheStencilReference != stencilReference)
-				{
-					stencilReference = Mathf.Clamp( stencilReference, 0, 255);
-					material.SetInt( kShaderPropertyStencilRef, stencilReference);
-					cacheStencilReference = stencilReference;
-				}
-				if( cacheStencilReadMask != stencilReadMask)
-				{
-					stencilReadMask = Mathf.Clamp( stencilReadMask, 0, 255);
-					material.SetInt( kShaderPropertyStencilReadMask, stencilReadMask);
-					cacheStencilReadMask = stencilReadMask;
-				}
-				if( cacheStencilCompare != stencilCompare)
-				{
-					if( stencilCompare == CompareFunction.Disabled)
-					{
-						stencilCompare = CompareFunction.Always;
-					}
-					bool always = stencilCompare == CompareFunction.Always;
-					bool cacheAlways = false;
-					
-					if( cacheStencilCompare.HasValue != false)
-					{
-						cacheAlways = cacheStencilCompare.Value == CompareFunction.Always;
-					}
-					if( cacheAlways != always)
-					{
-						rebuild = true;
-					}
-					material.SetInt( kShaderPropertyStencilComp, (int)stencilCompare);
-					cacheStencilCompare = stencilCompare;
-				}
-			}
-			return rebuild;
+			return Properties.CheckParameterChange( pipeline, material);
+		}
+		public override PostProcessEvent GetPostProcessEvent()
+		{
+			return Properties.Phase;
 		}
 		public override DepthTextureMode GetDepthTextureMode()
 		{
@@ -179,7 +119,7 @@ namespace RenderPipeline
 			}
 			commandBuffer.SetRenderTarget( 
 				context.target0, 
-				(stencilCompare != CompareFunction.Always)? 
+				(Properties.StencilCompare != CompareFunction.Always)? 
 					RenderBufferLoadAction.Load    :
 					RenderBufferLoadAction.DontCare,	
 				RenderBufferStoreAction.Store,
@@ -192,30 +132,15 @@ namespace RenderPipeline
 			context.duplicated = false;
 		}
 		
-		static readonly int kShaderPropertyPixelation = Shader.PropertyToID( "_Pixelation");
-		static readonly int kShaderPropertyStencilRef = Shader.PropertyToID( "_StencilRef");
-		static readonly int kShaderPropertyStencilReadMask = Shader.PropertyToID( "_StencilReadMask");
-		static readonly int kShaderPropertyStencilComp = Shader.PropertyToID( "_StencilComp");
-		
 		[SerializeField]
-        Shader shader = default;
-        [SerializeField]
-        int blockSize = 16;
-		[SerializeField, Range(0, 255)]
-		int stencilReference = 0;
-		[SerializeField, Range(0, 255)]
-		int stencilReadMask = 255;
+		MosaicSettings sharedSettings = default;
 		[SerializeField]
-		CompareFunction stencilCompare = CompareFunction.Equal;
-		
+		MosaicProperties properties = default;
+		[SerializeField]
+		bool useSharedProperties = true;
+		[SerializeField]
+		Shader shader = default;
+		[System.NonSerialized]
 		Material material;
-		
-		bool? cacheEnabled;
-		int? cacheWidth;
-		int? cacheHeight;
-		int? cacheBlockSize;
-		int? cacheStencilReference;
-		int? cacheStencilReadMask;
-		CompareFunction? cacheStencilCompare;
 	}
 }
