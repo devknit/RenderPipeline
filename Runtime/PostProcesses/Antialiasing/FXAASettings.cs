@@ -72,15 +72,15 @@ namespace RenderPipeline
 		[SerializeField]
 		PostProcessEvent phase = PostProcessEvent.BeforeImageEffects;
 		[SerializeField]
-        float threshold = 0.1f;//0.2f;
-        [SerializeField]
-        float sharpness = 4.0f;
+		float threshold = 0.1f;//0.2f;
+		[SerializeField]
+		float sharpness = 4.0f;
 		
 		[System.NonSerialized]
 		bool? cacheEnabled;
 		[System.NonSerialized]
-        float? cacheThreshold;
-        [System.NonSerialized]
-        float? cacheSharpness;
+		float? cacheThreshold;
+		[System.NonSerialized]
+		float? cacheSharpness;
 	}
 }

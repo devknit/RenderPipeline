@@ -440,13 +440,13 @@ namespace RenderPipeline
 		static readonly int kShaderPropertyBloomWeightCombined = Shader.PropertyToID( "_BloomWeightCombined");
 		static readonly int kShaderPropertyBloomUvTransformCombined = Shader.PropertyToID( "_BloomUvTransformCombined");
 		
-        [SerializeField]
-        BloomSettings sharedSettings = default;
-        [SerializeField]
-        BloomProperties properties = default;
+		[SerializeField]
+		BloomSettings sharedSettings = default;
+		[SerializeField]
+		BloomProperties properties = default;
 		[SerializeField]
 		bool useSharedProperties = true;
-        [SerializeField]
+		[SerializeField]
 		Shader shader = default;
 		
 		Material material;

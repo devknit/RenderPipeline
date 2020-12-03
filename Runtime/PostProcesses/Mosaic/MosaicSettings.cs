@@ -126,8 +126,8 @@ namespace RenderPipeline
 		[SerializeField]
 		PostProcessEvent phase = PostProcessEvent.BeforeImageEffects;
 		[SerializeField]
-        int blockSize = 16;
-        [SerializeField, Range(0, 255)]
+		int blockSize = 16;
+		[SerializeField, Range(0, 255)]
 		int stencilReference = 0;
 		[SerializeField, Range(0, 255)]
 		int stencilReadMask = 255;
@@ -141,12 +141,12 @@ namespace RenderPipeline
 		[System.NonSerialized]
 		int? cacheHeight;
 		[System.NonSerialized]
-        int? cacheBlockSize;
-        [System.NonSerialized]
-        int? cacheStencilReference;
-        [System.NonSerialized]
-        int? cacheStencilReadMask;
-        [System.NonSerialized]
-        CompareFunction? cacheStencilCompare;
+		int? cacheBlockSize;
+		[System.NonSerialized]
+		int? cacheStencilReference;
+		[System.NonSerialized]
+		int? cacheStencilReadMask;
+		[System.NonSerialized]
+		CompareFunction? cacheStencilCompare;
 	}
 }

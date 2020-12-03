@@ -39,8 +39,8 @@ struct VertexOutput
 };
 struct mrt
 {
-    fixed4 color0 : COLOR0;
-    fixed4 color1 : COLOR1;
+	fixed4 color0 : COLOR0;
+	fixed4 color1 : COLOR1;
 };
 void vert( VertexInput v, out VertexOutput o)
 {

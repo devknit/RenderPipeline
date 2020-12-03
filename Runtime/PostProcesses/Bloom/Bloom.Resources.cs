@@ -341,60 +341,60 @@ namespace RenderPipeline
 		void UpdateGaussianBlurMesh( int vtxIndex,
 			Vector3[] vtx, Vector3[] uv0, Vector3[] uv1, Vector3[] uv2, Vector3[] uv3, 
 			RenderTextureDescriptor from, int fromX, int fromY, int fromWidth, int fromHeight,
-            RenderTextureDescriptor to, int toX, int toY, int toWidth, int toHeight,
-            float offsetScale, bool forX)
-        {
+			RenderTextureDescriptor to, int toX, int toY, int toWidth, int toHeight,
+			float offsetScale, bool forX)
+		{
 			float x0 = (float)toX / (float)to.width;
-            float x1 = (float)(toX + toWidth) / (float)to.width;
-            float y0 = (float)toY / (float)to.height;
-            float y1 = (float)(toY + toHeight) / (float)to.height;
+			float x1 = (float)(toX + toWidth) / (float)to.width;
+			float y0 = (float)toY / (float)to.height;
+			float y1 = (float)(toY + toHeight) / (float)to.height;
 
-            float u0 = (float)fromX / (float)from.width;
-            float u1 = (float)(fromX + fromWidth) / (float)from.width;
-            float v0 = (float)fromY / (float)from.height;
-            float v1 = (float)(fromY + fromHeight) / (float)from.height;
-            
-            float uOffset0 = blurSample0.offset * offsetScale;
-            float vOffset0 = blurSample0.offset * offsetScale;
-            float uOffset1 = blurSample1.offset * offsetScale;
-            float vOffset1 = blurSample1.offset * offsetScale;
-            float uOffset2 = blurSample2.offset * offsetScale;
-            float vOffset2 = blurSample2.offset * offsetScale;
-            float uOffset3 = blurSample3.offset * offsetScale;
-            float vOffset3 = blurSample3.offset * offsetScale;
-            
-            if( forX != false)
-            {
-                vOffset0 = vOffset1 = vOffset2 = vOffset3 = 0f;
-            }
-            else
-            {
-                uOffset0 = uOffset1 = uOffset2 = uOffset3 = 0f;
-            }
-            
-            vtx[ vtxIndex + 0] = new Vector3( x0, y0, 0);
-            uv0[ vtxIndex + 0] = new Vector3( u0 + uOffset0, v0 + vOffset0, blurSample0.weight);
-            uv1[ vtxIndex + 0] = new Vector3( u0 + uOffset1, v0 + vOffset1, blurSample1.weight);
-            uv2[ vtxIndex + 0] = new Vector3( u0 + uOffset2, v0 + vOffset2, blurSample2.weight);
-            uv3[ vtxIndex + 0] = new Vector3( u0 + uOffset3, v0 + vOffset3, blurSample3.weight);
-            
-            vtx[ vtxIndex + 1] = new Vector3( x0, y1, 0);
-            uv0[ vtxIndex + 1] = new Vector3( u0 + uOffset0, v1 + vOffset0, blurSample0.weight);
-            uv1[ vtxIndex + 1] = new Vector3( u0 + uOffset1, v1 + vOffset1, blurSample1.weight);
-            uv2[ vtxIndex + 1] = new Vector3( u0 + uOffset2, v1 + vOffset2, blurSample2.weight);
-            uv3[ vtxIndex + 1] = new Vector3( u0 + uOffset3, v1 + vOffset3, blurSample3.weight);
-            
-            vtx[ vtxIndex + 2] = new Vector3( x1, y1, 0);
-            uv0[ vtxIndex + 2] = new Vector3( u1 + uOffset0, v1 + vOffset0, blurSample0.weight);
-            uv1[ vtxIndex + 2] = new Vector3( u1 + uOffset1, v1 + vOffset1, blurSample1.weight);
-            uv2[ vtxIndex + 2] = new Vector3( u1 + uOffset2, v1 + vOffset2, blurSample2.weight);
-            uv3[ vtxIndex + 2] = new Vector3( u1 + uOffset3, v1 + vOffset3, blurSample3.weight);
-            
-            vtx[ vtxIndex + 3] = new Vector3( x1, y0, 0);
-            uv0[ vtxIndex + 3] = new Vector3( u1 + uOffset0, v0 + vOffset0, blurSample0.weight);
-            uv1[ vtxIndex + 3] = new Vector3( u1 + uOffset1, v0 + vOffset1, blurSample1.weight);
-            uv2[ vtxIndex + 3] = new Vector3( u1 + uOffset2, v0 + vOffset2, blurSample2.weight);
-            uv3[ vtxIndex + 3] = new Vector3( u1 + uOffset3, v0 + vOffset3, blurSample3.weight);
+			float u0 = (float)fromX / (float)from.width;
+			float u1 = (float)(fromX + fromWidth) / (float)from.width;
+			float v0 = (float)fromY / (float)from.height;
+			float v1 = (float)(fromY + fromHeight) / (float)from.height;
+			
+			float uOffset0 = blurSample0.offset * offsetScale;
+			float vOffset0 = blurSample0.offset * offsetScale;
+			float uOffset1 = blurSample1.offset * offsetScale;
+			float vOffset1 = blurSample1.offset * offsetScale;
+			float uOffset2 = blurSample2.offset * offsetScale;
+			float vOffset2 = blurSample2.offset * offsetScale;
+			float uOffset3 = blurSample3.offset * offsetScale;
+			float vOffset3 = blurSample3.offset * offsetScale;
+			
+			if( forX != false)
+			{
+				vOffset0 = vOffset1 = vOffset2 = vOffset3 = 0f;
+			}
+			else
+			{
+				uOffset0 = uOffset1 = uOffset2 = uOffset3 = 0f;
+			}
+			
+			vtx[ vtxIndex + 0] = new Vector3( x0, y0, 0);
+			uv0[ vtxIndex + 0] = new Vector3( u0 + uOffset0, v0 + vOffset0, blurSample0.weight);
+			uv1[ vtxIndex + 0] = new Vector3( u0 + uOffset1, v0 + vOffset1, blurSample1.weight);
+			uv2[ vtxIndex + 0] = new Vector3( u0 + uOffset2, v0 + vOffset2, blurSample2.weight);
+			uv3[ vtxIndex + 0] = new Vector3( u0 + uOffset3, v0 + vOffset3, blurSample3.weight);
+			
+			vtx[ vtxIndex + 1] = new Vector3( x0, y1, 0);
+			uv0[ vtxIndex + 1] = new Vector3( u0 + uOffset0, v1 + vOffset0, blurSample0.weight);
+			uv1[ vtxIndex + 1] = new Vector3( u0 + uOffset1, v1 + vOffset1, blurSample1.weight);
+			uv2[ vtxIndex + 1] = new Vector3( u0 + uOffset2, v1 + vOffset2, blurSample2.weight);
+			uv3[ vtxIndex + 1] = new Vector3( u0 + uOffset3, v1 + vOffset3, blurSample3.weight);
+			
+			vtx[ vtxIndex + 2] = new Vector3( x1, y1, 0);
+			uv0[ vtxIndex + 2] = new Vector3( u1 + uOffset0, v1 + vOffset0, blurSample0.weight);
+			uv1[ vtxIndex + 2] = new Vector3( u1 + uOffset1, v1 + vOffset1, blurSample1.weight);
+			uv2[ vtxIndex + 2] = new Vector3( u1 + uOffset2, v1 + vOffset2, blurSample2.weight);
+			uv3[ vtxIndex + 2] = new Vector3( u1 + uOffset3, v1 + vOffset3, blurSample3.weight);
+			
+			vtx[ vtxIndex + 3] = new Vector3( x1, y0, 0);
+			uv0[ vtxIndex + 3] = new Vector3( u1 + uOffset0, v0 + vOffset0, blurSample0.weight);
+			uv1[ vtxIndex + 3] = new Vector3( u1 + uOffset1, v0 + vOffset1, blurSample1.weight);
+			uv2[ vtxIndex + 3] = new Vector3( u1 + uOffset2, v0 + vOffset2, blurSample2.weight);
+			uv3[ vtxIndex + 3] = new Vector3( u1 + uOffset3, v0 + vOffset3, blurSample3.weight);
 		}
 		void UpdateCombineMesh()
 		{

@@ -26,9 +26,7 @@
 	}
 	float4 frag( VertexOutput i) : SV_Target 
 	{
-        return tex2D( _MainTex, float2(
-        	floor( i.uv.x * _Pixelation.x) * _Pixelation.z, 
-        	floor( i.uv.y * _Pixelation.y) * _Pixelation.w));
+		return tex2D( _MainTex, floor( i.uv.xy * _Pixelation.xy) * _Pixelation.zw);
 	}
 	ENDCG
 	
