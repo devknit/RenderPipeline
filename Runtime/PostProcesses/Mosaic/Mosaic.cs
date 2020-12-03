@@ -68,13 +68,6 @@ namespace RenderPipeline
 		public override void BuildCommandBuffer( RenderPipeline pipeline,
 			CommandBuffer commandBuffer, TargetContext context, IPostProcess nextProcess)
 		{
-		#if false
-			if( context.duplicated != false)
-			{
-				context.Copy( TargetType.kSource0, TargetType.kSource1);
-			}
-			else 
-		#endif
 			if( context.CompareSource0ToTarget0() != false)
 			{
 				int temporary = pipeline.GetTemporaryRT();

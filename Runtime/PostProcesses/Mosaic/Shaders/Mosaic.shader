@@ -26,7 +26,7 @@
 	}
 	float4 frag( VertexOutput i) : SV_Target 
 	{
-		return tex2D( _MainTex, floor( i.uv.xy * _Pixelation.xy) * _Pixelation.zw);
+		return tex2D( _MainTex, round( i.uv.xy * _Pixelation.xy) * _Pixelation.zw);
 	}
 	ENDCG
 	
