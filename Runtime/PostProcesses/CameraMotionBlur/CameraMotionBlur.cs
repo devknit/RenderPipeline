@@ -15,7 +15,7 @@ namespace RenderPipeline
 		}
 		public CameraMotionBlurProperties Properties
 		{
-			get{ return (sharedSettings != null)? sharedSettings.properties : properties; }
+			get{ return (sharedSettings != null && useSharedProperties != false)? sharedSettings.properties : properties; }
 		}
 		public override void Create()
 		{
@@ -45,21 +45,18 @@ namespace RenderPipeline
 		}
 		public override bool Valid()
 		{
-			return Properties.Enabled != false && material != null;
+			return ((sharedSettings != null)? sharedSettings.properties : properties).Enabled != false && material != null;
 		}
 		public override void ClearPropertiesCache()
 		{
-			Properties.ClearCache();
-		}
-		public override PostProcessEvent GetPostProcessEvent()
-		{
-			return PostProcessEvent.BeforeImageEffects;
+			sharedSettings?.properties.ClearCache();
+			properties.ClearCache();
 		}
 		public override bool UpdateProperties( RenderPipeline pipeline, bool clearCache)
 		{
 			if( clearCache != false)
 			{
-				Properties.ClearCache();
+				ClearPropertiesCache();
 			}
 			return Properties.CheckParameterChange( pipeline, material, (width, height) => 
 			{
@@ -67,6 +64,10 @@ namespace RenderPipeline
 				descriptor.useMipMap = false;
 				descriptor.autoGenerateMips = false;
 			});
+		}
+		public override PostProcessEvent GetPostProcessEvent()
+		{
+			return PostProcessEvent.BeforeImageEffects;
 		}
 		public override DepthTextureMode GetDepthTextureMode()
 		{
@@ -128,6 +129,8 @@ namespace RenderPipeline
 		CameraMotionBlurSettings sharedSettings = default;
 		[SerializeField]
 		CameraMotionBlurProperties properties = default;
+		[SerializeField]
+		bool useSharedProperties = true;
 		[SerializeField]
 		Shader shader = default;
 		[System.NonSerialized]

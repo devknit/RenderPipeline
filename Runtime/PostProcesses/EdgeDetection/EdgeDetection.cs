@@ -9,7 +9,7 @@ namespace RenderPipeline
 	{
 		public EdgeDetectionProperties Properties
 		{
-			get{ return (sharedSettings != null)? sharedSettings.properties : properties; }
+			get{ return (sharedSettings != null && useSharedProperties != false)? sharedSettings.properties : properties; }
 		}
 		public override void Create()
 		{
@@ -39,17 +39,18 @@ namespace RenderPipeline
 		}
 		public override bool Valid()
 		{
-			return Properties.Enabled != false && material != null;
+			return ((sharedSettings != null)? sharedSettings.properties : properties).Enabled != false && material != null;
 		}
 		public override void ClearPropertiesCache()
 		{
-			Properties.ClearCache();
+			sharedSettings?.properties.ClearCache();
+			properties.ClearCache();
 		}
 		public override bool UpdateProperties( RenderPipeline pipeline, bool clearCache)
 		{
 			if( clearCache != false)
 			{
-				Properties.ClearCache();
+				ClearPropertiesCache();
 			}
 			return Properties.CheckParameterChange( material);
 		}
@@ -105,6 +106,8 @@ namespace RenderPipeline
 		EdgeDetectionSettings sharedSettings = default;
 		[SerializeField]
 		EdgeDetectionProperties properties = default;
+		[SerializeField]
+		bool useSharedProperties = true;
 		[SerializeField]
 		Shader shader = default;
 		[System.NonSerialized]
