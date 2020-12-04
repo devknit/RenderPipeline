@@ -40,7 +40,7 @@ namespace RenderPipeline
 		 * \return カメライベント。以下の値が現状有効値として返ります。
 		 * \retval PostProcessEvent.BeforeImageEffectsOpaque
 		 * \retval PostProcessEvent.BeforeImageEffects 
-		 \ \note https://docs.unity3d.com/2019.2/Documentation/uploads/SL/CameraRenderFlowCmdBuffers.png
+		 * \note https://docs.unity3d.com/2019.2/Documentation/uploads/SL/CameraRenderFlowCmdBuffers.png
 		 */
 		PostProcessEvent GetPostProcessEvent();
 		/**

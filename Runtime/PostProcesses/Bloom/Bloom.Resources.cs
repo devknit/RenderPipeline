@@ -239,12 +239,57 @@ namespace RenderPipeline
 		}
 		void UpdateBrightnessExtractionMesh()
 		{
+			brightnessExtractionMesh.Clear();
+			
 			float x0 = (float)brightnessOffsetX / (float)brightnessExtractionDescriptor.width;
 			float x1 = (float)(brightnessOffsetX + brightnessNetWidth) / (float)brightnessExtractionDescriptor.width;
 			float y0 = (float)brightnessOffsetY / (float)brightnessExtractionDescriptor.height;
 			float y1 = (float)(brightnessOffsetY + brightnessNetHeight) / (float)brightnessExtractionDescriptor.height;
+		#if true
+			float w1 = 8.0f / (float)brightnessExtractionDescriptor.width;
+			float h1 = 8.0f / (float)brightnessExtractionDescriptor.height;
+			float w2 = w1 * 0.5f;
+			float h2 = h1 * 0.5f;
+			float u0 = Mathf.Max( 0.0f, x0 - w2);
+			float u1 = Mathf.Min( 1.0f, u0 + w1);
+			float u3 = Mathf.Min( 1.0f, x1 + w2);
+			float u2 = Mathf.Max( 0.0f, u3 - w1);
+			float v0 = Mathf.Max( 0.0f, y0 - h2);
+			float v1 = Mathf.Min( 1.0f, v0 + h1);
+			float v3 = Mathf.Min( 1.0f, y1 + h2);
+			float v2 = Mathf.Max( 0.0f, v3 - h1);
 			
-			brightnessExtractionMesh.Clear();
+			brightnessExtractionMesh.SetVertices(
+				new Vector3[]{
+					new Vector3( u0, v0, 0), new Vector3( u0, v1, 0), new Vector3( u0, v2, 0), new Vector3( u0, v3, 0),
+					new Vector3( u1, v0, 0), new Vector3( u1, v3, 0), new Vector3( u2, v0, 0), new Vector3( u2, v3, 0),
+					new Vector3( u3, v0, 0), new Vector3( u3, v1, 0), new Vector3( u3, v2, 0), new Vector3( u3, v3, 0),
+					new Vector3( x0, y0, 0), new Vector3( x0, y1, 0), new Vector3( x1, y1, 0), new Vector3( x1, y0, 0)
+				});
+			brightnessExtractionMesh.SetColors(
+				new Color[]{
+					Color.clear, Color.clear, Color.clear, Color.clear,
+					Color.clear, Color.clear, Color.clear, Color.clear,
+					Color.clear, Color.clear, Color.clear, Color.clear,
+					Color.white, Color.white, Color.white, Color.white
+				});
+			brightnessExtractionMesh.SetUVs( 
+				0,
+				new Vector2[]{
+					Vector2.zero, Vector2.zero, Vector2.zero, Vector2.zero,
+					Vector2.zero, Vector2.zero, Vector2.zero, Vector2.zero,
+					Vector2.zero, Vector2.zero, Vector2.zero, Vector2.zero,
+					Vector2.zero, Vector2.up, Vector2.one, Vector2.right   
+				});
+			brightnessExtractionMesh.SetIndices(
+				new int[]{
+					0, 1, 9, 8,
+					0, 3, 5, 4,
+					2, 3, 11, 10,
+					6, 7, 11, 8,
+					12, 13, 14, 15,
+				}, MeshTopology.Quads, 0);
+		#else
 			brightnessExtractionMesh.SetVertices(
 				new Vector3[]{
 					new Vector3( x0, y0, 0),
@@ -252,16 +297,13 @@ namespace RenderPipeline
 					new Vector3( x1, y1, 0),
 					new Vector3( x1, y0, 0)
 				});
+			brightnessExtractionMesh.SetColors(
+				new Color[]{ Color.white, Color.white, Color.white, Color.white });
 			brightnessExtractionMesh.SetUVs( 
-				0,
-				new Vector2[]{
-					new Vector2( 0, 0),
-					new Vector2( 0, 1),
-					new Vector2( 1, 1),
-					new Vector2( 1, 0)
-				});
+				0, new Vector2[]{ Vector2.zero, Vector2.up, Vector2.one, Vector2.right });
 			brightnessExtractionMesh.SetIndices(
 				new int[]{ 0, 1, 2, 3 }, MeshTopology.Quads, 0);
+		#endif
 			brightnessExtractionMesh.UploadMeshData( false);
 		}
 		void UpdateGaussianBlurHorizontalMesh()

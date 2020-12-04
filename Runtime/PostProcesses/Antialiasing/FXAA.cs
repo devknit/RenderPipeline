@@ -43,13 +43,14 @@ namespace RenderPipeline
 		}
 		public override void ClearPropertiesCache()
 		{
-			Properties.ClearCache();
+			sharedSettings?.properties.ClearCache();
+			properties.ClearCache();
 		}
 		public override bool UpdateProperties( RenderPipeline pipeline, bool clearCache)
 		{
 			if( clearCache != false)
 			{
-				Properties.ClearCache();
+				ClearPropertiesCache();
 			}
 			return Properties.CheckParameterChange( material);
 		}

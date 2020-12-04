@@ -1,8 +1,4 @@
-﻿#if !UNITY_EDITOR
-	#if UNITY_IOS || UNITY_ANDROID
-		#define WITH_CLEARRENDERTARGET
-	#endif
-#endif
+﻿#define WITH_CLEARRENDERTARGET
 
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -73,11 +69,16 @@ namespace RenderPipeline
 		}
 		public override bool Valid()
 		{
-			return ((sharedSettings != null)? sharedSettings.properties : properties).Enabled != false && material != null;
+			if( ((sharedSettings != null)? sharedSettings.properties : properties).Enabled != false && material != null)
+			{
+				return Properties.Verify();
+			}
+			return false;
 		}
 		public override void ClearPropertiesCache()
 		{
-			Properties.ClearCache();
+			sharedSettings?.properties.ClearCache();
+			properties.ClearCache();
 			cacheCombinePassCount = null;
 			cacheBloomRectCount = null;
 		#if UNITY_EDITOR
@@ -90,12 +91,7 @@ namespace RenderPipeline
 			
 			if( clearCache != false)
 			{
-				Properties.ClearCache();
-				cacheCombinePassCount = null;
-				cacheBloomRectCount = null;
-			#if UNITY_EDITOR
-				cacheSharedSettings = null;
-			#endif
+				ClearPropertiesCache();
 			}
 		#if UNITY_EDITOR
 			if( cacheSharedSettings != sharedSettings)
@@ -156,12 +152,9 @@ namespace RenderPipeline
 				RenderBufferStoreAction.Store,
 				RenderBufferLoadAction.DontCare,	
 				RenderBufferStoreAction.DontCare);
-		#if WITH_CLEARRENDERTARGET
-			commandBuffer.ClearRenderTarget( false, true, Color.black, 0);
-		#endif
 			commandBuffer.SetGlobalTexture( ShaderProperty.MainTex, context.source0);
 			commandBuffer.DrawMesh( brightnessExtractionMesh, Matrix4x4.identity, material, 0, 0);
-		
+			
 			var gaussianBlurHorizontalTarget = new RenderTargetIdentifier( kShaderPropertyGaussianBlurHorizontalTarget);
 			commandBuffer.GetTemporaryRT( kShaderPropertyGaussianBlurHorizontalTarget, blurDescriptor, FilterMode.Bilinear);
 			
@@ -172,7 +165,7 @@ namespace RenderPipeline
 				RenderBufferLoadAction.DontCare,	
 				RenderBufferStoreAction.DontCare);
 		#if WITH_CLEARRENDERTARGET
-			commandBuffer.ClearRenderTarget( false, true, Color.black, 0);
+			commandBuffer.ClearRenderTarget( false, true, Color.clear, 0);
 		#endif
 			commandBuffer.SetGlobalTexture( ShaderProperty.MainTex, brightnessExtractionTarget);
 			commandBuffer.DrawMesh( blurHorizontalMesh, Matrix4x4.identity, material, 0, 1);
@@ -187,7 +180,7 @@ namespace RenderPipeline
 				RenderBufferLoadAction.DontCare,	
 				RenderBufferStoreAction.DontCare);
 		#if WITH_CLEARRENDERTARGET
-			commandBuffer.ClearRenderTarget( false, true, Color.black, 0);
+			commandBuffer.ClearRenderTarget( false, true, Color.clear, 0);
 		#endif
 			commandBuffer.SetGlobalTexture( ShaderProperty.MainTex, kShaderPropertyGaussianBlurHorizontalTarget);
 			commandBuffer.DrawMesh( blurVerticalMesh, Matrix4x4.identity, material, 0, 1);
@@ -201,7 +194,7 @@ namespace RenderPipeline
 					RenderBufferLoadAction.DontCare,	
 					RenderBufferStoreAction.DontCare);
 			#if WITH_CLEARRENDERTARGET
-				commandBuffer.ClearRenderTarget( false, true, Color.black, 0);
+				commandBuffer.ClearRenderTarget( false, true, Color.clear, 0);
 			#endif
 				commandBuffer.SetGlobalTexture( ShaderProperty.MainTex, gaussianBlurVerticalTarget);
 				commandBuffer.DrawMesh( combineMesh, Matrix4x4.identity, material, 0, 2);
@@ -397,7 +390,20 @@ namespace RenderPipeline
 			}
 			return Mathf.Exp( -(x * x) / (sigma * sigma * 2.0f));
 		}
-		
+		sealed class BloomRect
+		{
+			public int x;
+			public int y;
+			public int width;
+			public int height;
+			public int uvTransformShaderPropertyId;
+			public int weightShaderPropertyId;
+		}
+		struct BlurSample
+		{
+			public float offset;
+			public float weight;
+		}
 		const string kShaderKeywordLDR = "LDR";
 		
 		const string kShaderKeywordCombineSample1 = "COMBINE_SAMPLE1";
@@ -478,19 +484,5 @@ namespace RenderPipeline
 	#if UNITY_EDITOR
 		BloomSettings cacheSharedSettings;
 	#endif
-	}
-	class BloomRect
-	{
-		public int x;
-		public int y;
-		public int width;
-		public int height;
-		public int uvTransformShaderPropertyId;
-		public int weightShaderPropertyId;
-	}
-	struct BlurSample
-	{
-		public float offset;
-		public float weight;
 	}
 }

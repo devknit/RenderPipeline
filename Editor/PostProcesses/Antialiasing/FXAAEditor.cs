@@ -13,6 +13,7 @@ namespace RenderPipeline.Editor
 			SerializedProperty sharedSettings = serializedObject.FindProperty( "sharedSettings");
 			SerializedProperty properties = serializedObject.FindProperty( "properties");
 			SerializedProperty useSharedProperties = serializedObject.FindProperty( "useSharedProperties");
+			EditorGUI.BeginChangeCheck();
 			
 			if( sharedSettings == null || properties == null)
 			{
@@ -62,6 +63,10 @@ namespace RenderPipeline.Editor
 					OnPropertiesGUI( properties);
 				}
 				serializedObject.ApplyModifiedProperties();
+			}
+			if( EditorGUI.EndChangeCheck() != false)
+			{
+				(target as PostProcess).ClearPropertiesCache();
 			}
 		}
 		void OnPropertiesGUI( SerializedProperty properties, System.Func<string, bool> onVerify=null)

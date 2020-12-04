@@ -238,10 +238,10 @@ namespace RenderPipeline
 				ref depthTextureMode, ref highDynamicRangeTarget);
 			
 			/* [2019.4.1f1]
-			   SetTargetBuffers の引数に Display.main.*****Buffer を渡しても実機では正しく動作しない。
-			   エディタ上では動作し、SetTargetBuffers を呼び出す前と同じ状態に戻る。
-			   実機では現状元に戻す方法が存在しないと思われる。
-			   そのため以下の条件文はランタイム中に切り替わることは想定しない。
+			 * SetTargetBuffers の引数に Display.main.*****Buffer を渡しても実機では正しく動作しない。
+			 * エディタ上では動作し、SetTargetBuffers を呼び出す前と同じ状態に戻る。
+			 * 実機では現状元に戻す方法が存在しないと思われる。
+			 * そのため以下の条件文はランタイム中に切り替わることは想定しない。
 			 */
 			if( OverrideTargetBuffers == false)
 			{

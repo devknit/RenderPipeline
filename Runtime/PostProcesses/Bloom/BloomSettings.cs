@@ -36,18 +36,7 @@ namespace RenderPipeline
 	{
 		public bool Enabled
 		{
-			get
-			{
-				if( enabled != false)
-				{
-					if( (cacheScreenWidth ?? 0) > 0
-					&&	(cacheScreenHeight ?? 0) > 0)
-					{
-						return true;
-					}
-				}
-				return false;
-			}
+			get{ return enabled; }
 			set{ enabled = value; }
 		}
 		public float Thresholds
@@ -92,6 +81,10 @@ namespace RenderPipeline
 		public int ScreenHeight
 		{
 			get{ return cacheScreenHeight ?? 0; }
+		}
+		public bool Verify()
+		{
+			return (cacheScreenWidth ?? 0) > 0 && (cacheScreenHeight ?? 0) > 0;
 		}
 		public void ClearCache()
 		{

@@ -13,16 +13,19 @@ sampler2D _MainTex;
 struct VertexInput
 {
 	float4 vertex : POSITION;
+	fixed4 color : COLOR;
 	float2 uv : TEXCOORD0;
 };
 struct VertexOutput
 {
 	float2 uv : TEXCOORD0;
+	fixed4 color : COLOR;
 	float4 vertex : SV_POSITION;
 };
 void vert( VertexInput v, out VertexOutput o)
 {
 	o.vertex = UnityObjectToClipPos( v.vertex);
+	o.color = v.color;
 	o.uv = v.uv;
 }
 fixed4 frag( VertexOutput i) : SV_Target
@@ -33,6 +36,6 @@ fixed4 frag( VertexOutput i) : SV_Target
 #else
 	col.rgb = max( 0, col.rgb - _Thresholds);
 #endif
-	return col;
+	return col * i.color;
 }
 #endif /* __BLOOM_BRIGHTNESS_EXTRACTION_CGINC__ */
