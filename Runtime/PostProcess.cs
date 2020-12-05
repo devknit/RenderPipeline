@@ -99,6 +99,10 @@ namespace RenderPipeline
 	}
 	public abstract class InternalProcess : PostProcess
 	{
+		internal abstract bool Enabled
+		{
+			get;
+		}
 		internal bool DuplicateMRT()
 		{
 			if( SystemInfo.supportedRenderTargetCount > 1)

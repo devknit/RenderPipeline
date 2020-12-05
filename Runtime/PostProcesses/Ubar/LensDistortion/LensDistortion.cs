@@ -7,9 +7,13 @@ namespace RenderPipeline
 	[DisallowMultipleComponent]
 	public sealed partial class LensDistortion : UbarProperty
 	{
+		internal override bool Enabled
+		{
+			get{ return ((sharedSettings != null)? sharedSettings.properties : properties).Enabled; }
+		}
 		public LensDistortionProperties Properties
 		{
-			get{ return (sharedSettings != null)? sharedSettings.properties : properties; }
+			get{ return (sharedSettings != null && useSharedProperties != false)? sharedSettings.properties : properties; }
 		}
 		public override PostProcessEvent GetPostProcessEvent()
 		{
@@ -24,5 +28,7 @@ namespace RenderPipeline
         LensDistortionSettings sharedSettings = default;
         [SerializeField]
         LensDistortionProperties properties = default;
+		[SerializeField]
+		bool useSharedProperties = true;
 	}
 }

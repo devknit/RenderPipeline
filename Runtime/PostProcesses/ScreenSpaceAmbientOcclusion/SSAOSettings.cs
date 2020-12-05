@@ -19,6 +19,10 @@ namespace RenderPipeline
 			get{ return enabled; }
 			set{ enabled = value; }
 		}
+		public PostProcessEvent Phase
+		{
+			get{ return phase; }
+		}
 		public bool FastMode
 		{
 			get{ return fastMode; }
@@ -128,6 +132,8 @@ namespace RenderPipeline
 		
 		[SerializeField]
 		bool enabled = true;
+		[SerializeField]
+		PostProcessEvent phase = PostProcessEvent.BeforeImageEffectsOpaque;
 		[SerializeField]
 		bool fastMode = true;
 		[SerializeField]

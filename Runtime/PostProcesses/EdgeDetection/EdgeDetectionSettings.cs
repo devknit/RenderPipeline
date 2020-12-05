@@ -24,6 +24,10 @@ namespace RenderPipeline
 			get{ return enabled; }
 			set{ enabled = value; }
 		}
+		public PostProcessEvent Phase
+		{
+			get{ return phase; }
+		}
 		public DetectType DetectType
 		{
 			get{ return detectType; }
@@ -139,6 +143,8 @@ namespace RenderPipeline
 		
 		[SerializeField]
 		bool enabled = true;
+		[SerializeField]
+		PostProcessEvent phase = PostProcessEvent.BeforeImageEffectsOpaque;
 		[SerializeField]
 		DetectType detectType = DetectType.kThin;
 		[SerializeField]

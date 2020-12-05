@@ -56,7 +56,7 @@ namespace RenderPipeline
 		}
 		public override PostProcessEvent GetPostProcessEvent()
 		{
-			return PostProcessEvent.BeforeImageEffectsOpaque;
+			return Properties.Phase;
 		}
 		public override DepthTextureMode GetDepthTextureMode()
 		{

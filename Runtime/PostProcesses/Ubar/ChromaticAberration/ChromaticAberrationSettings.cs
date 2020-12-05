@@ -127,13 +127,12 @@ namespace RenderPipeline
 		static readonly int kShaderPropertySpectralLut = Shader.PropertyToID( "_ChromaticAberrationSpectralLut");
 		static readonly int kShaderPropertyIntensity = Shader.PropertyToID( "_ChromaticAberrationIntensity");
 		
-		
 		[SerializeField]
 		bool enabled = true;
 		[SerializeField]
 		Texture2D spectralLut = default;
 		[SerializeField, Range( 0, 1)]
-		float intensity = 0.0f;
+		float intensity = 1.0f;
 		[SerializeField]
 		bool fastMode = true;
 		

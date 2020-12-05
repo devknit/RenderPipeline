@@ -48,7 +48,7 @@ namespace RenderPipeline
 				{
 					if( property.Independent() == false)
 					{
-						if( property.GetProperties().Enabled != false)
+						if( property.Enabled != false)
 						{
 							return true;
 						}
@@ -63,7 +63,7 @@ namespace RenderPipeline
 			{
 				if( property.Independent() == false)
 				{
-					property.GetProperties().ClearCache();
+					property.ClearPropertiesCache();
 				}
 			}
 		}

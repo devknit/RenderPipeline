@@ -46,7 +46,6 @@ namespace RenderPipeline.DepthOfField
 		{
 			sharedSettings?.properties.ClearCache();
 			properties.ClearCache();
-			
 		}
 		public override bool UpdateProperties( RenderPipeline pipeline, bool clearCache)
 		{

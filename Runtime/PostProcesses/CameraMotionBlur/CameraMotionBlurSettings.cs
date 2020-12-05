@@ -19,6 +19,10 @@ namespace RenderPipeline
 			get{ return enabled; }
 			set{ enabled = value; }
 		}
+		public PostProcessEvent Phase
+		{
+			get{ return phase; }
+		}
 		public float Distance
 		{
 			get{ return distance; }
@@ -137,6 +141,8 @@ namespace RenderPipeline
 		
 		[SerializeField]
 		bool enabled = true;
+		[SerializeField]
+		PostProcessEvent phase = PostProcessEvent.BeforeImageEffects;
 		[SerializeField, Range( 0, 1)]
 		float distance = 0.0f;
 		[SerializeField, Range( 1, 5)]

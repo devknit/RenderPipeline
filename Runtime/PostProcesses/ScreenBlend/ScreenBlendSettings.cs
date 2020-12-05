@@ -20,6 +20,10 @@ namespace RenderPipeline
 			get{ return enabled; }
 			set{ enabled = value; }
 		}
+		public PostProcessEvent Phase
+		{
+			get{ return phase; }
+		}
 		public bool FlipHorizontal
 		{
 			get{ return flipHorizontal; }
@@ -105,6 +109,8 @@ namespace RenderPipeline
 		
 		[SerializeField]
 		bool enabled = true;
+		[SerializeField]
+		PostProcessEvent phase = PostProcessEvent.BeforeImageEffects;
 		[SerializeField]
 		bool flipHorizontal;
 		[SerializeField]

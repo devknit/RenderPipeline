@@ -5,7 +5,7 @@ using UnityEngine.Rendering;
 namespace RenderPipeline
 {
 	[DisallowMultipleComponent]
-	public sealed partial class Mosaic : InternalProcess
+	public sealed partial class Mosaic : PostProcess
 	{
 		public MosaicProperties Properties
 		{

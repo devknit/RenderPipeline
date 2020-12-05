@@ -7,9 +7,13 @@ namespace RenderPipeline
 	[DisallowMultipleComponent]
 	public sealed partial class Noise : UbarProperty
 	{
+		internal override bool Enabled
+		{
+			get{ return ((sharedSettings != null)? sharedSettings.properties : properties).Enabled; }
+		}
 		public NoiseProperties Properties
 		{
-			get{ return (sharedSettings != null)? sharedSettings.properties : properties; }
+			get{ return (sharedSettings != null && useSharedProperties != false)? sharedSettings.properties : properties; }
 		}
 		public override void Create()
 		{
@@ -106,6 +110,8 @@ namespace RenderPipeline
         NoiseSettings sharedSettings = default;
         [SerializeField]
         NoiseProperties properties = default;
+		[SerializeField]
+		bool useSharedProperties = true;
         [SerializeField]
 		Shader shader = default;
 		[System.NonSerialized]
