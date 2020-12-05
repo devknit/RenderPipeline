@@ -90,6 +90,7 @@ namespace RenderPipeline
 			{
 				if( cacheIntensity != intensity)
 				{
+					intensity = Mathf.Clamp( intensity, 0.0f, 0.9999f);
 					material.SetFloat( kShaderPropertyIntensity, intensity);
 					cacheIntensity = intensity;
 				}

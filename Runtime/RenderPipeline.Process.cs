@@ -19,9 +19,9 @@ namespace RenderPipeline
 		{
 			get{ return FindPostProcess<Bloom>(); }
 		}
-		public DepthOfField DepthOfField
+		public DepthOfField.DepthOfField DepthOfField
 		{
-			get{ return FindPostProcess<DepthOfField>(); }
+			get{ return FindPostProcess<DepthOfField.DepthOfField>(); }
 		}
 		public CameraMotionBlur CameraMotionBlur
 		{

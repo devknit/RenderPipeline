@@ -2,7 +2,7 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace RenderPipeline.Editor
+namespace RenderPipeline.DepthOfField.Editor
 {
 	[CanEditMultipleObjects]
 	[CustomEditor( typeof( DepthOfField))]
@@ -10,60 +10,82 @@ namespace RenderPipeline.Editor
 	{
 		public override void OnInspectorGUI()
 		{
-			serializedObject.Update();
+			SerializedProperty sharedSettings = serializedObject.FindProperty( "sharedSettings");
+			SerializedProperty properties = serializedObject.FindProperty( "properties");
+			SerializedProperty useSharedProperties = serializedObject.FindProperty( "useSharedProperties");
+			EditorGUI.BeginChangeCheck();
 			
-			SerializedProperty enabled = serializedObject.FindProperty( "m_Enabled");
-			if( enabled != null)
+			if( sharedSettings == null || properties == null)
 			{
-				EditorGUILayout.PropertyField( enabled, false);
+				base.OnInspectorGUI();
 			}
-			SerializedProperty iterator = serializedObject.GetIterator();
-			int currentDepth = 0;
-			bool continueFocalLength = false;
-			
-			while( iterator.NextVisible( true) != false)
+			else
 			{
-				if( iterator.editable == false
-				||	currentDepth < iterator.depth)
+				serializedObject.Update();
+				
+				EditorGUILayout.PropertyField( sharedSettings, true);
+				
+				if( sharedSettings.objectReferenceValue != null)
 				{
-					continue;
-				}
-				if( iterator.propertyType == SerializedPropertyType.ObjectReference)
-				{
-					if( iterator.name == "m_Script" && iterator.type == "PPtr<MonoScript>")
+					EditorGUILayout.PropertyField( useSharedProperties, true);
+					
+					var sharedSettingsObject = new SerializedObject( sharedSettings.objectReferenceValue);
+					sharedSettingsObject.Update();
+					
+					Color defaultBackgroundColor = GUI.backgroundColor;
+					GUI.backgroundColor = new Color32( 194, 230, 237, 255);
 					{
-						continue;
-					}
-					else if( iterator.objectReferenceValue is Shader)
-					{
-						continue;
-					}
-					else if( iterator.name == "focalTransform")
-					{
-						if( iterator.objectReferenceValue is Transform)
+						OnPropertiesGUI( sharedSettingsObject.FindProperty( "properties"), (propertyName) =>
 						{
-							continueFocalLength = true;
+							return propertyName.Equals( "enabled") != false;
+						});
+						if( useSharedProperties.boolValue != false)
+						{
+							OnPropertiesGUI( sharedSettingsObject.FindProperty( "properties"), (propertyName) =>
+							{
+								return propertyName.Equals( "enabled") == false;
+							});
+						}
+					}
+					GUI.backgroundColor = defaultBackgroundColor;
+					sharedSettingsObject.ApplyModifiedProperties();
+					
+					if( useSharedProperties.boolValue == false)
+					{
+						OnPropertiesGUI( properties, (propertyName) =>
+						{
+							return propertyName.Equals( "enabled") == false;
+						});
+					}
+				}
+				else
+				{
+					OnPropertiesGUI( properties);
+				}
+				serializedObject.ApplyModifiedProperties();
+			}
+			if( EditorGUI.EndChangeCheck() != false)
+			{
+				(target as PostProcess).ClearPropertiesCache();
+			}
+		}
+		void OnPropertiesGUI( SerializedProperty properties, System.Func<string, bool> onVerify=null)
+		{
+			if( properties != null)
+			{
+				int depth = properties.depth + 1;
+				
+				while( properties.NextVisible( true) != false)
+				{
+					if( (onVerify?.Invoke( properties.name) ?? true) != false)
+					{
+						if( properties.depth == depth)
+						{
+							EditorGUILayout.PropertyField( properties, true);
 						}
 					}
 				}
-				if( iterator.name == "focalLength" && continueFocalLength != false)
-				{
-					continue;
-				}
-				
-				EditorGUI.indentLevel = iterator.depth;
-				EditorGUILayout.PropertyField( iterator, false);
-				
-				if( iterator.isExpanded != false)
-	            {
-	                currentDepth = iterator.depth + 1;
-	            }
-	            else
-	            {
-	                currentDepth = iterator.depth;
-	            }
 			}
-			serializedObject.ApplyModifiedProperties();
 		}
 	}
 }
