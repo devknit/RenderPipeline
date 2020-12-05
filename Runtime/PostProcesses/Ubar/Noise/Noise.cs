@@ -4,7 +4,7 @@ using UnityEngine.Rendering;
 
 namespace RenderPipeline
 {
-	[System.Serializable]
+	[DisallowMultipleComponent]
 	public sealed partial class Noise : UbarProperty
 	{
 		public NoiseProperties Properties

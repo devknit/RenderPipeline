@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace RenderPipeline
 {
-	[System.Serializable]
+	[DisallowMultipleComponent]
 	public sealed partial class DepthOfField : PostProcess
 	{
 		public enum BlurQuality : int

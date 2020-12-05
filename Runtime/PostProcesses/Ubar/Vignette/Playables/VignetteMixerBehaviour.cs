@@ -35,24 +35,30 @@ namespace RenderPipeline
 					
 					for( int i0 = 0; i0 < inputCount; ++i0)
 					{
-						var playableInput = (ScriptPlayable<VignetteBehaviour>)playable.GetInput( i0);
-						VignetteBehaviour input = playableInput.GetBehaviour();
 						float inputWeight = playable.GetInputWeight( i0);
 						
-						blendedColor += input.color * inputWeight;
-						blendedCenter += input.center * inputWeight;
-						blendedIntensity += input.intensity * inputWeight;
-						blendedSmoothness += input.smoothness * inputWeight;
-						blendedRoundness += input.roundness * inputWeight;
-						totalWeight += inputWeight;
+						if( inputWeight > 0)
+						{
+							var playableInput = (ScriptPlayable<VignetteBehaviour>)playable.GetInput( i0);
+							VignetteBehaviour input = playableInput.GetBehaviour();
+							
+							blendedColor += input.color * inputWeight;
+							blendedCenter += input.center * inputWeight;
+							blendedIntensity += input.intensity * inputWeight;
+							blendedSmoothness += input.smoothness * inputWeight;
+							blendedRoundness += input.roundness * inputWeight;
+							totalWeight += inputWeight;
+						}
 					}
 					float defaultWeight = 1.0f - totalWeight;
-					blendedColor += defaultColor * defaultWeight;
-					blendedCenter += defaultCenter * defaultWeight;
-					blendedIntensity += defaultIntensity * defaultWeight;
-					blendedSmoothness += defaultSmoothness * defaultWeight;
-					blendedRoundness += defaultRoundness * defaultWeight;
-					
+					if( defaultWeight > 0)
+					{
+						blendedColor += defaultColor * defaultWeight;
+						blendedCenter += defaultCenter * defaultWeight;
+						blendedIntensity += defaultIntensity * defaultWeight;
+						blendedSmoothness += defaultSmoothness * defaultWeight;
+						blendedRoundness += defaultRoundness * defaultWeight;
+					}
 					vignetteComponent.Properties.Color = blendedColor;
 					vignetteComponent.Properties.Center = blendedCenter;
 					vignetteComponent.Properties.Intensity = blendedIntensity;

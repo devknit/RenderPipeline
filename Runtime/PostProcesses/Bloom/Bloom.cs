@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace RenderPipeline
 {
-	[System.Serializable]
+	[DisallowMultipleComponent]
 	public sealed partial class Bloom : PostProcess
 	{
 		public BloomProperties Properties

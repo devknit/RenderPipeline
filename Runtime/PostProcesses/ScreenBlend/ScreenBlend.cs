@@ -4,7 +4,7 @@ using UnityEngine.Rendering;
 
 namespace RenderPipeline
 {
-	[System.Serializable]
+	[DisallowMultipleComponent]
 	public sealed partial class ScreenBlend : PostProcess
 	{
 		public ScreenBlendProperties Properties
