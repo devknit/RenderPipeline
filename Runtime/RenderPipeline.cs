@@ -565,7 +565,6 @@ namespace RenderPipeline
 		float resolutionScale = 1.0f;
 		[SerializeField]
 		bool overrideCameraDepthTexture = true;
-		
 		[SerializeField]
 		GameObject postProcessesTarget = default;
 		
@@ -575,7 +574,6 @@ namespace RenderPipeline
 		RenderTexture depthBuffer;
 		bool isRebuildCommandBuffers;
 		
-	//	IPostProcess[] postProcesses = new IPostProcess[ 2];
 		IPostProcess[] caches = new IPostProcess[ 2];
 		CommandBuffer commandBufferDepthTexture;
 		CommandBuffer commandBufferOpaqueProcesses;
