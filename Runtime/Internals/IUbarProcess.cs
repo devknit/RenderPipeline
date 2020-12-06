@@ -12,6 +12,7 @@ namespace RenderPipeline
 		}
 		bool HasIndependent( ref bool rebuild);
 		bool Independent();
+		bool PreProcess();
 		IUbarProperties GetProperties();
 	}
 }

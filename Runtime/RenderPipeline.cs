@@ -156,7 +156,8 @@ namespace RenderPipeline
 				{
 					if( process is IUbarProcess ubarProcess)
 					{
-						if( ubarProcess.HasIndependent( ref isRebuildCommandBuffers) == false)
+						if( ubarProcess.PreProcess() == false
+						&&	ubarProcess.HasIndependent( ref isRebuildCommandBuffers) == false)
 						{
 							continue;
 						}

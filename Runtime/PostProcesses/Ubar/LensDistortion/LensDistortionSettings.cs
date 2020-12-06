@@ -62,6 +62,10 @@ namespace RenderPipeline
 		}
 		public bool UpdateProperties( Material material, bool forcedDisable)
 		{
+			return false;
+		}
+		public bool UpdateUbarProperties( Material material, bool forcedDisable)
+		{
 			bool rebuild = false;
 			
 			if( cacheEnabled != enabled)
@@ -75,8 +79,8 @@ namespace RenderPipeline
 				||	cacheScale != scale)
 				{
 					float value = 1.6f * Mathf.Max( Mathf.Abs( amount), 1.0f);
-		            float theta = Mathf.Deg2Rad * Mathf.Min( 160f, value);
-		            float sigma = 2.0f * Mathf.Tan( theta * 0.5f);
+					float theta = Mathf.Deg2Rad * Mathf.Min( 160f, value);
+					float sigma = 2.0f * Mathf.Tan( theta * 0.5f);
 					
 					material.SetVector( kShaderPropertyAmount, 
 						new Vector4( (amount >= 0.0f)? theta : 1.0f / theta, sigma, 1.0f / scale, amount));

@@ -142,6 +142,10 @@ namespace RenderPipeline
 			}
 			return rebuild;
 		}
+		public bool UpdateUbarProperties( Material material, bool forcedDisable)
+		{
+			return UpdateProperties( material, forcedDisable);
+		}
 		internal long GetDepthStencilHashCode()
 		{
 			return DepthStencil.GetHashCode( stencilReference, stencilReadMask, 255, stencilCompare);

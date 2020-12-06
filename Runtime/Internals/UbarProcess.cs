@@ -76,6 +76,10 @@ namespace RenderPipeline
 		{
 			return DepthStencil.HasIndependent( GetDepthStencilHashCode());
 		}
+		public virtual bool PreProcess()
+		{
+			return false;
+		}
 		
 		[SerializeField]
         protected TSettings sharedSettings = default;

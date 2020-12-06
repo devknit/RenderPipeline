@@ -38,6 +38,10 @@ namespace RenderPipeline
 		}
 		public bool UpdateProperties( Material material, bool forcedDisable)
 		{
+			return false;
+		}
+		public bool UpdateUbarProperties( Material material, bool forcedDisable)
+		{
 			bool rebuild = false;
 			
 			if( cacheEnabled != enabled)

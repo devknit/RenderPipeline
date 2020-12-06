@@ -42,6 +42,10 @@ namespace RenderPipeline
 		}
 		public bool UpdateProperties( Material material, bool forcedDisable)
 		{
+			return false;
+		}
+		public bool UpdateUbarProperties( Material material, bool forcedDisable)
+		{
 			bool rebuild = false;
 			
 			if( cacheEnabled != enabled)
@@ -63,19 +67,19 @@ namespace RenderPipeline
 						{
 							internalSpectralLut = new Texture2D( 3, 1, TextureFormat.RGB24, false)
 							{
-			                    name = "ChromaticAberrationSpectralLut",
-			                    filterMode = FilterMode.Bilinear,
-			                    wrapMode = TextureWrapMode.Clamp,
-			                    anisoLevel = 0,
-			                    hideFlags = HideFlags.DontSave
-			                };
-			                internalSpectralLut.SetPixels(new []
-			                {
-			                    new Color( 1.0f, 0.0f, 0.0f),
-			                    new Color( 0.0f, 1.0f, 0.0f),
-			                    new Color( 0.0f, 0.0f, 1.0f)
-			                });
-			                internalSpectralLut.Apply();
+								name = "ChromaticAberrationSpectralLut",
+								filterMode = FilterMode.Bilinear,
+								wrapMode = TextureWrapMode.Clamp,
+								anisoLevel = 0,
+								hideFlags = HideFlags.DontSave
+							};
+							internalSpectralLut.SetPixels(new []
+							{
+								new Color( 1.0f, 0.0f, 0.0f),
+								new Color( 0.0f, 1.0f, 0.0f),
+								new Color( 0.0f, 0.0f, 1.0f)
+							});
+							internalSpectralLut.Apply();
 						}
 						material.SetTexture( kShaderPropertySpectralLut, internalSpectralLut);
 					}
@@ -145,6 +149,6 @@ namespace RenderPipeline
 		[System.NonSerialized]
 		float? cacheIntensity;
 		[System.NonSerialized]
-        internal Texture2D internalSpectralLut;
+		internal Texture2D internalSpectralLut;
 	}
 }

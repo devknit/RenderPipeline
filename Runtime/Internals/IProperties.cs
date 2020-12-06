@@ -23,5 +23,6 @@ namespace RenderPipeline
 	public interface IUbarProperties : IProperties
 	{
 		bool UpdateProperties( Material material, bool forcedDisable);
+		bool UpdateUbarProperties( Material material, bool forcedDisable);
 	}
 }

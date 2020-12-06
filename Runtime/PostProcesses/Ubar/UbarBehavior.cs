@@ -77,7 +77,7 @@ namespace RenderPipeline
 			}
 			foreach( var property in properties)
 			{
-				if( property.GetProperties().UpdateProperties( material, property.Independent()) != false)
+				if( property.GetProperties().UpdateUbarProperties( material, property.Independent()) != false)
 				{
 					rebuild = true;
 				}
@@ -99,6 +99,13 @@ namespace RenderPipeline
 		public void BuildCommandBuffer( RenderPipeline pipeline,
 			CommandBuffer commandBuffer, TargetContext context, IPostProcess nextProcess)
 		{
+			foreach( var property in properties)
+			{
+				if( property.PreProcess() != false)
+				{
+					property.BuildCommandBuffer( pipeline, commandBuffer, context, this);
+				}
+			}
 			if( context.CompareSource0ToTarget0() != false)
 			{
 				int temporary = pipeline.GetTemporaryRT();
@@ -131,7 +138,7 @@ namespace RenderPipeline
 		{
 			foreach( var property in properties)
 			{
-				property.GetProperties().UpdateProperties( material, true);
+				property.GetProperties().UpdateUbarProperties( material, true);
 			}
 			properties.Clear();
 		}
