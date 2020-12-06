@@ -19,10 +19,12 @@
 			#pragma multi_compile_local _ _CHROMATICABERRATION_FASTMODE
 			#pragma multi_compile_local _ _NOISE
 			#pragma multi_compile_local _ _VIGNETTE
+			#pragma multi_compile_local _ _COLORFILTER
 			#pragma multi_compile_local _ _COLOR_GRADING_LDR_2D
 			#include "../Ubar/LensDistortion/Shaders/LensDistortion.cginc"
 			#include "../Ubar/Vignette/Shaders/Vignette.cginc"
 			#include "../Ubar/Noise/Shaders/Noise.cginc"
+			#include "../Ubar/ColorFilter/Shaders/ColorFilter.cginc"
 			#include "../Ubar/ColorGrading/Shaders/Colors.cginc"
 			
 			UNITY_DECLARE_SCREENSPACE_TEXTURE( _MainTex);
@@ -105,6 +107,9 @@
 			#endif
 			#if defined(_VIGNETTE)
 				color = Vignette( color, uv);
+			#endif
+			#if defined(_COLORFILTER)
+				color = ColorFilter( color);
 			#endif
 			#if defined(_COLOR_GRADING_LDR_2D)
 				color.rgb = LinearToSRGB( saturate( color.rgb));

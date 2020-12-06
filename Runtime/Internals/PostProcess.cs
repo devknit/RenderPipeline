@@ -9,6 +9,7 @@ namespace RenderPipeline
 		public abstract bool Enabled
 		{
 			get;
+			set;
 		}
 		public abstract void Create();
 		public abstract void Dispose();

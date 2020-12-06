@@ -11,6 +11,7 @@ namespace RenderPipeline
 		public override bool Enabled
 		{
 			get{ return ((sharedSettings != null)? sharedSettings.properties : properties).Enabled; }
+			set{ ((sharedSettings != null)? sharedSettings.properties : properties).Enabled = value; }
 		}
 		public TProperties Properties
 		{
