@@ -5,51 +5,8 @@ using UnityEngine.Rendering;
 namespace RenderPipeline
 {
 	[DisallowMultipleComponent]
-	public sealed partial class Noise : UbarProperty
+	public sealed partial class Noise : UbarPropertyRx<NoiseSettings, NoiseProperties>
 	{
-		internal override bool Enabled
-		{
-			get{ return ((sharedSettings != null)? sharedSettings.properties : properties).Enabled; }
-		}
-		public NoiseProperties Properties
-		{
-			get{ return (sharedSettings != null && useSharedProperties != false)? sharedSettings.properties : properties; }
-		}
-		public override void Create()
-		{
-			if( shader != null && material == null)
-			{
-				material = new Material( shader);
-			}
-		}
-		public override void Dispose()
-		{
-			if( material != null)
-			{
-				ObjectUtility.Release( material);
-				material = null;
-			}
-		}
-		public override bool RestoreMaterials()
-		{
-			bool rebuild = false;
-			
-			if( shader != null && material == null)
-			{
-				material = new Material( shader);
-				rebuild = true;
-			}
-			return rebuild;
-		}
-		public override bool Valid()
-		{
-			return Properties.Enabled != false && material != null;
-		}
-		public override void ClearPropertiesCache()
-		{
-			base.ClearPropertiesCache();
-			Properties.ClearCache();
-		}
 		public override bool UpdateProperties( RenderPipeline pipeline, bool clearCache)
 		{
 			if( clearCache != false)
@@ -101,20 +58,5 @@ namespace RenderPipeline
 		{
 			return Properties.GetDepthStencilHashCode();
 		}
-		internal override IUbarProperties GetProperties()
-		{
-			return Properties;
-		}
-		
-		[SerializeField]
-        NoiseSettings sharedSettings = default;
-        [SerializeField]
-        NoiseProperties properties = default;
-		[SerializeField]
-		bool useSharedProperties = true;
-        [SerializeField]
-		Shader shader = default;
-		[System.NonSerialized]
-		Material material;
 	}
 }

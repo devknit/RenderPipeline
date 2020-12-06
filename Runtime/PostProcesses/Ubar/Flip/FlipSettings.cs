@@ -5,10 +5,8 @@ using UnityEngine.Rendering;
 namespace RenderPipeline
 {
 	[CreateAssetMenu( menuName="RenderPipeline/Flip", fileName="PostProcessFlip", order=1200)]
-	public sealed class FlipSettings : Settings
+	public sealed class FlipSettings : Settings<FlipProperties>
 	{
-		[SerializeField]
-		public FlipProperties properties = default;
 	}
 	[System.Serializable]
 	public sealed class FlipProperties : IUbarProperties

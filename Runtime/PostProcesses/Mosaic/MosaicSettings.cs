@@ -6,13 +6,11 @@ using System.Collections.Generic;
 namespace RenderPipeline
 {
 	[CreateAssetMenu( menuName="RenderPipeline/Mosaic", fileName="PostProcessMosaic", order=1200)]
-	public sealed class MosaicSettings : Settings
+	public sealed class MosaicSettings : Settings<MosaicProperties>
 	{
-		[SerializeField]
-		public MosaicProperties properties = default;
 	}
 	[System.Serializable]
-	public sealed class MosaicProperties : Properties
+	public sealed class MosaicProperties : IGenericProperties
 	{
 		public bool Enabled
 		{
@@ -53,7 +51,7 @@ namespace RenderPipeline
 			cacheStencilReadMask = null;
 			cacheStencilCompare = null;
 		}
-		internal bool CheckParameterChange( RenderPipeline pipeline, Material material)
+		public bool UpdateProperties( RenderPipeline pipeline, Material material)
 		{
 			bool rebuild = false;
 			

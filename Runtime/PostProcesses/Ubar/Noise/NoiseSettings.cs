@@ -5,10 +5,8 @@ using UnityEngine.Rendering;
 namespace RenderPipeline
 {
 	[CreateAssetMenu( menuName="RenderPipeline/Noise", fileName="PostProcessNoise", order=1200)]
-	public sealed class NoiseSettings : Settings
+	public sealed class NoiseSettings : Settings<NoiseProperties>
 	{
-		[SerializeField]
-		public NoiseProperties properties = default;
 	}
 	[System.Serializable]
 	public sealed class NoiseProperties : IUbarProperties

@@ -6,13 +6,11 @@ using System.Collections.Generic;
 namespace RenderPipeline
 {
 	[CreateAssetMenu( menuName="RenderPipeline/SSAO", fileName="PostProcessSSAO", order=1200)]
-	public sealed class SSAOSettings : Settings
+	public sealed class SSAOSettings : Settings<SSAOProperties>
 	{
-		[SerializeField]
-		public SSAOProperties properties = default;
 	}
 	[System.Serializable]
-	public sealed class SSAOProperties : Properties
+	public sealed class SSAOProperties : IGenericProperties
 	{
 		public bool Enabled
 		{
@@ -62,7 +60,7 @@ namespace RenderPipeline
 			cacheRadius = null;
 			cacheArea = null;
 		}
-		internal bool CheckParameterChange( RenderPipeline pipeline, Material material, System.Action<int, int> callback)
+		public bool UpdateProperties( RenderPipeline pipeline, Material material, System.Action<int, int> callback)
 		{
 			bool rebuild = false;
 			

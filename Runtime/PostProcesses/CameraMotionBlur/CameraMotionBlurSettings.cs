@@ -6,13 +6,11 @@ using System.Collections.Generic;
 namespace RenderPipeline
 {
 	[CreateAssetMenu( menuName="RenderPipeline/CameraMotionBlur", fileName="PostProcessCameraMotionBlur", order=1200)]
-	public sealed class CameraMotionBlurSettings : Settings
+	public sealed class CameraMotionBlurSettings : Settings<CameraMotionBlurProperties>
 	{
-		[SerializeField]
-		public CameraMotionBlurProperties properties = default;
 	}
 	[System.Serializable]
-	public sealed class CameraMotionBlurProperties : Properties
+	public sealed class CameraMotionBlurProperties : IGenericProperties
 	{
 		public bool Enabled
 		{
@@ -46,7 +44,7 @@ namespace RenderPipeline
 			cacheSampleQuality = null;
 			cacheViewProjection = null;
 		}
-		internal bool CheckParameterChange( RenderPipeline pipeline, Material material, System.Action<int, int> callback)
+		public bool UpdateProperties( RenderPipeline pipeline, Material material, System.Action<int, int> callback)
 		{
 			bool rebuild = false;
 			

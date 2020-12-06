@@ -4,8 +4,10 @@ using UnityEngine.Rendering;
 
 namespace RenderPipeline
 {
-	public abstract class Settings : ScriptableObject
+	public abstract class Settings<T> : ScriptableObject where T : Properties
 	{
+		[SerializeField]
+		public T properties = default;
 	}
 	public interface Properties
 	{
@@ -16,14 +18,15 @@ namespace RenderPipeline
 		}
 		void ClearCache();
 	}
-	internal interface IUbarProperties
+	public interface IGenericProperties : Properties
 	{
-		bool Enabled
+		PostProcessEvent Phase
 		{
 			get;
-			set;
 		}
-		void ClearCache();
+	}
+	public interface IUbarProperties : Properties
+	{
 		bool UpdateProperties( Material material, bool forcedDisable);
 	}
 }

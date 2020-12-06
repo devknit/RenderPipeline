@@ -7,18 +7,12 @@ using System.Collections.Generic;
 namespace RenderPipeline
 {
 	[DisallowMultipleComponent]
-	public sealed partial class Bloom : PostProcess
+	public sealed partial class Bloom : GenericProcess<BloomSettings, BloomProperties>
 	{
-		public BloomProperties Properties
-		{
-			get{ return (sharedSettings != null && useSharedProperties != false)? sharedSettings.properties : properties; }
-		}
 		public override void Create()
 		{
-			if( shader != null && material == null)
-			{
-				material = new Material( shader);
-			}
+			base.Create();
+			
 			brightnessExtractionMesh = new Mesh();
 			brightnessExtractionMesh.MarkDynamic();
 			blurHorizontalMesh = new Mesh();
@@ -30,11 +24,8 @@ namespace RenderPipeline
 		}
 		public override void Dispose()
 		{
-			if( material != null)
-			{
-				ObjectUtility.Release( material);
-				material = null;
-			}
+			base.Dispose();
+			
 			if( brightnessExtractionMesh != null)
 			{
 				ObjectUtility.Release( brightnessExtractionMesh);
@@ -56,34 +47,11 @@ namespace RenderPipeline
 				combineMesh = null;
 			}
 		}
-		public override bool RestoreMaterials()
-		{
-			bool rebuild = false;
-			
-			if( shader != null && material == null)
-			{
-				material = new Material( shader);
-				rebuild = true;
-			}
-			return rebuild;
-		}
-		public override bool Valid()
-		{
-			if( ((sharedSettings != null)? sharedSettings.properties : properties).Enabled != false && material != null)
-			{
-				return Properties.Verify();
-			}
-			return false;
-		}
 		public override void ClearPropertiesCache()
 		{
-			sharedSettings?.properties.ClearCache();
-			properties.ClearCache();
+			base.ClearPropertiesCache();
 			cacheCombinePassCount = null;
 			cacheBloomRectCount = null;
-		#if UNITY_EDITOR
-			cacheSharedSettings = null;
-		#endif
 		}
 		public override bool UpdateProperties( RenderPipeline pipeline, bool clearCache)
 		{
@@ -93,14 +61,7 @@ namespace RenderPipeline
 			{
 				ClearPropertiesCache();
 			}
-		#if UNITY_EDITOR
-			if( cacheSharedSettings != sharedSettings)
-			{
-				sharedSettings.properties.ClearCache();
-				cacheSharedSettings = sharedSettings;
-			}
-		#endif
-			updateFlags |= Properties.CheckParameterChange( pipeline);
+			updateFlags |= Properties.UpdateProperties( pipeline);
 			
 			if( (updateFlags & BloomProperties.kVerifyDescriptors) != 0)
 			{
@@ -207,7 +168,7 @@ namespace RenderPipeline
 			}
 			commandBuffer.SetGlobalTexture( ShaderProperty.MainTex, context.source0);
 			
-			if( ((nextProcess as InternalProcess)?.DuplicateMRT() ?? false) != false)
+			if( ((nextProcess as PostProcess)?.DuplicateMRT() ?? false) != false)
 			{
 				int temporary = pipeline.GetTemporaryRT();
 				context.SetTarget1( temporary);
@@ -446,17 +407,6 @@ namespace RenderPipeline
 		static readonly int kShaderPropertyBloomWeightCombined = Shader.PropertyToID( "_BloomWeightCombined");
 		static readonly int kShaderPropertyBloomUvTransformCombined = Shader.PropertyToID( "_BloomUvTransformCombined");
 		
-		[SerializeField]
-		BloomSettings sharedSettings = default;
-		[SerializeField]
-		BloomProperties properties = default;
-		[SerializeField]
-		bool useSharedProperties = true;
-		[SerializeField]
-		Shader shader = default;
-		
-		Material material;
-		
 		Mesh brightnessExtractionMesh;
 		Mesh blurHorizontalMesh;
 		Mesh blurVerticalMesh;
@@ -480,9 +430,5 @@ namespace RenderPipeline
 		int bloomRectCount;
 		int? cacheCombinePassCount;
 		int? cacheBloomRectCount;
-		
-	#if UNITY_EDITOR
-		BloomSettings cacheSharedSettings;
-	#endif
 	}
 }

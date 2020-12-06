@@ -5,7 +5,7 @@ using UnityEngine.Rendering;
 namespace RenderPipeline
 {
 	[DisallowMultipleComponent]
-	public sealed partial class CameraMotionBlur : PostProcess
+	public sealed partial class CameraMotionBlur : GenericProcess<CameraMotionBlurSettings, CameraMotionBlurProperties>
 	{
 		public enum Quality
 		{
@@ -13,52 +13,13 @@ namespace RenderPipeline
 			kMiddle,
 			kHigh
 		}
-		public CameraMotionBlurProperties Properties
-		{
-			get{ return (sharedSettings != null && useSharedProperties != false)? sharedSettings.properties : properties; }
-		}
-		public override void Create()
-		{
-			if( shader != null && material == null)
-			{
-				material = new Material( shader);
-			}
-		}
-		public override void Dispose()
-		{
-			if( material != null)
-			{
-				ObjectUtility.Release( material);
-				material = null;
-			}
-		}
-		public override bool RestoreMaterials()
-		{
-			bool rebuild = false;
-			
-			if( shader != null && material == null)
-			{
-				material = new Material( shader);
-				rebuild = true;
-			}
-			return rebuild;
-		}
-		public override bool Valid()
-		{
-			return ((sharedSettings != null)? sharedSettings.properties : properties).Enabled != false && material != null;
-		}
-		public override void ClearPropertiesCache()
-		{
-			sharedSettings?.properties.ClearCache();
-			properties.ClearCache();
-		}
 		public override bool UpdateProperties( RenderPipeline pipeline, bool clearCache)
 		{
 			if( clearCache != false)
 			{
 				ClearPropertiesCache();
 			}
-			return Properties.CheckParameterChange( pipeline, material, (width, height) => 
+			return Properties.UpdateProperties( pipeline, material, (width, height) => 
 			{
 				descriptor = new RenderTextureDescriptor( width, height, TextureUtil.DefaultHDR);
 				descriptor.useMipMap = false;
@@ -125,16 +86,6 @@ namespace RenderPipeline
 		static readonly int kShaderTargetBlur = Shader.PropertyToID( "_CameraMotionBlurTarget");
 		static readonly int kShaderPropertyBlurTex = Shader.PropertyToID( "_BlurTex");
 		
-		[SerializeField]
-		CameraMotionBlurSettings sharedSettings = default;
-		[SerializeField]
-		CameraMotionBlurProperties properties = default;
-		[SerializeField]
-		bool useSharedProperties = true;
-		[SerializeField]
-		Shader shader = default;
-		[System.NonSerialized]
-		Material material;
 		[System.NonSerialized]
 		RenderTextureDescriptor descriptor;
 	}

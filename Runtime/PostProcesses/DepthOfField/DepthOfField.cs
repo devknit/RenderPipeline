@@ -6,47 +6,8 @@ using System.Collections.Generic;
 namespace RenderPipeline.DepthOfField
 {
 	[DisallowMultipleComponent]
-	public sealed partial class DepthOfField : PostProcess
+	public sealed partial class DepthOfField : GenericProcess<DepthOfFieldSettings, DepthOfFieldProperties>
 	{
-		public DepthOfFieldProperties Properties
-		{
-			get{ return (sharedSettings != null && useSharedProperties != false)? sharedSettings.properties : properties; }
-		}
-		public override void Create()
-		{
-			if( shader != null && material == null)
-			{
-				material = new Material( shader);
-			}
-		}
-		public override void Dispose()
-		{
-			if( material != null)
-			{
-				ObjectUtility.Release( material);
-				material = null;
-			}
-		}
-		public override bool RestoreMaterials()
-		{
-			bool rebuild = false;
-			
-			if( shader != null && material == null)
-			{
-				material = new Material( shader);
-				rebuild = true;
-			}
-			return rebuild;
-		}
-		public override bool Valid()
-		{
-			return ((sharedSettings != null)? sharedSettings.properties : properties).Enabled != false && material != null;
-		}
-		public override void ClearPropertiesCache()
-		{
-			sharedSettings?.properties.ClearCache();
-			properties.ClearCache();
-		}
 		public override bool UpdateProperties( RenderPipeline pipeline, bool clearCache)
 		{
 			bool rebuild = false;
@@ -55,7 +16,7 @@ namespace RenderPipeline.DepthOfField
 			{
 				ClearPropertiesCache();
 			}
-			return Properties.CheckParameterChange( pipeline, material);
+			return Properties.UpdateProperties( pipeline, material);
 		}
 		public override PostProcessEvent GetPostProcessEvent()
 		{
@@ -184,16 +145,5 @@ namespace RenderPipeline.DepthOfField
 		static readonly int kShaderPropertyLowBlurTarget = Shader.PropertyToID( "_LowBlurTarget");
 		static readonly int kShaderPropertyLowDiscTarget = Shader.PropertyToID( "_LowDiscTarget");
 		static readonly int kShaderPropertyLowRez = Shader.PropertyToID( "_LowRez");
-		
-		[SerializeField]
-		DepthOfFieldSettings sharedSettings = default;
-		[SerializeField]
-		DepthOfFieldProperties properties = default;
-		[SerializeField]
-		bool useSharedProperties = true;
-		[SerializeField]
-        Shader shader = default;
-		[System.NonSerialized]
-		Material material;
 	}
 }

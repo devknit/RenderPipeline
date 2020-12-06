@@ -6,33 +6,11 @@ using System.Collections.Generic;
 namespace RenderPipeline
 {
 	[CreateAssetMenu( menuName="RenderPipeline/Bloom", fileName="PostProcessBloom", order=1200)]
-	public sealed class BloomSettings : Settings
+	public sealed class BloomSettings : Settings<BloomProperties>
 	{
-		public static BloomSettings Instance
-		{
-			get;
-			private set;
-		}
-		void OnEnable()
-		{
-			if( Instance == null)
-			{
-				Instance = this;
-			}
-		}
-		void OnDisable()
-		{
-			if( Instance == this)
-			{
-				Instance = null;
-			}
-		}
-		
-		[SerializeField]
-		public BloomProperties properties = default;
 	}
 	[System.Serializable]
-	public sealed class BloomProperties : Properties
+	public sealed class BloomProperties : IGenericProperties
 	{
 		public bool Enabled
 		{
@@ -103,7 +81,7 @@ namespace RenderPipeline
 			cacheScreenWidth = null;
 			cacheScreenHeight = null;
 		}
-		internal int CheckParameterChange( RenderPipeline pipeline)
+		public int UpdateProperties( RenderPipeline pipeline)
 		{
 			int updateFlags = 0;
 			

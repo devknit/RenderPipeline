@@ -5,54 +5,15 @@ using UnityEngine.Rendering;
 namespace RenderPipeline
 {
 	[DisallowMultipleComponent]
-	public sealed partial class SSAO : PostProcess
+	public sealed partial class SSAO : GenericProcess<SSAOSettings, SSAOProperties>
 	{
-		public SSAOProperties Properties
-		{
-			get{ return (sharedSettings != null && useSharedProperties != false)? sharedSettings.properties : properties; }
-		}
-		public override void Create()
-		{
-			if( shader != null && material == null)
-			{
-				material = new Material( shader);
-			}
-		}
-		public override void Dispose()
-		{
-			if( material != null)
-			{
-				ObjectUtility.Release( material);
-				material = null;
-			}
-		}
-		public override bool RestoreMaterials()
-		{
-			bool rebuild = false;
-			
-			if( shader != null && material == null)
-			{
-				material = new Material( shader);
-				rebuild = true;
-			}
-			return rebuild;
-		}
-		public override bool Valid()
-		{
-			return ((sharedSettings != null)? sharedSettings.properties : properties).Enabled != false && material != null;
-		}
-		public override void ClearPropertiesCache()
-		{
-			sharedSettings?.properties.ClearCache();
-			properties.ClearCache();
-		}
 		public override bool UpdateProperties( RenderPipeline pipeline, bool clearCache)
 		{
 			if( clearCache != false)
 			{
 				ClearPropertiesCache();
 			}
-			return Properties.CheckParameterChange( pipeline, material, (width, height) => 
+			return Properties.UpdateProperties( pipeline, material, (width, height) => 
 			{
 				shadeDescriptor = new RenderTextureDescriptor( width, height, TextureUtil.DefaultHDR);
 				shadeDescriptor.useMipMap = false;
@@ -181,19 +142,8 @@ namespace RenderPipeline
 		static readonly int kShaderTargetShade = Shader.PropertyToID( "_SSAO.Target.Shade");
 		static readonly int kShaderTargetHalf = Shader.PropertyToID( "_SSAO.Target.Half");
 		static readonly int kShaderTargetQuarter = Shader.PropertyToID( "_SSAO.Target.Quarter");
-		
 		static readonly int kShaderPropertyBlurTex = Shader.PropertyToID( "_BlurTex");
 		
-        [SerializeField]
-        SSAOSettings sharedSettings = default;
-        [SerializeField]
-        SSAOProperties properties = default;
-        [SerializeField]
-		bool useSharedProperties = true;
-        [SerializeField]
-        Shader shader = default;
-        [System.NonSerialized]
-		Material material;
 		[System.NonSerialized]
 		RenderTextureDescriptor shadeDescriptor;
 		[System.NonSerialized]

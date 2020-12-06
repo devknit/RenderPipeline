@@ -5,54 +5,15 @@ using UnityEngine.Rendering;
 namespace RenderPipeline
 {
 	[DisallowMultipleComponent]
-	public sealed partial class EdgeDetection : PostProcess
+	public sealed partial class EdgeDetection : GenericProcess<EdgeDetectionSettings, EdgeDetectionProperties>
 	{
-		public EdgeDetectionProperties Properties
-		{
-			get{ return (sharedSettings != null && useSharedProperties != false)? sharedSettings.properties : properties; }
-		}
-		public override void Create()
-		{
-			if( shader != null && material == null)
-			{
-				material = new Material( shader);
-			}
-		}
-		public override void Dispose()
-		{
-			if( material != null)
-			{
-				ObjectUtility.Release( material);
-				material = null;
-			}
-		}
-		public override bool RestoreMaterials()
-		{
-			bool rebuild = false;
-			
-			if( shader != null && material == null)
-			{
-				material = new Material( shader);
-				rebuild = true;
-			}
-			return rebuild;
-		}
-		public override bool Valid()
-		{
-			return ((sharedSettings != null)? sharedSettings.properties : properties).Enabled != false && material != null;
-		}
-		public override void ClearPropertiesCache()
-		{
-			sharedSettings?.properties.ClearCache();
-			properties.ClearCache();
-		}
 		public override bool UpdateProperties( RenderPipeline pipeline, bool clearCache)
 		{
 			if( clearCache != false)
 			{
 				ClearPropertiesCache();
 			}
-			return Properties.CheckParameterChange( material);
+			return Properties.UpdateProperties( pipeline, material);
 		}
 		public override PostProcessEvent GetPostProcessEvent()
 		{
@@ -101,16 +62,5 @@ namespace RenderPipeline
 		{
 			return Properties.GetDepthStencilHashCode();
 		}
-		
-		[SerializeField]
-		EdgeDetectionSettings sharedSettings = default;
-		[SerializeField]
-		EdgeDetectionProperties properties = default;
-		[SerializeField]
-		bool useSharedProperties = true;
-		[SerializeField]
-		Shader shader = default;
-		[System.NonSerialized]
-		Material material;
 	}
 }

@@ -7,13 +7,11 @@ using DG.Tweening;
 namespace RenderPipeline
 {
 	[CreateAssetMenu( menuName="RenderPipeline/ScreenBlend", fileName="PostProcessScreenBlend", order=1200)]
-	public sealed class ScreenBlendSettings : Settings
+	public sealed class ScreenBlendSettings : Settings<ScreenBlendProperties>
 	{
-		[SerializeField]
-		public ScreenBlendProperties properties = default;
 	}
 	[System.Serializable]
-	public sealed class ScreenBlendProperties : Properties
+	public sealed class ScreenBlendProperties : IGenericProperties
 	{
 		public bool Enabled
 		{
@@ -40,7 +38,7 @@ namespace RenderPipeline
 			cacheFlipHorizontal = null;
 			cacheColor = null;
 		}
-		internal bool CheckParameterChange( Material material)
+		public bool UpdateProperties( RenderPipeline pipeline, Material material)
 		{
 			bool rebuild = false;
 			

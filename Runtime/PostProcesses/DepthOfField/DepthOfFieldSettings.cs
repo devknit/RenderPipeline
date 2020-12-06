@@ -12,13 +12,11 @@ namespace RenderPipeline.DepthOfField
 		kHigh = 2,
 	}
 	[CreateAssetMenu( menuName="RenderPipeline/DepthOfField", fileName="PostProcessDepthOfField", order=1200)]
-	public sealed class DepthOfFieldSettings : Settings
+	public sealed class DepthOfFieldSettings : Settings<DepthOfFieldProperties>
 	{
-		[SerializeField]
-		public DepthOfFieldProperties properties = default;
 	}
 	[System.Serializable]
-	public sealed class DepthOfFieldProperties : Properties
+	public sealed class DepthOfFieldProperties : IGenericProperties
 	{
 		public bool Enabled
 		{
@@ -41,7 +39,7 @@ namespace RenderPipeline.DepthOfField
 			cacheHighResolution = null;
 			cacheVisualizeFocus = null;
 		}
-		internal bool CheckParameterChange( RenderPipeline pipeline, Material material)
+		public bool UpdateProperties( RenderPipeline pipeline, Material material)
 		{
 			bool rebuild = false;
 			

@@ -5,10 +5,8 @@ using UnityEngine.Rendering;
 namespace RenderPipeline
 {
 	[CreateAssetMenu( menuName="RenderPipeline/Vignette", fileName="PostProcessVignette", order=1200)]
-	public sealed class VignetteSettings : Settings
+	public sealed class VignetteSettings : Settings<VignetteProperties>
 	{
-		[SerializeField]
-		public VignetteProperties properties = default;
 	}
 	[System.Serializable]
 	public sealed class VignetteProperties : IUbarProperties

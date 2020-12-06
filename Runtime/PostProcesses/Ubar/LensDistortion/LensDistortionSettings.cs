@@ -5,10 +5,8 @@ using UnityEngine.Rendering;
 namespace RenderPipeline
 {
 	[CreateAssetMenu( menuName="RenderPipeline/LensDistortion", fileName="PostProcessLensDistortion", order=1200)]
-	public sealed class LensDistortionSettings : Settings
+	public sealed class LensDistortionSettings : Settings<LensDistortionProperties>
 	{
-		[SerializeField]
-		public LensDistortionProperties properties = default;
 	}
 	[System.Serializable]
 	public sealed class LensDistortionProperties : IUbarProperties

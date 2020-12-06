@@ -66,6 +66,10 @@ namespace RenderPipeline
 	}
 	public abstract class PostProcess : MonoBehaviour, IPostProcess
 	{
+		public abstract bool Enabled
+		{
+			get;
+		}
 		public abstract void Create();
 		public abstract void Dispose();
 		public abstract bool RestoreMaterials();
@@ -82,6 +86,14 @@ namespace RenderPipeline
 		{
 			return DepthStencil.kDefaultHash;
 		}
+		internal bool DuplicateMRT()
+		{
+			if( SystemInfo.supportedRenderTargetCount > 1)
+			{
+				return false; // OnDuplicateMRT();
+			}
+			return false;
+		}
 		
 	#if UNITY_EDITOR
 		internal bool ChangePostProcessEvent()
@@ -97,63 +109,70 @@ namespace RenderPipeline
 		PostProcessEvent? cachePostProcessEvent;
 	#endif
 	}
-	public abstract class InternalProcess : PostProcess
+	public abstract class GenericProcess<TSettings, TProperties> : PostProcess
+		where TSettings : Settings<TProperties>
+		where TProperties : IGenericProperties
 	{
-		internal abstract bool Enabled
+		public override bool Enabled
 		{
-			get;
+			get{ return ((sharedSettings != null)? sharedSettings.properties : properties).Enabled; }
 		}
-		internal bool DuplicateMRT()
+		public TProperties Properties
 		{
-			if( SystemInfo.supportedRenderTargetCount > 1)
-			{
-				return false;
-			}
-			return false;
+			get{ return (sharedSettings != null && useSharedProperties != false)? sharedSettings.properties : properties; }
 		}
-	}
-	public interface IUbarProperty<T> where T : Properties
-	{
-		T Properties
-		{
-			get;
-		}
-	}
-	public abstract class UbarProperty : InternalProcess
-	{
 		public override void Create()
 		{
+			if( shader != null && material == null)
+			{
+				material = new Material( shader);
+			}
 		}
 		public override void Dispose()
 		{
+			if( material != null)
+			{
+				ObjectUtility.Release( material);
+				material = null;
+			}
 		}
 		public override bool RestoreMaterials()
 		{
-			return false;
+			bool rebuild = false;
+			
+			if( shader != null && material == null)
+			{
+				material = new Material( shader);
+				rebuild = true;
+			}
+			return rebuild;
 		}
 		public override bool Valid()
 		{
-			return false;
+			return Enabled != false && material != null;
 		}
 		public override void ClearPropertiesCache()
 		{
+			sharedSettings?.properties.ClearCache();
+			properties.ClearCache();
+		}
+		
+		[SerializeField]
+		TSettings sharedSettings = default;
+		[SerializeField]
+		TProperties properties = default;
+		[SerializeField]
+		bool useSharedProperties = true;
+		[SerializeField]
+		Shader shader = default;
+		[System.NonSerialized]
+		protected Material material;
+	}
+	public abstract class UbarProperty : PostProcess
+	{
+		public override void ClearPropertiesCache()
+		{
 			cacheIndependent = null;
-		}
-		public override bool UpdateProperties( RenderPipeline pipeline, bool clearCache)
-		{
-			return false;
-		}
-		public override DepthTextureMode GetDepthTextureMode()
-		{
-			return DepthTextureMode.None;
-		}
-		public override bool IsRequiredHighDynamicRange()
-		{
-			return false;
-		}
-		public override void BuildCommandBuffer( RenderPipeline pipeline,
-			CommandBuffer commandBuffer, TargetContext context, IPostProcess nextProcess)
-		{
 		}
 		internal bool HasIndependent( ref bool rebuild)
 		{
@@ -173,6 +192,107 @@ namespace RenderPipeline
 		}
 		internal abstract IUbarProperties GetProperties();
 		
+		[System.NonSerialized]
 		bool? cacheIndependent;
+	}
+	public abstract class UbarPropertyEx<TSettings, TProperties> : UbarProperty
+		where TSettings : Settings<TProperties>
+		where TProperties : IUbarProperties
+	{
+		public override bool Enabled
+		{
+			get{ return ((sharedSettings != null)? sharedSettings.properties : properties).Enabled; }
+		}
+		public TProperties Properties
+		{
+			get{ return (sharedSettings != null && useSharedProperties != false)? sharedSettings.properties : properties; }
+		}
+		public override void Create()
+		{
+		}
+		public override void Dispose()
+		{
+		}
+		public override bool RestoreMaterials()
+		{
+			return false;
+		}
+		public override bool Valid()
+		{
+			return false;
+		}
+		public override void ClearPropertiesCache()
+		{
+			base.ClearPropertiesCache();
+			sharedSettings?.properties.ClearCache();
+			properties.ClearCache();
+		}
+		public override bool UpdateProperties( RenderPipeline pipeline, bool clearCache)
+		{
+			return false;
+		}
+		public override DepthTextureMode GetDepthTextureMode()
+		{
+			return DepthTextureMode.None;
+		}
+		public override bool IsRequiredHighDynamicRange()
+		{
+			return false;
+		}
+		public override void BuildCommandBuffer( RenderPipeline pipeline,
+			CommandBuffer commandBuffer, TargetContext context, IPostProcess nextProcess)
+		{
+		}
+		internal override IUbarProperties GetProperties()
+		{
+			return Properties;
+		}
+		
+		[SerializeField]
+        protected TSettings sharedSettings = default;
+        [SerializeField]
+        protected TProperties properties = default;
+        [SerializeField]
+		protected bool useSharedProperties = true;
+	}
+	public abstract class UbarPropertyRx<TSettings, TProperties> : UbarPropertyEx<TSettings, TProperties>
+		where TSettings : Settings<TProperties>
+		where TProperties : IUbarProperties
+	{
+		public override void Create()
+		{
+			if( shader != null && material == null)
+			{
+				material = new Material( shader);
+			}
+		}
+		public override void Dispose()
+		{
+			if( material != null)
+			{
+				ObjectUtility.Release( material);
+				material = null;
+			}
+		}
+		public override bool RestoreMaterials()
+		{
+			bool rebuild = false;
+			
+			if( shader != null && material == null)
+			{
+				material = new Material( shader);
+				rebuild = true;
+			}
+			return rebuild;
+		}
+		public override bool Valid()
+		{
+			return Enabled != false && material != null;
+		}
+		
+		[SerializeField]
+		Shader shader = default;
+		[System.NonSerialized]
+		protected Material material;
 	}
 }

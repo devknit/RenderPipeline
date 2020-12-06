@@ -11,13 +11,11 @@ namespace RenderPipeline
 		kThin
 	}
 	[CreateAssetMenu( menuName="RenderPipeline/EdgeDetection", fileName="PostProcessEdgeDetection", order=1200)]
-	public sealed class EdgeDetectionSettings : Settings
+	public sealed class EdgeDetectionSettings : Settings<EdgeDetectionProperties>
 	{
-		[SerializeField]
-		public EdgeDetectionProperties properties = default;
 	}
 	[System.Serializable]
-	public sealed class EdgeDetectionProperties : Properties
+	public sealed class EdgeDetectionProperties : IGenericProperties
 	{
 		public bool Enabled
 		{
@@ -68,7 +66,7 @@ namespace RenderPipeline
 			cacheStencilReadMask = null;
 			cacheStencilCompare = null;
 		}
-		internal bool CheckParameterChange( Material material)
+		public bool UpdateProperties( RenderPipeline pipeline, Material material)
 		{
 			bool rebuild = false;
 			

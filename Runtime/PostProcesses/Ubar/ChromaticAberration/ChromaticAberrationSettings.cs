@@ -5,14 +5,12 @@ using UnityEngine.Rendering;
 namespace RenderPipeline
 {
 	[CreateAssetMenu( menuName="RenderPipeline/ChromaticAberration", fileName="PostProcessChromaticAberration", order=1200)]
-	public sealed class ChromaticAberrationSettings : Settings
+	public sealed class ChromaticAberrationSettings : Settings<ChromaticAberrationProperties>
 	{
 		void OnDisable()
 		{
 			properties.Dispose();
 		}
-		[SerializeField]
-		public ChromaticAberrationProperties properties = default;
 	}
 	[System.Serializable]
 	public sealed class ChromaticAberrationProperties : IUbarProperties

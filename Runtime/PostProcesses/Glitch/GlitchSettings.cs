@@ -6,13 +6,11 @@ using System.Collections.Generic;
 namespace RenderPipeline
 {
 	[CreateAssetMenu( menuName="RenderPipeline/Glitch", fileName="PostProcessGlitch", order=1200)]
-	public sealed class GlitchSettings : Settings
+	public sealed class GlitchSettings : Settings<GlitchProperties>
 	{
-		[SerializeField]
-		public GlitchProperties properties = default;
 	}
 	[System.Serializable]
-	public sealed class GlitchProperties : Properties
+	public sealed class GlitchProperties : IGenericProperties
 	{
 		public bool Enabled
 		{
@@ -77,7 +75,7 @@ namespace RenderPipeline
 			cacheVolume = null;
 			cacheChromaticAberration = null;
 		}
-		internal bool CheckParameterChange( RenderPipeline pipeline, Material material)
+		public bool UpdateProperties( RenderPipeline pipeline, Material material)
 		{
 			bool rebuild = false;
 			

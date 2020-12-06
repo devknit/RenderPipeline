@@ -6,13 +6,11 @@ using System.Collections.Generic;
 namespace RenderPipeline
 {
 	[CreateAssetMenu( menuName="RenderPipeline/FXAA", fileName="PostProcessFXAA", order=1200)]
-	public sealed class FXAASettings : Settings
+	public sealed class FXAASettings : Settings<FXAAProperties>
 	{
-		[SerializeField]
-		public FXAAProperties properties = default;
 	}
 	[System.Serializable]
-	public sealed class FXAAProperties : Properties
+	public sealed class FXAAProperties : IGenericProperties
 	{
 		public bool Enabled
 		{
@@ -39,7 +37,7 @@ namespace RenderPipeline
 			cacheThreshold = null;
 			cacheSharpness = null;
 		}
-		internal bool CheckParameterChange( Material material)
+		public bool UpdateProperties( RenderPipeline pipeline, Material material)
 		{
 			bool rebuild = false;
 			
