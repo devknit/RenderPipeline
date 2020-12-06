@@ -60,11 +60,11 @@ namespace RenderPipeline
 						blendedVolume += defaultVolume * defaultWeight;
 						blendedChromaticAberration += defaultChromaticAberration * defaultWeight;
 					}
-					glitchComponent.Properties.Intensity = defaultIntensity;
-					glitchComponent.Properties.TimeScale = defaultTimeScale;
-					glitchComponent.Properties.Slice = defaultSlice;
-					glitchComponent.Properties.Volume = defaultVolume;
-					glitchComponent.Properties.ChromaticAberration = defaultChromaticAberration;
+					glitchComponent.Properties.Intensity = blendedIntensity;
+					glitchComponent.Properties.TimeScale = blendedTimeScale;
+					glitchComponent.Properties.Slice = blendedSlice;
+					glitchComponent.Properties.Volume = blendedVolume;
+					glitchComponent.Properties.ChromaticAberration = blendedChromaticAberration;
 				}
 			}
 		}

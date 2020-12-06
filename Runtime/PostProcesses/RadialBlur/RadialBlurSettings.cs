@@ -22,9 +22,33 @@ namespace RenderPipeline
 		{
 			get{ return phase; }
 		}
+		public int Samples
+		{
+			get{ return samples; }
+			set{ samples = value; }
+		}
+		public float Intensity
+		{
+			get{ return intensity; }
+			set{ intensity = value; }
+		}
+		public float Radius
+		{
+			get{ return radius; }
+			set{ radius = value; }
+		}
+		public Vector2 Center
+		{
+			get{ return center; }
+			set{ center = value; }
+		}
 		public void ClearCache()
 		{
 			cacheEnabled = null;
+			cacheSamples = null;
+			cacheIntensity = null;
+			cacheRadius = null;
+			cacheCenter = null;
 		}
 		public bool UpdateProperties( RenderPipeline pipeline, Material material)
 		{
@@ -37,13 +61,36 @@ namespace RenderPipeline
 			}
 			if( enabled != false)
 			{
-				material.SetFloat( "_Samples", samples);
-				material.SetFloat( "_Intensity", intensity);
-				material.SetVector( "_Center", center);
-				material.SetFloat( "_Radius", radius);
+				if( cacheSamples != samples)
+				{
+					samples = Mathf.Clamp( samples, 4, 32);
+					material.SetFloat( kShaderPropertySamples, samples);
+					cacheSamples = samples;
+				}
+				if( cacheIntensity != intensity)
+				{
+					intensity = Mathf.Clamp( intensity, 0.0f, 1.0f);
+					material.SetFloat( kShaderPropertyIntensity, intensity);
+					cacheIntensity = intensity;
+				}
+				if( cacheRadius != radius)
+				{
+					radius = Mathf.Clamp( radius, 0.0f, 50.0f);
+					material.SetFloat( kShaderPropertyRadius, radius);
+					cacheRadius = radius;
+				}
+				if( cacheCenter != center)
+				{
+					material.SetVector( kShaderPropertyCenter, center);
+					cacheCenter = center;
+				}
 			}
 			return rebuild;
 		}
+		static readonly int kShaderPropertySamples = Shader.PropertyToID( "_Samples");
+		static readonly int kShaderPropertyIntensity = Shader.PropertyToID( "_Intensity");
+		static readonly int kShaderPropertyRadius = Shader.PropertyToID( "_Radius");
+		static readonly int kShaderPropertyCenter = Shader.PropertyToID( "_Center");
 		
 		[SerializeField]
 		bool enabled = true;
@@ -53,12 +100,20 @@ namespace RenderPipeline
 		int samples = 16;
 		[SerializeField, Range( 0, 1)]
 		float intensity = 1.0f;
-		[SerializeField]
-		Vector2 center = new Vector2( 0.5f, 0.5f);
 		[SerializeField, Range( 0, 50)]
 		float radius = 0.1f;
+		[SerializeField]
+		Vector2 center = new Vector2( 0.5f, 0.5f);
 		
 		[System.NonSerialized]
 		bool? cacheEnabled;
+		[System.NonSerialized]
+		int? cacheSamples;
+		[System.NonSerialized]
+		float? cacheIntensity;
+		[System.NonSerialized]
+		float? cacheRadius;
+		[System.NonSerialized]
+		Vector2? cacheCenter;
 	}
 }
