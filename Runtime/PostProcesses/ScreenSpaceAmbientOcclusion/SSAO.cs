@@ -7,12 +7,8 @@ namespace RenderPipeline
 	[DisallowMultipleComponent]
 	public sealed partial class SSAO : GenericProcess<SSAOSettings, SSAOProperties>
 	{
-		public override bool UpdateProperties( RenderPipeline pipeline, bool clearCache)
+		protected override bool OnUpdateProperties( RenderPipeline pipeline, Material material)
 		{
-			if( clearCache != false)
-			{
-				ClearPropertiesCache();
-			}
 			return Properties.UpdateProperties( pipeline, material, (width, height) => 
 			{
 				shadeDescriptor = new RenderTextureDescriptor( width, height, TextureUtil.DefaultHDR);
@@ -27,10 +23,6 @@ namespace RenderPipeline
 				quarterDescriptor.useMipMap = false;
 				quarterDescriptor.autoGenerateMips = false;
 			});
-		}
-		public override PostProcessEvent GetPostProcessEvent()
-		{
-			return Properties.Phase;
 		}
 		public override DepthTextureMode GetDepthTextureMode()
 		{

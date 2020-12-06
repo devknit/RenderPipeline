@@ -7,17 +7,9 @@ namespace RenderPipeline
 	[DisallowMultipleComponent]
 	public sealed partial class Glitch : GenericProcess<GlitchSettings, GlitchProperties>
 	{
-		public override bool UpdateProperties( RenderPipeline pipeline, bool clearCache)
+		protected override bool OnUpdateProperties( RenderPipeline pipeline, Material material)
 		{
-			if( clearCache != false)
-			{
-				ClearPropertiesCache();
-			}
 			return Properties.UpdateProperties( pipeline, material);
-		}
-		public override PostProcessEvent GetPostProcessEvent()
-		{
-			return Properties.Phase;
 		}
 		public override DepthTextureMode GetDepthTextureMode()
 		{

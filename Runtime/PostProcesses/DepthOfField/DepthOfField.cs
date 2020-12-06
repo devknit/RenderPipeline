@@ -8,19 +8,9 @@ namespace RenderPipeline.DepthOfField
 	[DisallowMultipleComponent]
 	public sealed partial class DepthOfField : GenericProcess<DepthOfFieldSettings, DepthOfFieldProperties>
 	{
-		public override bool UpdateProperties( RenderPipeline pipeline, bool clearCache)
+		protected override bool OnUpdateProperties( RenderPipeline pipeline, Material material)
 		{
-			bool rebuild = false;
-			
-			if( clearCache != false)
-			{
-				ClearPropertiesCache();
-			}
 			return Properties.UpdateProperties( pipeline, material);
-		}
-		public override PostProcessEvent GetPostProcessEvent()
-		{
-			return Properties.Phase;
 		}
 		public override DepthTextureMode GetDepthTextureMode()
 		{

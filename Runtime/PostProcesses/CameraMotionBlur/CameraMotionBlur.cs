@@ -13,22 +13,14 @@ namespace RenderPipeline
 			kMiddle,
 			kHigh
 		}
-		public override bool UpdateProperties( RenderPipeline pipeline, bool clearCache)
+		protected override bool OnUpdateProperties( RenderPipeline pipeline, Material material)
 		{
-			if( clearCache != false)
-			{
-				ClearPropertiesCache();
-			}
 			return Properties.UpdateProperties( pipeline, material, (width, height) => 
 			{
 				descriptor = new RenderTextureDescriptor( width, height, TextureUtil.DefaultHDR);
 				descriptor.useMipMap = false;
 				descriptor.autoGenerateMips = false;
 			});
-		}
-		public override PostProcessEvent GetPostProcessEvent()
-		{
-			return Properties.Phase;
 		}
 		public override DepthTextureMode GetDepthTextureMode()
 		{

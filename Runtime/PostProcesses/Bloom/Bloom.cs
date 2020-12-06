@@ -53,15 +53,9 @@ namespace RenderPipeline
 			cacheCombinePassCount = null;
 			cacheBloomRectCount = null;
 		}
-		public override bool UpdateProperties( RenderPipeline pipeline, bool clearCache)
+		protected override bool OnUpdateProperties( RenderPipeline pipeline, Material material)
 		{
-			int updateFlags = 0;
-			
-			if( clearCache != false)
-			{
-				ClearPropertiesCache();
-			}
-			updateFlags |= Properties.UpdateProperties( pipeline);
+			int updateFlags = Properties.UpdateProperties( pipeline);
 			
 			if( (updateFlags & BloomProperties.kVerifyDescriptors) != 0)
 			{
@@ -75,10 +69,6 @@ namespace RenderPipeline
 				}
 			}
 			return (updateFlags & BloomProperties.kRebuild) != 0;
-		}
-		public override PostProcessEvent GetPostProcessEvent()
-		{
-			return Properties.Phase;
 		}
 		public override DepthTextureMode GetDepthTextureMode()
 		{
