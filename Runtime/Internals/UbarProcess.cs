@@ -4,17 +4,7 @@ using UnityEngine.Rendering;
 
 namespace RenderPipeline
 {
-	public interface IUbarProperty : IPostProcess
-	{
-		bool Enabled
-		{
-			get;
-		}
-		bool HasIndependent( ref bool rebuild);
-		bool Independent();
-		IUbarProperties GetProperties();
-	}
-	public abstract class UbarProperty<TSettings, TProperties> :PostProcess, IUbarProperty
+	public abstract class UbarProcess<TSettings, TProperties> :PostProcess, IUbarProcess
 		where TSettings : Settings<TProperties>
 		where TProperties : IUbarProperties
 	{
@@ -49,6 +39,10 @@ namespace RenderPipeline
 		public override bool UpdateProperties( RenderPipeline pipeline, bool clearCache)
 		{
 			return false;
+		}
+		public override PostProcessEvent GetPostProcessEvent()
+		{
+			return Properties.Phase;
 		}
 		public override DepthTextureMode GetDepthTextureMode()
 		{
@@ -91,45 +85,5 @@ namespace RenderPipeline
 		protected bool useSharedProperties = true;
 		[System.NonSerialized]
 		bool? cacheIndependent;
-	}
-	public abstract class UbarPropertyRx<TSettings, TProperties> : UbarProperty<TSettings, TProperties>
-		where TSettings : Settings<TProperties>
-		where TProperties : IUbarProperties
-	{
-		public override void Create()
-		{
-			if( shader != null && material == null)
-			{
-				material = new Material( shader);
-			}
-		}
-		public override void Dispose()
-		{
-			if( material != null)
-			{
-				ObjectUtility.Release( material);
-				material = null;
-			}
-		}
-		public override bool RestoreMaterials()
-		{
-			bool rebuild = false;
-			
-			if( shader != null && material == null)
-			{
-				material = new Material( shader);
-				rebuild = true;
-			}
-			return rebuild;
-		}
-		public override bool Valid()
-		{
-			return Enabled != false && material != null;
-		}
-		
-		[SerializeField]
-		Shader shader = default;
-		[System.NonSerialized]
-		protected Material material;
 	}
 }

@@ -5,24 +5,8 @@ using UnityEngine.Rendering;
 namespace RenderPipeline
 {
 	[DisallowMultipleComponent]
-	public sealed partial class Noise : UbarPropertyRx<NoiseSettings, NoiseProperties>
+	public sealed partial class Noise : UbarSeparableProcess<NoiseSettings, NoiseProperties>
 	{
-		public override bool UpdateProperties( RenderPipeline pipeline, bool clearCache)
-		{
-			if( clearCache != false)
-			{
-				Properties.ClearCache();
-			}
-			return Properties.UpdateProperties( material, false);
-		}
-		public override PostProcessEvent GetPostProcessEvent()
-		{
-			return Properties.Phase;
-		}
-		public override DepthTextureMode GetDepthTextureMode()
-		{
-			return DepthTextureMode.None;
-		}
 		public override void BuildCommandBuffer( RenderPipeline pipeline,
 			CommandBuffer commandBuffer, TargetContext context, IPostProcess nextProcess)
 		{

@@ -16,6 +16,10 @@ namespace RenderPipeline
 			get{ return enabled; }
 			set{ enabled = value; }
 		}
+		public PostProcessEvent Phase
+		{
+			get{ return PostProcessEvent.BeforeImageEffects; }
+		}
 		public float Amount
 		{
 			get{ return amount; }

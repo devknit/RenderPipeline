@@ -5,11 +5,7 @@ using UnityEngine.Rendering;
 namespace RenderPipeline
 {
 	[DisallowMultipleComponent]
-	public sealed partial class Flip : UbarProperty<FlipSettings, FlipProperties>
+	public sealed partial class Flip : UbarProcess<FlipSettings, FlipProperties>
 	{
-		public override PostProcessEvent GetPostProcessEvent()
-		{
-			return PostProcessEvent.BeforeImageEffects;
-		}
 	}
 }

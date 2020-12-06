@@ -16,14 +16,14 @@ namespace RenderPipeline
 			get;
 			set;
 		}
-		void ClearCache();
-	}
-	public interface IGenericProperties : IProperties
-	{
 		PostProcessEvent Phase
 		{
 			get;
 		}
+		void ClearCache();
+	}
+	public interface IGenericProperties : IProperties
+	{
 	}
 	public interface IUbarProperties : IProperties
 	{

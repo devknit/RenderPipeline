@@ -149,18 +149,18 @@ namespace RenderPipeline
 				
 				for( i0 = 0; i0 < caches.Length; ++i0)
 				{
-					if( caches[ i0] is IUbarProperty ubarProperty)
+					if( caches[ i0] is IUbarProcess ubarProcess)
 					{
-						switch( ubarProperty.GetPostProcessEvent())
+						switch( ubarProcess.GetPostProcessEvent())
 						{
 							case PostProcessEvent.BeforeImageEffectsOpaque:
 							{
-								opaqueUbar.SetProperty( ubarProperty);
+								opaqueUbar.SetProperty( ubarProcess);
 								break;
 							}
 							case PostProcessEvent.BeforeImageEffects:
 							{
-								beforeUbar.SetProperty( ubarProperty);
+								beforeUbar.SetProperty( ubarProcess);
 								break;
 							}
 						}
