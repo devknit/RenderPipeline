@@ -8,7 +8,7 @@ namespace RenderPipeline
 		where TSettings : Settings<TProperties>
 		where TProperties : IGenericProperties
 	{
-		public override bool Enabled
+		public sealed override bool Enabled
 		{
 			get{ return ((sharedSettings != null)? sharedSettings.properties : properties).Enabled; }
 		}
@@ -42,7 +42,7 @@ namespace RenderPipeline
 			}
 			return rebuild;
 		}
-		public override bool Valid()
+		public sealed override bool Valid()
 		{
 			return Enabled != false && material != null;
 		}

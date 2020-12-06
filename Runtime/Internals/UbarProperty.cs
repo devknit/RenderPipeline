@@ -4,34 +4,17 @@ using UnityEngine.Rendering;
 
 namespace RenderPipeline
 {
-	public abstract class UbarProperty : PostProcess
+	public interface IUbarProperty : IPostProcess
 	{
-		public override void ClearPropertiesCache()
+		bool Enabled
 		{
-			cacheIndependent = null;
+			get;
 		}
-		internal bool HasIndependent( ref bool rebuild)
-		{
-			bool independent = Independent();
-			
-			if( cacheIndependent != independent)
-			{
-				cacheIndependent = independent;
-				ClearPropertiesCache();
-				rebuild = true;
-			}
-			return independent;
-		}
-		internal virtual bool Independent()
-		{
-			return DepthStencil.HasIndependent( GetDepthStencilHashCode());
-		}
-		internal abstract IUbarProperties GetProperties();
-		
-		[System.NonSerialized]
-		bool? cacheIndependent;
+		bool HasIndependent( ref bool rebuild);
+		bool Independent();
+		IUbarProperties GetProperties();
 	}
-	public abstract class UbarPropertyEx<TSettings, TProperties> : UbarProperty
+	public abstract class UbarProperty<TSettings, TProperties> :PostProcess, IUbarProperty
 		where TSettings : Settings<TProperties>
 		where TProperties : IUbarProperties
 	{
@@ -59,7 +42,7 @@ namespace RenderPipeline
 		}
 		public override void ClearPropertiesCache()
 		{
-			base.ClearPropertiesCache();
+			cacheIndependent = null;
 			sharedSettings?.properties.ClearCache();
 			properties.ClearCache();
 		}
@@ -79,9 +62,25 @@ namespace RenderPipeline
 			CommandBuffer commandBuffer, TargetContext context, IPostProcess nextProcess)
 		{
 		}
-		internal override IUbarProperties GetProperties()
+		public IUbarProperties GetProperties()
 		{
 			return Properties;
+		}
+		public bool HasIndependent( ref bool rebuild)
+		{
+			bool independent = Independent();
+			
+			if( cacheIndependent != independent)
+			{
+				cacheIndependent = independent;
+				ClearPropertiesCache();
+				rebuild = true;
+			}
+			return independent;
+		}
+		public virtual bool Independent()
+		{
+			return DepthStencil.HasIndependent( GetDepthStencilHashCode());
 		}
 		
 		[SerializeField]
@@ -90,8 +89,10 @@ namespace RenderPipeline
         protected TProperties properties = default;
         [SerializeField]
 		protected bool useSharedProperties = true;
+		[System.NonSerialized]
+		bool? cacheIndependent;
 	}
-	public abstract class UbarPropertyRx<TSettings, TProperties> : UbarPropertyEx<TSettings, TProperties>
+	public abstract class UbarPropertyRx<TSettings, TProperties> : UbarProperty<TSettings, TProperties>
 		where TSettings : Settings<TProperties>
 		where TProperties : IUbarProperties
 	{

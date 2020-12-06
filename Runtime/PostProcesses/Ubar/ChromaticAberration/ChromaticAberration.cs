@@ -5,7 +5,7 @@ using UnityEngine.Rendering;
 namespace RenderPipeline
 {
 	[DisallowMultipleComponent]
-	public sealed partial class ChromaticAberration : UbarPropertyEx<ChromaticAberrationSettings, ChromaticAberrationProperties>
+	public sealed partial class ChromaticAberration : UbarProperty<ChromaticAberrationSettings, ChromaticAberrationProperties>
 	{
 		public override void Dispose()
 		{

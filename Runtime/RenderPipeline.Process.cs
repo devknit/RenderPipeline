@@ -149,7 +149,7 @@ namespace RenderPipeline
 				
 				for( i0 = 0; i0 < caches.Length; ++i0)
 				{
-					if( caches[ i0] is UbarProperty ubarProperty)
+					if( caches[ i0] is IUbarProperty ubarProperty)
 					{
 						switch( ubarProperty.GetPostProcessEvent())
 						{

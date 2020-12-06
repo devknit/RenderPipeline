@@ -135,7 +135,7 @@ namespace RenderPipeline
 			}
 			properties.Clear();
 		}
-		internal void SetProperty( UbarProperty property)
+		internal void SetProperty( IUbarProperty property)
 		{
 			if( property != null)
 			{
@@ -150,6 +150,6 @@ namespace RenderPipeline
 		[System.NonSerialized]
 		PostProcessEvent postProcessEvent;
 		[System.NonSerialized]
-		List<UbarProperty> properties = new List<UbarProperty>();
+		List<IUbarProperty> properties = new List<IUbarProperty>();
 	}
 }

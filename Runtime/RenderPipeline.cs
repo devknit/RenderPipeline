@@ -150,7 +150,7 @@ namespace RenderPipeline
 				
 				if( process != null)
 				{
-					if( process is UbarProperty ubarProperty)
+					if( process is IUbarProperty ubarProperty)
 					{
 						if( ubarProperty.HasIndependent( ref isRebuildCommandBuffers) == false)
 						{
@@ -361,7 +361,7 @@ namespace RenderPipeline
 					}
 					if( nextProcess.Valid() != false)
 					{
-						if( nextProcess is UbarProperty ubarProperty)
+						if( nextProcess is IUbarProperty ubarProperty)
 						{
 							if( ubarProperty.Independent() == false)
 							{
@@ -430,7 +430,7 @@ namespace RenderPipeline
 						}
 						if( nextProcess.Valid() != false)
 						{
-							if( nextProcess is UbarProperty ubarProperty)
+							if( nextProcess is IUbarProperty ubarProperty)
 							{
 								if( ubarProperty.Independent() == false)
 								{
