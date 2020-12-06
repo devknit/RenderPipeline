@@ -50,6 +50,18 @@ namespace RenderPipeline
 			}
 			return null;
 		}
+		/**
+		 * \brief PostProcessを集中管理するオブジェクトを設定する。
+		 * \param targetObject [in] 集中管理オブジェクト
+		 * \note このメソッドは RenderPipeline の Start() が実行されるまでに呼び出す必要があります。
+		 */
+		public void SetCollectionObject( GameObject targetObject)
+		{
+			if( isPipelineStarted == false)
+			{
+				postProcessesTarget = targetObject;
+			}
+		}
 		bool CollectionProcesses()
 		{
 			GameObject targetObject = (postProcessesTarget != null)? postProcessesTarget : gameObject;

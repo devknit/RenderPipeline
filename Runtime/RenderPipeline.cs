@@ -37,14 +37,18 @@ namespace RenderPipeline
 			{
 				copyMaterial = new Material( copyShader);
 			}
-			CollectionProcesses();
-			RebuildCommandBuffers();
 		#if UNITY_EDITOR
 			UnityEditor.EditorApplication.projectChanged += () =>
 			{
 				ClearPropertiesCache();
 			};
 		#endif
+		}
+		void Start()
+		{
+			CollectionProcesses();
+			RebuildCommandBuffers();
+			isPipelineStarted = true;
 		}
 	#if UNITY_EDITOR
 		void OnDisable()
@@ -573,6 +577,7 @@ namespace RenderPipeline
 		RenderTexture colorBuffer;
 		RenderTexture depthBuffer;
 		bool isRebuildCommandBuffers;
+		bool isPipelineStarted;
 		
 		IPostProcess[] caches = new IPostProcess[ 2];
 		CommandBuffer commandBufferDepthTexture;
