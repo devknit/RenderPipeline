@@ -57,14 +57,14 @@ namespace RenderPipeline
 			
 			PostProcess[] components = targetObject.GetComponents<PostProcess>();
 			var collection = new List<IPostProcess>();
-			UbarProcess opaqueCaches = null, opaqueUbar = null;
-			UbarProcess beforeCaches = null, beforeUbar = null;
+			UbarBehavior opaqueCaches = null, opaqueUbar = null;
+			UbarBehavior beforeCaches = null, beforeUbar = null;
 			IPostProcess component;
 			int i0, i1;
 			
-			opaqueCaches = caches[ caches.Length - 2] as UbarProcess;
+			opaqueCaches = caches[ caches.Length - 2] as UbarBehavior;
 			caches[ caches.Length - 2] = null;
-			beforeCaches = caches[ caches.Length - 1] as UbarProcess;
+			beforeCaches = caches[ caches.Length - 1] as UbarBehavior;
 			caches[ caches.Length - 1] = null;
 			
 			for( i1 = 0; i1 < components.Length; ++i1)
@@ -110,14 +110,14 @@ namespace RenderPipeline
 			/* 不透明用の Ubar プロセスの生成状態を確認 */
 			if( opaqueCaches == null)
 			{
-				opaqueUbar = new UbarProcess( ubarShader, PostProcessEvent.BeforeImageEffectsOpaque);
+				opaqueUbar = new UbarBehavior( ubarShader, PostProcessEvent.BeforeImageEffectsOpaque);
 				opaqueUbar.Create();
 				rebuild = true;
 			}
 			/* 半透明用の Ubar プロセスの生成状態を確認 */
 			if( beforeCaches == null)
 			{
-				beforeUbar = new UbarProcess( ubarShader, PostProcessEvent.BeforeImageEffects);
+				beforeUbar = new UbarBehavior( ubarShader, PostProcessEvent.BeforeImageEffects);
 				beforeUbar.Create();
 				rebuild = true;
 			}

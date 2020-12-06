@@ -7,9 +7,9 @@ using System.Collections.Generic;
 namespace RenderPipeline
 {
 	[System.Serializable]
-	public sealed class UbarProcess : IPostProcess
+	public sealed class UbarBehavior : IPostProcess
 	{
-		public UbarProcess( Shader ubarShader, PostProcessEvent ubarPostProcessEvent)
+		public UbarBehavior( Shader ubarShader, PostProcessEvent ubarPostProcessEvent)
 		{
 			shader = ubarShader;
 			postProcessEvent = ubarPostProcessEvent;
