@@ -6,7 +6,7 @@ namespace RenderPipeline.Editor
 {
 	[CanEditMultipleObjects]
 	[CustomEditor( typeof( DepthOfField.DepthOfField))]
-	public sealed class DepthOfFieldEditor : GenericProcessEditor
+	public sealed class DepthOfFieldEditor : PostProcessEditor
 	{
 	}
 }

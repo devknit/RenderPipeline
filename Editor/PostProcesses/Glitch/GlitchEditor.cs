@@ -6,7 +6,7 @@ namespace RenderPipeline.Editor
 {
 	[CanEditMultipleObjects]
 	[CustomEditor( typeof( Glitch))]
-	public sealed class GlitchEditor : GenericProcessEditor
+	public sealed class GlitchEditor : PostProcessEditor
 	{
 	}
 }

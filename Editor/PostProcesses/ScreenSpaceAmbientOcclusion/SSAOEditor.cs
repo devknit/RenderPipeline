@@ -6,7 +6,7 @@ namespace RenderPipeline.Editor
 {
 	[CanEditMultipleObjects]
 	[CustomEditor( typeof( SSAO))]
-	public sealed class SSAOEditor : GenericProcessEditor
+	public sealed class SSAOEditor : PostProcessEditor
 	{
 	}
 }

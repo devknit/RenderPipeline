@@ -6,7 +6,7 @@ namespace RenderPipeline.Editor
 {
 	[CanEditMultipleObjects]
 	[CustomEditor( typeof( CameraMotionBlur))]
-	public sealed class CameraMotionBlurEditor : GenericProcessEditor
+	public sealed class CameraMotionBlurEditor : PostProcessEditor
 	{
 	}
 }

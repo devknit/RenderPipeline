@@ -6,7 +6,7 @@ namespace RenderPipeline.Editor
 {
 	[CanEditMultipleObjects]
 	[CustomEditor( typeof( EdgeDetection))]
-	public sealed class EdgeDetectionEditor : GenericProcessEditor
+	public sealed class EdgeDetectionEditor : PostProcessEditor
 	{
 	}
 }

@@ -6,7 +6,7 @@ namespace RenderPipeline.Editor
 {
 	[CanEditMultipleObjects]
 	[CustomEditor( typeof( Bloom))]
-	public sealed class BloomEditor : GenericProcessEditor
+	public sealed class BloomEditor : PostProcessEditor
 	{
 	}
 }

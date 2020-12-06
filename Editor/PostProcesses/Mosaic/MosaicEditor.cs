@@ -6,7 +6,7 @@ namespace RenderPipeline.Editor
 {
 	[CanEditMultipleObjects]
 	[CustomEditor( typeof( Mosaic))]
-	public sealed class MosaicEditor : GenericProcessEditor
+	public sealed class MosaicEditor : PostProcessEditor
 	{
 	}
 }

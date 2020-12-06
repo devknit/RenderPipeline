@@ -6,7 +6,7 @@ namespace RenderPipeline.Editor
 {
 	[CanEditMultipleObjects]
 	[CustomEditor( typeof( FXAA))]
-	public sealed class FXAAEditor : GenericProcessEditor
+	public sealed class FXAAEditor : PostProcessEditor
 	{
 	}
 }

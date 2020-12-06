@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace RenderPipeline.Editor
 {
-	public abstract class GenericProcessEditor : UnityEditor.Editor
+	public abstract class PostProcessEditor : UnityEditor.Editor
 	{
 		public override void OnInspectorGUI()
 		{
