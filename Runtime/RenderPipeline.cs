@@ -448,7 +448,6 @@ namespace RenderPipeline
 								process.BuildCommandBuffer( this, commandBufferPostProcesses, context, nextProcess);
 								context.Next();
 							}
-							
 							process = nextProcess;
 						}
 					}
@@ -472,10 +471,15 @@ namespace RenderPipeline
 					commandBufferPostProcesses.SetGlobalTexture( ShaderProperty.MainTex, colorBuffer);
 					DrawCopy( commandBufferPostProcesses);
 				}
-				if( (depthTextureMode & DepthTextureMode.Depth) != 0 && OverrideCameraDepthTexture != false)
+				if( OverrideCameraDepthTexture != false)
 				{
-					commandBufferPostProcesses.ReleaseTemporaryRT( ShaderProperty.OverrideDepthTexture);
-					depthTextureMode &= ~DepthTextureMode.Depth;
+					commandBufferPostProcesses.ClearRenderTarget( true, false, Color.clear, 1.0f);
+					
+					if( (depthTextureMode & DepthTextureMode.Depth) != 0)
+					{
+						commandBufferPostProcesses.ReleaseTemporaryRT( ShaderProperty.OverrideDepthTexture);
+						depthTextureMode &= ~DepthTextureMode.Depth;
+					}
 				}
 				cacheCamera.AddCommandBuffer( CameraEvent.BeforeImageEffects, commandBufferPostProcesses);
 			}
