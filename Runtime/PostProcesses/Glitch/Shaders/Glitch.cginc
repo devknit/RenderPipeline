@@ -41,6 +41,10 @@ fixed4 glitch( sampler2D tex, float2 uv, float intensity, float timeScale,
 	float offset = 0.05 * intensity * vrFactor;
 	offset = offset * r2 * (rnd0 > 0.5 ? 1.0 : -1.0) + (offset * 0.5);
 	
+	float t = 1.0 - step( intensity, 0);
+	chromaticAberration *= t;
+	offsetVolume *= t;
+	
 	return fixed4(
 		tex2D( tex, uv + (offset * chromaticAberration.r) * offsetVolume.xy).r,
 		tex2D( tex, uv + (offset * chromaticAberration.g) * offsetVolume.xy).g,
