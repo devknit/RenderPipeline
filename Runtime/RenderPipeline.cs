@@ -9,6 +9,38 @@ namespace RenderPipeline
 	[RequireComponent( typeof( Camera))]
 	public sealed partial class RenderPipeline : MonoBehaviour
 	{
+		public bool ScreenShot( PostProcessEvent phase, System.Action<Texture> onComplete)
+		{
+			if( phase == PostProcessEvent.BeforeImageEffectsOpaque)
+			{
+				if( onOpaqueScreenShot == null
+				||	onOpaqueScreenShot == onComplete)
+				{
+					if( onComplete == null)
+					{
+						onComplete = (texture) => {};
+					}
+					onOpaqueScreenShot = onComplete;
+					phaseOpaqueScreenShot |= kScreenShotPhaseCapture;
+					return true;
+				}
+			}
+			else if( phase == PostProcessEvent.BeforeImageEffects)
+			{
+				if( onPostScreenShot == null
+				||	onPostScreenShot == onComplete)
+				{
+					if( onComplete == null)
+					{
+						onComplete = (texture) => {};
+					}
+					onPostScreenShot = onComplete;
+					phasePostScreenShot |= kScreenShotPhaseCapture;
+					return true;
+				}
+			}
+			return false;
+		}
 		void Awake()
 		{
 			cacheCamera = GetComponent<Camera>();
@@ -75,11 +107,31 @@ namespace RenderPipeline
 		#if UNITY_EDITOR
 			cacheCamera.SetTargetBuffers( Display.main.colorBuffer, Display.main.depthBuffer);
 		#endif
+			if( commandBufferOpaqueScreenShot != null)
+			{
+				cacheCamera.RemoveCommandBuffer( CameraEvent.AfterImageEffectsOpaque, commandBufferOpaqueScreenShot);
+				commandBufferOpaqueScreenShot = null;
+			}
+			if( commandBufferPostScreenShot != null)
+			{
+				cacheCamera.RemoveCommandBuffer( CameraEvent.AfterImageEffects, commandBufferPostScreenShot);
+				commandBufferPostScreenShot = null;
+			}
 			RemoveCommandBuffers();
 			
 			for( int i0 = 0; i0 < caches.Length; ++i0)
 			{
 				caches[ i0]?.Dispose();
+			}
+			if( opaqueScreenShot != null)
+			{
+				opaqueScreenShot.Release();
+				opaqueScreenShot = null;
+			}
+			if( postScreenShot != null)
+			{
+				postScreenShot.Release();
+				postScreenShot = null;
 			}
 			if( colorBuffer != null)
 			{
@@ -178,6 +230,10 @@ namespace RenderPipeline
 			{
 				RebuildCommandBuffers();
 			}
+			RebuildScreenShotCommandBuffer( "CameraPipeline::OpaqueScreenShot", ref phaseOpaqueScreenShot, 
+				ref opaqueScreenShot,CameraEvent.AfterImageEffectsOpaque, ref commandBufferOpaqueScreenShot, ref onOpaqueScreenShot);
+			RebuildScreenShotCommandBuffer( "CameraPipeline::PostScreenShot", ref phasePostScreenShot, 
+				ref postScreenShot,	CameraEvent.AfterImageEffects, ref commandBufferPostScreenShot, ref onPostScreenShot);
 		}
 		void RemoveCommandBuffers()
 		{
@@ -488,6 +544,54 @@ namespace RenderPipeline
 			cacheCamera.forceIntoRenderTexture = forceIntoRenderTexture;
 			isRebuildCommandBuffers = false;
 		}
+		void RebuildScreenShotCommandBuffer( string name, ref int phase, ref RenderTexture targetBuffer,
+			CameraEvent cameraEvent, ref CommandBuffer commandBuffer, ref System.Action<Texture> onComplete)
+		{
+			if( (phase & kScreenShotPhaseComplete) != 0)
+			{
+				onComplete?.Invoke( targetBuffer);
+				onComplete = null;
+				phase &= ~kScreenShotPhaseComplete;
+			}
+			if( (phase & kScreenShotPhaseCapture) != 0)
+			{
+				int screenWidth = ScreenWidth;
+				int screenHeight = ScreenHeight;
+				
+				if( targetBuffer == null
+				||	targetBuffer.width != screenWidth
+				||	targetBuffer.height != screenHeight)
+				{
+					targetBuffer?.Release();
+					targetBuffer = new RenderTexture( screenWidth, screenHeight, 0, RenderTextureFormat.ARGB32);
+					targetBuffer.filterMode = FilterMode.Bilinear;
+					targetBuffer.name = name;
+					
+					if( commandBuffer != null)
+					{
+						cacheCamera.RemoveCommandBuffer( cameraEvent, commandBuffer);
+						commandBuffer = null;
+					}
+				}
+				if( commandBuffer == null)
+				{
+					commandBuffer = new CommandBuffer();
+					commandBuffer.name = name;
+					commandBuffer.Clear();
+					commandBuffer.SetProjectionMatrix( Matrix4x4.Ortho( 0, 1, 0, 1, 0, 1));
+					commandBuffer.SetViewMatrix( Matrix4x4.identity);
+					commandBuffer.Blit( BuiltinRenderTextureType.CameraTarget, targetBuffer);
+					cacheCamera.AddCommandBuffer( cameraEvent, commandBuffer);
+				}
+				phase &= ~kScreenShotPhaseCapture;
+				phase |= kScreenShotPhaseComplete;
+			}
+			else if( commandBuffer != null)
+			{
+				cacheCamera.RemoveCommandBuffer( cameraEvent, commandBuffer);
+				commandBuffer = null;
+			}
+		}
 		internal void DrawCopy( CommandBuffer commandBuffer)
 		{
 			commandBuffer.DrawMesh( fillMesh, Matrix4x4.identity, copyMaterial, 0, 0);
@@ -502,6 +606,14 @@ namespace RenderPipeline
 			{
 				commandBuffer.SetViewport( new Rect( 0, 0, Screen.width, Screen.height));
 			}
+		}
+		internal bool IsScreenShotTexture( Texture texture)
+		{
+			if( texture != null)
+			{
+				return texture == opaqueScreenShot || texture == postScreenShot;
+			}
+			return false;
 		}
 		internal Camera CacheCamera
 		{
@@ -561,6 +673,8 @@ namespace RenderPipeline
 			"UpdateDepthTextureが発生しない様にするにはModeがRealtimeに設定されているLightのShadowTypeにNoShadowsが設定されている必要があります。\n\n" +
 			"※この機能はUpdateDepthTextureで_CameraDepthTextureが利用可能になる場合と異なり、ForwardOpaque中に使用することが出来ません。\n\n" +
 			"※ポストプロセスの使用状況によって_CameraDepthTextureに書き込まれない場合があるため、強制する場合は DefaultDepthTextureMode の Depth を有効にしてください。";
+		const int kScreenShotPhaseCapture = 0x01;
+		const int kScreenShotPhaseComplete = 0x02;
 		
 		[SerializeField]
 		Shader copyShader = default;
@@ -581,6 +695,8 @@ namespace RenderPipeline
 		Material copyMaterial;
 		RenderTexture colorBuffer;
 		RenderTexture depthBuffer;
+		RenderTexture opaqueScreenShot;
+		RenderTexture postScreenShot;
 		bool isRebuildCommandBuffers;
 		bool isPipelineStarted;
 		
@@ -588,6 +704,13 @@ namespace RenderPipeline
 		CommandBuffer commandBufferDepthTexture;
 		CommandBuffer commandBufferOpaqueProcesses;
 		CommandBuffer commandBufferPostProcesses;
+		CommandBuffer commandBufferOpaqueScreenShot;
+		CommandBuffer commandBufferPostScreenShot;
+		
+		System.Action<Texture> onOpaqueScreenShot;
+		System.Action<Texture> onPostScreenShot;
+		int phaseOpaqueScreenShot;
+		int phasePostScreenShot;
 		
 		Camera cacheCamera;
 		int? cacheScreenWidth;

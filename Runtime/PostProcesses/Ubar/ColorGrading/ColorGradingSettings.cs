@@ -29,7 +29,7 @@ namespace RenderPipeline
 		{
 			cacheEnabled = null;
 		}
-		public bool UpdateProperties( Material material, bool forcedDisable)
+		public bool UpdateProperties( RenderPipeline pipeline, Material material)
 		{
 			bool rebuild = false;
 			
@@ -38,7 +38,7 @@ namespace RenderPipeline
 				rebuild = true;
 				cacheEnabled = enabled;
 			}
-			if( enabled != false && forcedDisable == false)
+			if( enabled != false)
 			{
 				Cache( Time.renderedFrameCount);
 				
@@ -84,7 +84,7 @@ namespace RenderPipeline
 			}
 			return rebuild;
 		}
-		public bool UpdateUbarProperties( Material material, bool forcedDisable)
+		public bool UpdateUbarProperties( RenderPipeline pipeline, Material material, bool forcedDisable)
 		{
 			bool rebuild = false;
 			

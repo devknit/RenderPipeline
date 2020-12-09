@@ -44,7 +44,7 @@ namespace RenderPipeline
 			{
 				Properties.ClearCache();
 			}
-			return Properties.UpdateProperties( material, false);
+			return Properties.UpdateProperties( pipeline, material);
 		}
 		public sealed override bool PreProcess()
 		{

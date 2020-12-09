@@ -4,12 +4,12 @@ using UnityEngine.Rendering;
 
 namespace RenderPipeline
 {
-	[CreateAssetMenu( menuName="RenderPipeline/Noise", fileName="PostProcessNoise", order=1200)]
-	public sealed class NoiseSettings : Settings<NoiseProperties>
+	[CreateAssetMenu( menuName="RenderPipeline/Overray", fileName="PostProcessOverray", order=1200)]
+	public sealed class OverraySettings : Settings<OverrayProperties>
 	{
 	}
 	[System.Serializable]
-	public sealed class NoiseProperties : IUbarProperties
+	public sealed class OverrayProperties : IUbarProperties
 	{
 		public bool Enabled
 		{
@@ -20,30 +20,14 @@ namespace RenderPipeline
 		{
 			get{ return phase; }
 		}
+		public Texture Texture
+		{
+			set{ texture = value; }
+		}
 		public Color Color
 		{
 			get{ return color; }
 			set{ color = value; }
-		}
-		public float Speed
-		{
-			get{ return speed; }
-			set{ speed = value; }
-		}
-		public float Interval
-		{
-			get{ return interval; }
-			set{ interval = value; }
-		}
-		public float Edge0
-		{
-			get{ return edge0; }
-			set{ edge0 = value; }
-		}
-		public float Edge1
-		{
-			get{ return edge1; }
-			set{ edge1 = value; }
 		}
 		internal byte StencilReference
 		{
@@ -60,14 +44,21 @@ namespace RenderPipeline
 			get{ return stencilCompare; }
 			set{ stencilCompare = value; }
 		}
+		public bool ScreenShot( System.Action<bool> onComplete)
+		{
+			if( isScreenShot == false && onScreenShotComplete == null)
+			{
+				isScreenShot = true;
+				onScreenShotComplete = onComplete;
+				return true;
+			}
+			return false;
+		}
 		public void ClearCache()
 		{
 			cacheEnabled = null;
+			cacheTexture = Texture2D.whiteTexture;
 			cacheColor = null;
-			cacheSpeed = null;
-			cacheInterval = null;
-			cacheEdge0 = null;
-			cacheEdge1 = null;
 			cacheStencilReference = null;
 			cacheStencilReadMask = null;
 			cacheStencilCompare = null;
@@ -80,32 +71,44 @@ namespace RenderPipeline
 		{
 			bool rebuild = false;
 			
+			if( isScreenShot != false)
+			{
+				if( pipeline.ScreenShot( phase, (capture) =>
+				{
+					if( enabled != false)
+					{
+						texture = capture;
+					}
+					onScreenShotComplete?.Invoke( enabled);
+					onScreenShotComplete = null;
+				}) == false)
+				{
+					onScreenShotComplete?.Invoke( false);
+					onScreenShotComplete = null;
+				}
+				isScreenShot = false;
+			}
 			if( cacheEnabled != enabled)
 			{
 				rebuild = true;
 				cacheEnabled = enabled;
 			}
-			if( enabled != false && forcedDisable == false)
+			if( enabled != false && forcedDisable == false && color.a > 0.0f)
 			{
-				if( material.IsKeywordEnabled( kShaderKeywordNoise) == false)
+				if( material.IsKeywordEnabled( kShaderKeywordOverray) == false)
 				{
-					material.EnableKeyword( kShaderKeywordNoise);
+					material.EnableKeyword( kShaderKeywordOverray);
+				}
+				if( cacheTexture != texture)
+				{
+					material.SetFloat( kShaderPropertyFlipY, pipeline.IsScreenShotTexture( texture)? 1.0f : 0.0f);
+					material.SetTexture( kShaderPropertyTexture, (texture != null)? texture : Texture2D.whiteTexture);
+					cacheTexture = texture;
 				}
 				if( cacheColor != color)
 				{
 					material.SetColor( kShaderPropertyColor, color);
 					cacheColor = color;
-				}
-				if( cacheSpeed != speed
-				||	cacheInterval != interval
-				||	cacheEdge0 != edge0
-				||	cacheEdge1 != edge1)
-				{
-					material.SetVector( kShaderPropertyParam, new Vector4( interval, edge0, edge1, speed));
-					cacheInterval = interval;
-					cacheEdge0 = edge0;
-					cacheEdge1 = edge1;
-					cacheSpeed = speed;
 				}
 				if( cacheStencilReference != stencilReference)
 				{
@@ -140,9 +143,9 @@ namespace RenderPipeline
 					cacheStencilCompare = stencilCompare;
 				}
 			}
-			else if( material.IsKeywordEnabled( kShaderKeywordNoise) != false)
+			else if( material.IsKeywordEnabled( kShaderKeywordOverray) != false)
 			{
-				material.DisableKeyword( kShaderKeywordNoise);
+				material.DisableKeyword( kShaderKeywordOverray);
 			}
 			return rebuild;
 		}
@@ -151,24 +154,20 @@ namespace RenderPipeline
 			return DepthStencil.GetHashCode( stencilReference, stencilReadMask, 255, stencilCompare);
 		}
 		
-		const string kShaderKeywordNoise = "_NOISE";
-		static readonly int kShaderPropertyColor = Shader.PropertyToID( "_NoiseColor");
-		static readonly int kShaderPropertyParam = Shader.PropertyToID( "_NoiseParam");
+		const string kShaderKeywordOverray = "_OVERRAY";
+		const string kShaderKeywordOverrayCapture = "_OVERRAY_CAPTURE";
+		static readonly int kShaderPropertyTexture = Shader.PropertyToID( "_OverrayTex");
+		static readonly int kShaderPropertyColor = Shader.PropertyToID( "_OverrayColor");
+		static readonly int kShaderPropertyFlipY = Shader.PropertyToID( "_OverrayFlipY");
 		
 		[SerializeField]
 		bool enabled = true;
 		[SerializeField]
-		PostProcessEvent phase = PostProcessEvent.BeforeImageEffectsOpaque;
+		PostProcessEvent phase = PostProcessEvent.BeforeImageEffects;
 		[SerializeField]
-		Color color = new Color( 0.5f, 0.7f, 0.8f);
+		Texture texture = default;
 		[SerializeField]
-		float speed = 1.0f;
-		[SerializeField]
-		float interval = 5.0f; 
-		[SerializeField, Range( 0, 1)]
-		float edge0 = 0.0f;
-		[SerializeField, Range( 0, 1)]
-		float edge1 = 1.0f;
+		Color color = new Color( 1, 1, 1, 0);
 		[SerializeField, Range(0, 255)]
 		byte stencilReference = 0;
 		[SerializeField, Range(0, 255)]
@@ -177,17 +176,16 @@ namespace RenderPipeline
 		CompareFunction stencilCompare = CompareFunction.Always;
 		
 		[System.NonSerialized]
+		bool isScreenShot;
+		[System.NonSerialized]
+		System.Action<bool> onScreenShotComplete;
+		
+		[System.NonSerialized]
 		bool? cacheEnabled;
 		[System.NonSerialized]
+		Texture cacheTexture;
+		[System.NonSerialized]
 		Color? cacheColor;
-		[System.NonSerialized]
-		float? cacheSpeed;
-		[System.NonSerialized]
-		float? cacheInterval;
-		[System.NonSerialized]
-		float? cacheEdge0;
-		[System.NonSerialized]
-		float? cacheEdge1;
 		[System.NonSerialized]
         byte? cacheStencilReference;
         [System.NonSerialized]

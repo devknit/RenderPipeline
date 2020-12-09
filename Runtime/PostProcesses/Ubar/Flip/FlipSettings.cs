@@ -36,11 +36,11 @@ namespace RenderPipeline
 			cacheX = null;
 			cacheY = null;
 		}
-		public bool UpdateProperties( Material material, bool forcedDisable)
+		public bool UpdateProperties( RenderPipeline pipeline, Material material)
 		{
 			return false;
 		}
-		public bool UpdateUbarProperties( Material material, bool forcedDisable)
+		public bool UpdateUbarProperties( RenderPipeline pipeline, Material material, bool forcedDisable)
 		{
 			bool rebuild = false;
 			

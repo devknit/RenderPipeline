@@ -77,7 +77,7 @@ namespace RenderPipeline
 			}
 			foreach( var property in properties)
 			{
-				if( property.GetProperties().UpdateUbarProperties( material, property.Independent()) != false)
+				if( property.GetProperties().UpdateUbarProperties( pipeline, material, property.Independent()) != false)
 				{
 					rebuild = true;
 				}
@@ -134,11 +134,11 @@ namespace RenderPipeline
 		{
 			return DepthStencil.kDefaultHash;
 		}
-		internal void ResetProperty()
+		internal void ResetProperty( RenderPipeline pipeline)
 		{
 			foreach( var property in properties)
 			{
-				property.GetProperties().UpdateUbarProperties( material, true);
+				property.GetProperties().UpdateUbarProperties( pipeline, material, true);
 			}
 			properties.Clear();
 		}

@@ -18,12 +18,14 @@
 			#pragma multi_compile_local _ _CHROMATICABERRATION
 			#pragma multi_compile_local _ _CHROMATICABERRATION_FASTMODE
 			#pragma multi_compile_local _ _NOISE
+			#pragma multi_compile_local _ _OVERRAY
 			#pragma multi_compile_local _ _VIGNETTE
 			#pragma multi_compile_local _ _COLORFILTER
 			#pragma multi_compile_local _ _COLOR_GRADING_LDR_2D
 			#include "../Ubar/LensDistortion/Shaders/LensDistortion.cginc"
 			#include "../Ubar/Vignette/Shaders/Vignette.cginc"
 			#include "../Ubar/Noise/Shaders/Noise.cginc"
+			#include "../Ubar/Overray/Shaders/Overray.cginc"
 			#include "../Ubar/ColorFilter/Shaders/ColorFilter.cginc"
 			#include "../Ubar/ColorGrading/Shaders/Colors.cginc"
 			
@@ -73,37 +75,40 @@
 		#if defined(_CHROMATICABERRATION)
 			#if defined(_CHROMATICABERRATION_FASTMODE)
 				float2 coords = uv * 2.0 - 1.0;
-			    float2 delta = ((uv - coords * dot( coords, coords) * _ChromaticAberrationIntensity) - uv) / 3.0;
-			    half4 filterA = half4( tex2Dlod( _ChromaticAberrationSpectralLut, float4( 0.5 / 3, 0, 0, 0)).rgb, 1);
-			    half4 filterB = half4( tex2Dlod( _ChromaticAberrationSpectralLut, float4( 1.5 / 3, 0, 0, 0)).rgb, 1);
-			    half4 filterC = half4( tex2Dlod( _ChromaticAberrationSpectralLut, float4( 2.5 / 3, 0, 0, 0)).rgb, 1);
-			    half4 texelA = tex2Dlod( _MainTex, float4( UnityStereoTransformScreenSpaceTex( LensDistortion( uv)), 0, 0));
-			    half4 texelB = tex2Dlod( _MainTex, float4( UnityStereoTransformScreenSpaceTex( LensDistortion( delta + uv)), 0, 0));
-			    half4 texelC = tex2Dlod( _MainTex, float4( UnityStereoTransformScreenSpaceTex( LensDistortion( delta * 2 + uv)), 0, 0));
-			    color = (texelA * filterA + texelB * filterB + texelC * filterC) / (filterA + filterB + filterC);
+				float2 delta = ((uv - coords * dot( coords, coords) * _ChromaticAberrationIntensity) - uv) / 3.0;
+				half4 filterA = half4( tex2Dlod( _ChromaticAberrationSpectralLut, float4( 0.5 / 3, 0, 0, 0)).rgb, 1);
+				half4 filterB = half4( tex2Dlod( _ChromaticAberrationSpectralLut, float4( 1.5 / 3, 0, 0, 0)).rgb, 1);
+				half4 filterC = half4( tex2Dlod( _ChromaticAberrationSpectralLut, float4( 2.5 / 3, 0, 0, 0)).rgb, 1);
+				half4 texelA = tex2Dlod( _MainTex, float4( UnityStereoTransformScreenSpaceTex( LensDistortion( uv)), 0, 0));
+				half4 texelB = tex2Dlod( _MainTex, float4( UnityStereoTransformScreenSpaceTex( LensDistortion( delta + uv)), 0, 0));
+				half4 texelC = tex2Dlod( _MainTex, float4( UnityStereoTransformScreenSpaceTex( LensDistortion( delta * 2 + uv)), 0, 0));
+				color = (texelA * filterA + texelB * filterB + texelC * filterC) / (filterA + filterB + filterC);
 			#else
 				float2 coords = uv * 2.0 - 1.0;
-                float2 diff = (uv - coords * dot( coords, coords) * _ChromaticAberrationIntensity) - uv;
-                int samples = clamp( int( length( _MainTex_TexelSize.zw * diff / 2.0)), 3, 16);
-                float2 delta = diff / samples;
-                
-                half4 colorSum = 0, filterSum = 0;
-                coords = uv;
-
-                for( int i0 = 0; i0 < samples; ++i0)
-                {
+				float2 diff = (uv - coords * dot( coords, coords) * _ChromaticAberrationIntensity) - uv;
+				int samples = clamp( int( length( _MainTex_TexelSize.zw * diff / 2.0)), 3, 16);
+				float2 delta = diff / samples;
+				
+				half4 colorSum = 0, filterSum = 0;
+				coords = uv;
+				
+				for( int i0 = 0; i0 < samples; ++i0)
+				{
 					half4 filter = half4( tex2Dlod( _ChromaticAberrationSpectralLut, float4( (i0 + 0.5h) / samples, 0, 0, 0)).rgb, 1);
-                    colorSum += tex2Dlod( _MainTex, float4( UnityStereoTransformScreenSpaceTex( LensDistortion( coords)), 0, 0)) * filter;
-                    filterSum += filter;
-                    coords += delta;
-                }
-                color = colorSum / filterSum;
+					colorSum += tex2Dlod( _MainTex, float4( UnityStereoTransformScreenSpaceTex( LensDistortion( coords)), 0, 0)) * filter;
+					filterSum += filter;
+					coords += delta;
+				}
+				color = colorSum / filterSum;
 			#endif
 		#else
 				color = UNITY_SAMPLE_SCREENSPACE_TEXTURE( _MainTex, uv);	
 		#endif
 			#if defined(_NOISE)
 				color = Noise( color, uv);
+			#endif
+			#if defined(_OVERRAY)
+				color = Overray( color, uv);
 			#endif
 			#if defined(_VIGNETTE)
 				color = Vignette( color, uv);
