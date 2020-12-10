@@ -80,7 +80,6 @@ namespace RenderPipeline
 		{
 			CollectionProcesses();
 			RebuildCommandBuffers();
-			isPipelineStarted = true;
 		}
 	#if UNITY_EDITOR
 		void OnDisable()
@@ -698,7 +697,6 @@ namespace RenderPipeline
 		RenderTexture opaqueScreenShot;
 		RenderTexture postScreenShot;
 		bool isRebuildCommandBuffers;
-		bool isPipelineStarted;
 		
 		IPostProcess[] caches = new IPostProcess[ 2];
 		CommandBuffer commandBufferDepthTexture;
