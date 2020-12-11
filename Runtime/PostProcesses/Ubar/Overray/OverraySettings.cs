@@ -54,6 +54,15 @@ namespace RenderPipeline
 			}
 			return false;
 		}
+		public bool Capture( bool enable)
+		{
+			if( capture != enable)
+			{
+				capture = enable;
+				return true;
+			}
+			return false;
+		}
 		public void ClearCache()
 		{
 			cacheEnabled = null;
@@ -71,9 +80,9 @@ namespace RenderPipeline
 		{
 			bool rebuild = false;
 			
-			if( isScreenShot != false)
+			if( capture != false || isScreenShot != false)
 			{
-				if( pipeline.ScreenShot( phase, (capture) =>
+				if( pipeline.Capture( phase, (capture) =>
 				{
 					if( enabled != false)
 					{
@@ -93,7 +102,7 @@ namespace RenderPipeline
 				rebuild = true;
 				cacheEnabled = enabled;
 			}
-			if( enabled != false && forcedDisable == false && color.a > 0.0f)
+			if( enabled != false && forcedDisable == false)
 			{
 				if( material.IsKeywordEnabled( kShaderKeywordOverray) == false)
 				{
@@ -101,7 +110,6 @@ namespace RenderPipeline
 				}
 				if( cacheTexture != texture)
 				{
-					material.SetFloat( kShaderPropertyFlipY, pipeline.IsScreenShotTexture( texture)? 1.0f : 0.0f);
 					material.SetTexture( kShaderPropertyTexture, (texture != null)? texture : Texture2D.whiteTexture);
 					cacheTexture = texture;
 				}
@@ -176,7 +184,9 @@ namespace RenderPipeline
 		CompareFunction stencilCompare = CompareFunction.Always;
 		
 		[System.NonSerialized]
-		bool isScreenShot;
+		bool capture = false;
+		[System.NonSerialized]
+		bool isScreenShot = false;
 		[System.NonSerialized]
 		System.Action<bool> onScreenShotComplete;
 		

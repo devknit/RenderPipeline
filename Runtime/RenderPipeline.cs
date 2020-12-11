@@ -9,38 +9,6 @@ namespace RenderPipeline
 	[RequireComponent( typeof( Camera))]
 	public sealed partial class RenderPipeline : MonoBehaviour
 	{
-		public bool ScreenShot( PostProcessEvent phase, System.Action<Texture> onComplete)
-		{
-			if( phase == PostProcessEvent.BeforeImageEffectsOpaque)
-			{
-				if( onOpaqueScreenShot == null
-				||	onOpaqueScreenShot == onComplete)
-				{
-					if( onComplete == null)
-					{
-						onComplete = (texture) => {};
-					}
-					onOpaqueScreenShot = onComplete;
-					phaseOpaqueScreenShot |= kScreenShotPhaseCapture;
-					return true;
-				}
-			}
-			else if( phase == PostProcessEvent.BeforeImageEffects)
-			{
-				if( onPostScreenShot == null
-				||	onPostScreenShot == onComplete)
-				{
-					if( onComplete == null)
-					{
-						onComplete = (texture) => {};
-					}
-					onPostScreenShot = onComplete;
-					phasePostScreenShot |= kScreenShotPhaseCapture;
-					return true;
-				}
-			}
-			return false;
-		}
 		void Awake()
 		{
 			cacheCamera = GetComponent<Camera>();
@@ -106,16 +74,6 @@ namespace RenderPipeline
 		#if UNITY_EDITOR
 			cacheCamera.SetTargetBuffers( Display.main.colorBuffer, Display.main.depthBuffer);
 		#endif
-			if( commandBufferOpaqueScreenShot != null)
-			{
-				cacheCamera.RemoveCommandBuffer( CameraEvent.AfterImageEffectsOpaque, commandBufferOpaqueScreenShot);
-				commandBufferOpaqueScreenShot = null;
-			}
-			if( commandBufferPostScreenShot != null)
-			{
-				cacheCamera.RemoveCommandBuffer( CameraEvent.AfterImageEffects, commandBufferPostScreenShot);
-				commandBufferPostScreenShot = null;
-			}
 			RemoveCommandBuffers();
 			
 			for( int i0 = 0; i0 < caches.Length; ++i0)
@@ -230,9 +188,9 @@ namespace RenderPipeline
 				RebuildCommandBuffers();
 			}
 			RebuildScreenShotCommandBuffer( "CameraPipeline::OpaqueScreenShot", ref phaseOpaqueScreenShot, 
-				ref opaqueScreenShot,CameraEvent.AfterImageEffectsOpaque, ref commandBufferOpaqueScreenShot, ref onOpaqueScreenShot);
+				ref opaqueScreenShot, CameraEvent.BeforeImageEffectsOpaque, ref commandBufferOpaqueScreenShot, ref onOpaqueScreenShot);
 			RebuildScreenShotCommandBuffer( "CameraPipeline::PostScreenShot", ref phasePostScreenShot, 
-				ref postScreenShot,	CameraEvent.AfterImageEffects, ref commandBufferPostScreenShot, ref onPostScreenShot);
+				ref postScreenShot,	CameraEvent.BeforeImageEffects, ref commandBufferPostScreenShot, ref onPostScreenShot);
 		}
 		void RemoveCommandBuffers()
 		{
@@ -250,6 +208,16 @@ namespace RenderPipeline
 			{
 				cacheCamera.RemoveCommandBuffer( CameraEvent.BeforeImageEffects, commandBufferPostProcesses);
 				commandBufferPostProcesses = null;
+			}
+			if( commandBufferOpaqueScreenShot != null)
+			{
+				cacheCamera.RemoveCommandBuffer( CameraEvent.BeforeImageEffectsOpaque, commandBufferOpaqueScreenShot);
+				commandBufferOpaqueScreenShot = null;
+			}
+			if( commandBufferPostScreenShot != null)
+			{
+				cacheCamera.RemoveCommandBuffer( CameraEvent.BeforeImageEffects, commandBufferPostScreenShot);
+				commandBufferPostScreenShot = null;
 			}
 		}
 		int EnabledProcessCount( IPostProcess[] caches, PostProcessEvent postProcessEvent, ref DepthTextureMode depthTextureMode, ref bool highDynamicRangeTarget)
@@ -542,6 +510,38 @@ namespace RenderPipeline
 			cacheCamera.depthTextureMode = depthTextureMode;
 			cacheCamera.forceIntoRenderTexture = forceIntoRenderTexture;
 			isRebuildCommandBuffers = false;
+		}
+		internal bool Capture( PostProcessEvent phase, System.Action<Texture> onComplete)
+		{
+			if( phase == PostProcessEvent.BeforeImageEffectsOpaque)
+			{
+				if( onOpaqueScreenShot == null
+				||	onOpaqueScreenShot == onComplete)
+				{
+					if( onComplete == null)
+					{
+						onComplete = (texture) => {};
+					}
+					onOpaqueScreenShot = onComplete;
+					phaseOpaqueScreenShot |= kScreenShotPhaseCapture;
+					return true;
+				}
+			}
+			else if( phase == PostProcessEvent.BeforeImageEffects)
+			{
+				if( onPostScreenShot == null
+				||	onPostScreenShot == onComplete)
+				{
+					if( onComplete == null)
+					{
+						onComplete = (texture) => {};
+					}
+					onPostScreenShot = onComplete;
+					phasePostScreenShot |= kScreenShotPhaseCapture;
+					return true;
+				}
+			}
+			return false;
 		}
 		void RebuildScreenShotCommandBuffer( string name, ref int phase, ref RenderTexture targetBuffer,
 			CameraEvent cameraEvent, ref CommandBuffer commandBuffer, ref System.Action<Texture> onComplete)

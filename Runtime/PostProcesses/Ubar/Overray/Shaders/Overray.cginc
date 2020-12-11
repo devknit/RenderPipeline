@@ -6,13 +6,9 @@
 
 sampler2D _OverrayTex;
 fixed4 _OverrayColor;
-float _OverrayFlipY;
 
 inline fixed4 Overray( fixed4 color, float2 uv)
 {
-#if defined(UNITY_UV_STARTS_AT_TOP)
-	uv.y = abs( _OverrayFlipY - uv.y);
-#endif
 	fixed4 overrayColor = tex2D( _OverrayTex, uv) * _OverrayColor;
 	return fixed4( lerp( color.rgb, overrayColor.rgb, overrayColor.a), 1);
 }

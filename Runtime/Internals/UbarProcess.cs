@@ -67,8 +67,8 @@ namespace RenderPipeline
 			
 			if( cacheIndependent != independent)
 			{
-				cacheIndependent = independent;
 				ClearPropertiesCache();
+				cacheIndependent = independent;
 				rebuild = true;
 			}
 			return independent;
