@@ -103,6 +103,9 @@ namespace RenderPipeline
 				RenderBufferStoreAction.Store,
 				RenderBufferLoadAction.DontCare,	
 				RenderBufferStoreAction.DontCare);
+		#if WITH_CLEARRENDERTARGET
+			commandBuffer.ClearRenderTarget( false, true, Color.clear, 0);
+		#endif
 			commandBuffer.SetGlobalTexture( ShaderProperty.MainTex, context.source0);
 			commandBuffer.DrawMesh( brightnessExtractionMesh, Matrix4x4.identity, material, 0, 0);
 			

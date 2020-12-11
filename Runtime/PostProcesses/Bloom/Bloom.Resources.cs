@@ -245,7 +245,7 @@ namespace RenderPipeline
 			float x1 = (float)(brightnessOffsetX + brightnessNetWidth) / (float)brightnessExtractionDescriptor.width;
 			float y0 = (float)brightnessOffsetY / (float)brightnessExtractionDescriptor.height;
 			float y1 = (float)(brightnessOffsetY + brightnessNetHeight) / (float)brightnessExtractionDescriptor.height;
-		#if true
+		#if false
 			float w1 = 8.0f / (float)brightnessExtractionDescriptor.width;
 			float h1 = 8.0f / (float)brightnessExtractionDescriptor.height;
 			float w2 = w1 * 0.5f;
