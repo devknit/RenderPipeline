@@ -156,6 +156,13 @@ namespace RenderPipeline
 				cacheCamera.allowMSAA = false;
 				isRebuildCommandBuffers = true;
 			}
+			if( cacheDisplayWidth != Screen.width
+			||	cacheDisplayHeight != Screen.height)
+			{
+				isRebuildCommandBuffers = true;
+				cacheDisplayWidth = Screen.width;
+				cacheDisplayHeight = Screen.height;
+			}
 			for( int i0 = 0; i0 < caches.Length; ++i0)
 			{
 				IPostProcess process = caches[ i0];
@@ -711,6 +718,8 @@ namespace RenderPipeline
 		int phasePostScreenShot;
 		
 		Camera cacheCamera;
+		int? cacheDisplayWidth;
+		int? cacheDisplayHeight;
 		int? cacheScreenWidth;
 		int? cacheScreenHeight;
 		float? cacheResolutionScale;
