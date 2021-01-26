@@ -1,5 +1,6 @@
 {
-    "name": "RenderPipeline.Editor",
+    "name": "RenderingPipeline.Editor",
+    "rootNamespace": "",
     "references": [
         "GUID:922065e65a6dff949ad066e17390e1e8"
     ],

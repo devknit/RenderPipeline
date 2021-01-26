@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using System.Collections.Generic;
 
-namespace RenderPipeline.DepthOfField
+namespace RenderingPipeline.DepthOfField
 {
 	[DisallowMultipleComponent]
 	public sealed partial class DepthOfField : GenericProcess<DepthOfFieldSettings, DepthOfFieldProperties>

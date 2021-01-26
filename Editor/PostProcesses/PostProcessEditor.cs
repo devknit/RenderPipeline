@@ -2,7 +2,7 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace RenderPipeline.Editor
+namespace RenderingPipeline.Editor
 {
 	public abstract class PostProcessEditor : UnityEditor.Editor
 	{

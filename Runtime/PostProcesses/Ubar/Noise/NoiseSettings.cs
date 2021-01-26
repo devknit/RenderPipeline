@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace RenderPipeline
+namespace RenderingPipeline
 {
 	[CreateAssetMenu( menuName="RenderPipeline/Noise", fileName="PostProcessNoise", order=1200)]
 	public sealed class NoiseSettings : Settings<NoiseProperties>

@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.Playables;
 using UnityEngine.Timeline;
 
-namespace RenderPipeline
+namespace RenderingPipeline
 {
 	[System.Serializable]
 	public sealed class NoiseClip : PlayableAsset, ITimelineClipAsset

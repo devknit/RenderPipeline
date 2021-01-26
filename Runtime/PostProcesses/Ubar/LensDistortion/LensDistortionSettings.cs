@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace RenderPipeline
+namespace RenderingPipeline
 {
 	[CreateAssetMenu( menuName="RenderPipeline/LensDistortion", fileName="PostProcessLensDistortion", order=1200)]
 	public sealed class LensDistortionSettings : Settings<LensDistortionProperties>

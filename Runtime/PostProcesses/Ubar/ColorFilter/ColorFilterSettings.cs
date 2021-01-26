@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace RenderPipeline
+namespace RenderingPipeline
 {
 	[CreateAssetMenu( menuName="RenderPipeline/ColorFilter", fileName="PostProcessColorFilter", order=1200)]
 	public sealed class ColorFilterSettings : Settings<ColorFilterProperties>

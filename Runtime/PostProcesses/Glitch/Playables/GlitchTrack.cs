@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.Playables;
 using UnityEngine.Timeline;
 
-namespace RenderPipeline
+namespace RenderingPipeline
 {
 	[TrackColor( 0.9f, 0.3f, 0.1f)]
 	[TrackClipType( typeof( GlitchClip))]

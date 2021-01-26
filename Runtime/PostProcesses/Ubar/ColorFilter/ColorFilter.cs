@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace RenderPipeline
+namespace RenderingPipeline
 {
 	[DisallowMultipleComponent]
 	public sealed partial class ColorFilter : UbarProcess<ColorFilterSettings, ColorFilterProperties>

@@ -4,7 +4,7 @@ using UnityEngine.Rendering;
 using System.Collections.Generic;
 using DG.Tweening;
 
-namespace RenderPipeline
+namespace RenderingPipeline
 {
 	[CreateAssetMenu( menuName="RenderPipeline/RadialBlur", fileName="PostProcessRadialBlur", order=1200)]
 	public sealed class RadialBlurSettings : Settings<RadialBlurProperties>

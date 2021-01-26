@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using System.Collections.Generic;
 
-namespace RenderPipeline
+namespace RenderingPipeline
 {
 	[CreateAssetMenu( menuName="RenderPipeline/Bloom", fileName="PostProcessBloom", order=1200)]
 	public sealed class BloomSettings : Settings<BloomProperties>

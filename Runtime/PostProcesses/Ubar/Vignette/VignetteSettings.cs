@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace RenderPipeline
+namespace RenderingPipeline
 {
 	[CreateAssetMenu( menuName="RenderPipeline/Vignette", fileName="PostProcessVignette", order=1200)]
 	public sealed class VignetteSettings : Settings<VignetteProperties>

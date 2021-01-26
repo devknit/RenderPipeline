@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
 
-namespace RenderPipeline
+namespace RenderingPipeline
 {
 	[CreateAssetMenu( menuName="RenderPipeline/ColorGrading", fileName="PostProcessColorGrading", order=1200)]
 	public sealed class ColorGradingSettings : Settings<ColorGradingProperties>

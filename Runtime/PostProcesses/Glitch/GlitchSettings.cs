@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using System.Collections.Generic;
 
-namespace RenderPipeline
+namespace RenderingPipeline
 {
 	[CreateAssetMenu( menuName="RenderPipeline/Glitch", fileName="PostProcessGlitch", order=1200)]
 	public sealed class GlitchSettings : Settings<GlitchProperties>

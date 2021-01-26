@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace RenderPipeline
+namespace RenderingPipeline
 {
 	public abstract class GenericProcess<TSettings, TProperties> : PostProcess
 		where TSettings : Settings<TProperties>

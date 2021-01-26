@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace RenderPipeline
+namespace RenderingPipeline
 {
 	[CreateAssetMenu( menuName="RenderPipeline/ChromaticAberration", fileName="PostProcessChromaticAberration", order=1200)]
 	public sealed class ChromaticAberrationSettings : Settings<ChromaticAberrationProperties>

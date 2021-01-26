@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.Playables;
 
-namespace RenderPipeline
+namespace RenderingPipeline
 {
 	[System.Serializable]
 	public sealed class VignetteBehaviour : PlayableBehaviour

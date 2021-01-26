@@ -4,7 +4,7 @@ using UnityEngine.Rendering;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace RenderPipeline
+namespace RenderingPipeline
 {
 	[System.Serializable]
 	public sealed class UbarBehavior : IPostProcess

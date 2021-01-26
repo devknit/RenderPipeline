@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using System.Collections.Generic;
 
-namespace RenderPipeline
+namespace RenderingPipeline
 {
 	[DisallowMultipleComponent]
 	public sealed partial class Bloom : GenericProcess<BloomSettings, BloomProperties>

@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
 
-namespace RenderPipeline
+namespace RenderingPipeline
 {
 	[System.Serializable]
 	public sealed class Spline

@@ -1,7 +1,7 @@
 ﻿
 using UnityEngine;
 
-namespace RenderPipeline
+namespace RenderingPipeline
 {
 	public sealed partial class Bloom
 	{

@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace RenderPipeline
+namespace RenderingPipeline
 {
 	public abstract class UbarProcess<TSettings, TProperties> :PostProcess, IUbarProcess
 		where TSettings : Settings<TProperties>

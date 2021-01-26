@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace RenderPipeline
+namespace RenderingPipeline
 {
 	[CreateAssetMenu( menuName="RenderPipeline/Flip", fileName="PostProcessFlip", order=1200)]
 	public sealed class FlipSettings : Settings<FlipProperties>

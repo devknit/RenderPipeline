@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using System.Collections.Generic;
 
-namespace RenderPipeline.DepthOfField
+namespace RenderingPipeline.DepthOfField
 {
 	internal enum BlurQuality : int
 	{

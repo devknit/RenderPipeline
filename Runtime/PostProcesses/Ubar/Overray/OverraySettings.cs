@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace RenderPipeline
+namespace RenderingPipeline
 {
 	[CreateAssetMenu( menuName="RenderPipeline/Overray", fileName="PostProcessOverray", order=1200)]
 	public sealed class OverraySettings : Settings<OverrayProperties>

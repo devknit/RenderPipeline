@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using System.Collections.Generic;
 
-namespace RenderPipeline
+namespace RenderingPipeline
 {
 	[CreateAssetMenu( menuName="RenderPipeline/FXAA", fileName="PostProcessFXAA", order=1200)]
 	public sealed class FXAASettings : Settings<FXAAProperties>

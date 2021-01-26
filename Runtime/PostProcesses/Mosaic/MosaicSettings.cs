@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using System.Collections.Generic;
 
-namespace RenderPipeline
+namespace RenderingPipeline
 {
 	[CreateAssetMenu( menuName="RenderPipeline/Mosaic", fileName="PostProcessMosaic", order=1200)]
 	public sealed class MosaicSettings : Settings<MosaicProperties>

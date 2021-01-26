@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.Playables;
 
-namespace RenderPipeline
+namespace RenderingPipeline
 {
 	public sealed class NoiseMixerBehaviour : PlayableBehaviour
 	{
