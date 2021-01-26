@@ -56,8 +56,12 @@ Shader "Hidden/RenderPipeline/Glitch"
 			fixed4 frag( VertexOutput i) : SV_Target
 			{
 				UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX( i);
-				return glitch( _MainTex, i.uv, _Intensity, _TimeScale,
-					_GlitchParam.xy, _GlitchParam.zw, _ChromaticAberration);
+				if( _Intensity > 0.0)
+				{
+					return glitch( _MainTex, i.uv, _Intensity, _TimeScale,
+						_GlitchParam.xy, _GlitchParam.zw, _ChromaticAberration);
+				}
+				return tex2D( _MainTex, i.uv);
 			}
 			ENDCG
 		}
