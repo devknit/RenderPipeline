@@ -29,7 +29,7 @@ namespace RenderingPipeline
 					new Vector2( 1, 0)
 				});
 			fillMesh.SetIndices(
-				new int[]{ 0, 1, 2, 3 }, MeshTopology.Quads, 0, false);
+				new int[]{ 0, 1, 2, 3 }, MeshTopology.Quads, 0, false);	
 			fillMesh.Optimize();
 			fillMesh.UploadMeshData( true);
 			
@@ -37,12 +37,6 @@ namespace RenderingPipeline
 			{
 				copyMaterial = new Material( copyShader);
 			}
-		#if UNITY_EDITOR
-			UnityEditor.EditorApplication.projectChanged += () =>
-			{
-				ClearPropertiesCache();
-			};
-		#endif
 		}
 		void Start()
 		{
@@ -50,6 +44,13 @@ namespace RenderingPipeline
 			RebuildCommandBuffers();
 		}
 	#if UNITY_EDITOR
+		void OnEnable()
+		{
+			RenderPipelineEvent.saveAssets = () =>
+			{
+				ClearPropertiesCache();
+			};
+		}
 		void OnDisable()
 		{
 			cacheCamera.SetTargetBuffers( Display.main.colorBuffer, Display.main.depthBuffer);
@@ -729,5 +730,16 @@ namespace RenderingPipeline
 		bool? cacheOverrideCameraDepthTexture;
 	#endif
 	}
+#if UNITY_EDITOR
+	internal class RenderPipelineEvent : UnityEditor.AssetModificationProcessor
+	{
+		static string[] OnWillSaveAssets( string[] paths)
+		{
+			saveAssets?.Invoke();
+			return paths;
+		}
+		internal static System.Action saveAssets;
+	}
+#endif
 }
 	
