@@ -43,7 +43,7 @@ namespace RenderingPipeline
 			}
 			return rebuild;
 		}
-		public sealed override bool Valid()
+		public override bool Valid()
 		{
 			return Enabled != false && material != null;
 		}

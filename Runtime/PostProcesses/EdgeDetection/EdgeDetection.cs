@@ -19,7 +19,7 @@ namespace RenderingPipeline
 		{
 			return false;
 		}
-		public override void BuildCommandBuffer( RenderPipeline pipeline,
+		public override bool BuildCommandBuffer( RenderPipeline pipeline,
 			CommandBuffer commandBuffer, TargetContext context, IPostProcess nextProcess)
 		{
 			if( context.CompareSource0ToTarget0() != false)
@@ -49,6 +49,7 @@ namespace RenderingPipeline
 			pipeline.SetViewport( commandBuffer, nextProcess);
 			pipeline.DrawFill( commandBuffer, material, (int)Properties.DetectType);
 			context.duplicated = false;
+			return true;
 		}
 		public override long GetDepthStencilHashCode()
 		{

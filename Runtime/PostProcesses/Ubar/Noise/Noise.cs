@@ -7,7 +7,7 @@ namespace RenderingPipeline
 	[DisallowMultipleComponent]
 	public sealed partial class Noise : UbarSeparableProcess<NoiseSettings, NoiseProperties>
 	{
-		public override void BuildCommandBuffer( RenderPipeline pipeline,
+		public override bool BuildCommandBuffer( RenderPipeline pipeline,
 			CommandBuffer commandBuffer, TargetContext context, IPostProcess nextProcess)
 		{
 			if( context.CompareSource0ToTarget0() != false)
@@ -37,6 +37,7 @@ namespace RenderingPipeline
 			pipeline.SetViewport( commandBuffer, nextProcess);
 			pipeline.DrawFill( commandBuffer, material, 0);
 			context.duplicated = false;
+			return true;
 		}
 		public override long GetDepthStencilHashCode()
 		{

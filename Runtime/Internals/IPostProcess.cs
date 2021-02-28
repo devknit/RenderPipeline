@@ -66,8 +66,9 @@ namespace RenderingPipeline
 		 * \param commandBuffer [in] コマンドバッファ
 		 * \param context [in] コンテキスト
 		 * \param nextProcess [in] 次に実行されるプロセス
+		 * \return コンテキストの Next() を呼ぶ必要がある場合、true を返す。
 		 */
-		void BuildCommandBuffer( 
+		bool BuildCommandBuffer( 
 			RenderPipeline pipeline,
 			CommandBuffer commandBuffer, 
 			TargetContext context, 

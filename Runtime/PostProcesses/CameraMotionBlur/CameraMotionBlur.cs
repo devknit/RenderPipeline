@@ -30,7 +30,7 @@ namespace RenderingPipeline
 		{
 			return false;
 		}
-		public override void BuildCommandBuffer( RenderPipeline pipeline,
+		public override bool BuildCommandBuffer( RenderPipeline pipeline,
 			CommandBuffer commandBuffer, TargetContext context, IPostProcess nextProcess)
 		{
 			if( context.CompareSource0ToTarget0() != false)
@@ -73,6 +73,7 @@ namespace RenderingPipeline
 			
 			commandBuffer.ReleaseTemporaryRT( kShaderTargetBlur);
 			context.duplicated = false;
+			return true;
 		}
 		
 		static readonly int kShaderTargetBlur = Shader.PropertyToID( "_CameraMotionBlurTarget");

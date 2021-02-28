@@ -96,7 +96,7 @@ namespace RenderingPipeline
 		{
 			return false;
 		}
-		public void BuildCommandBuffer( RenderPipeline pipeline,
+		public bool BuildCommandBuffer( RenderPipeline pipeline,
 			CommandBuffer commandBuffer, TargetContext context, IPostProcess nextProcess)
 		{
 			foreach( var property in properties)
@@ -129,6 +129,7 @@ namespace RenderingPipeline
 			pipeline.SetViewport( commandBuffer, nextProcess);
 			pipeline.DrawFill( commandBuffer, material, 0);
 			context.duplicated = false;
+			return true;
 		}
 		public long GetDepthStencilHashCode()
 		{

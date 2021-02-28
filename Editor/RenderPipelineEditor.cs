@@ -11,12 +11,10 @@ namespace RenderingPipeline.Editor
 		public override void OnInspectorGUI()
 		{
 			var defaultDepthTextureMode = serializedObject.FindProperty( "defaultDepthTextureMode");
-			var clearDepthAfterOpaque = serializedObject.FindProperty( "clearDepthAfterOpaque");
 			var overrideTargetBuffers = serializedObject.FindProperty( "overrideTargetBuffers");
 			var postProcessesTarget = serializedObject.FindProperty( "postProcessesTarget");
 			
 			if( defaultDepthTextureMode == null
-			||	clearDepthAfterOpaque == null
 			||	overrideTargetBuffers == null
 			||	postProcessesTarget == null)
 			{
@@ -27,7 +25,6 @@ namespace RenderingPipeline.Editor
 				serializedObject.Update();
 				
 				EditorGUILayout.PropertyField( defaultDepthTextureMode, true);
-				EditorGUILayout.PropertyField( clearDepthAfterOpaque, true);
 				EditorGUILayout.PropertyField( overrideTargetBuffers, true);
 				
 				if( overrideTargetBuffers.boolValue != false)

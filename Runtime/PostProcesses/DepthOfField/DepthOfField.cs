@@ -20,7 +20,7 @@ namespace RenderingPipeline.DepthOfField
 		{
 			return false;
 		}
-		public override void BuildCommandBuffer( RenderPipeline pipeline,
+		public override bool BuildCommandBuffer( RenderPipeline pipeline,
 			CommandBuffer commandBuffer, TargetContext context, IPostProcess nextProcess)
 		{
 			if( context.CompareSource0ToTarget0() != false && nextProcess != null)
@@ -129,6 +129,7 @@ namespace RenderingPipeline.DepthOfField
 				commandBuffer.ReleaseTemporaryRT( kShaderPropertyAlphaDepthTarget);
 			}
 			context.duplicated = false;
+			return true;
 		}
 		
 		static readonly int kShaderPropertyAlphaDepthTarget = Shader.PropertyToID( "_AlphaDepthTarget");

@@ -53,9 +53,10 @@ namespace RenderingPipeline
 		{
 			return false;
 		}
-		public override void BuildCommandBuffer( RenderPipeline pipeline,
+		public override bool BuildCommandBuffer( RenderPipeline pipeline,
 			CommandBuffer commandBuffer, TargetContext context, IPostProcess nextProcess)
 		{
+			return false;
 		}
 		public IUbarProperties GetProperties()
 		{

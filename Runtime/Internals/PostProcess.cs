@@ -20,7 +20,7 @@ namespace RenderingPipeline
 		public abstract PostProcessEvent GetPostProcessEvent();
 		public abstract DepthTextureMode GetDepthTextureMode();
 		public abstract bool IsRequiredHighDynamicRange();
-		public abstract void BuildCommandBuffer( RenderPipeline pipeline,
+		public abstract bool BuildCommandBuffer( RenderPipeline pipeline,
 			CommandBuffer commandBuffer, TargetContext context, IPostProcess nextProcess);
 		
 		public virtual long GetDepthStencilHashCode()

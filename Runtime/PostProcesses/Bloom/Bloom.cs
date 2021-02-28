@@ -78,7 +78,7 @@ namespace RenderingPipeline
 		{
 			return true;
 		}
-		public override void BuildCommandBuffer( RenderPipeline pipeline,
+		public override bool BuildCommandBuffer( RenderPipeline pipeline,
 			CommandBuffer commandBuffer, TargetContext context, IPostProcess nextProcess)
 		{
 			if( context.CompareSource0ToTarget0() != false)
@@ -192,6 +192,7 @@ namespace RenderingPipeline
 			commandBuffer.ReleaseTemporaryRT( kShaderPropertyGaussianBlurVerticalTarget);
 			commandBuffer.ReleaseTemporaryRT( kShaderPropertyGaussianBlurHorizontalTarget);
 			commandBuffer.ReleaseTemporaryRT( kShaderPropertyBrightnessExtractionTarget);
+			return true;
 		}
 		int UpdateDescriptors( int width, int height)
 		{

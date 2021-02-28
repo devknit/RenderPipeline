@@ -125,11 +125,6 @@ namespace RenderingPipeline
 				isRebuildCommandBuffers = true;
 				fourceCacheClear = true;
 			}
-			if( cacheClearDepthAfterOpaque != clearDepthAfterOpaque)
-			{
-				cacheClearDepthAfterOpaque = clearDepthAfterOpaque;
-				isRebuildCommandBuffers = true;
-			}
 			if( cacheOverrideTargetBuffers != OverrideTargetBuffers)
 			{
 				cacheOverrideTargetBuffers = OverrideTargetBuffers;
@@ -369,78 +364,73 @@ namespace RenderingPipeline
 				}
 			}
 			/* 不透明系プロセス */
-			if( enabledOpaqueProcessCount > 0 || clearDepthAfterOpaque != false)
+			if( enabledOpaqueProcessCount > 0)
 			{
 				commandBufferOpaqueProcesses = new CommandBuffer();
 				commandBufferOpaqueProcesses.name = "CameraPipeline::OpaqueProcesses";
 				commandBufferOpaqueProcesses.Clear();
+				commandBufferOpaqueProcesses.SetProjectionMatrix( Matrix4x4.Ortho( 0, 1, 0, 1, 0, 1));
+				commandBufferOpaqueProcesses.SetViewMatrix( Matrix4x4.identity);
+				ResetTemporaryRT( commandBufferOpaqueProcesses);
 				
-				if( enabledOpaqueProcessCount > 0)
+				var context = new TargetContext();
+				
+				if( OverrideTargetBuffers == false)
 				{
-					commandBufferOpaqueProcesses.SetProjectionMatrix( Matrix4x4.Ortho( 0, 1, 0, 1, 0, 1));
-					commandBufferOpaqueProcesses.SetViewMatrix( Matrix4x4.identity);
-					ResetTemporaryRT( commandBufferOpaqueProcesses);
+					context.SetBuffers();
+					context.SetSource0( BuiltinRenderTextureType.CameraTarget);
+					context.SetTarget0( BuiltinRenderTextureType.CameraTarget);
+				}
+				else
+				{
+					context.SetBuffers( colorBuffer, depthBuffer);
+					context.SetSource0( colorBuffer);
+					context.SetTarget0( colorBuffer);
+				}
+				for( i0 = 0, process = null; i0 < caches.Length; ++i0)
+				{
+					nextProcess = caches[ i0];
 					
-					var context = new TargetContext();
+					if( nextProcess?.GetPostProcessEvent() != PostProcessEvent.BeforeImageEffectsOpaque)
+					{
+						continue;
+					}
+					if( nextProcess.Valid() != false)
+					{
+						if( nextProcess is IUbarProcess ubarProcess)
+						{
+							if( ubarProcess.Independent() == false)
+							{
+								continue;
+							}
+						}
+						if( process != null)
+						{
+							RecycleTemporaryRT( context);
+							
+							if( process.BuildCommandBuffer( this, commandBufferOpaqueProcesses, context, nextProcess) != false)
+							{
+								context.Next();
+							}
+						}
+						process = nextProcess;
+					}
+				}
+				if( process != null)
+				{
+					RecycleTemporaryRT( context);
 					
 					if( OverrideTargetBuffers == false)
 					{
-						context.SetBuffers();
-						context.SetSource0( BuiltinRenderTextureType.CameraTarget);
 						context.SetTarget0( BuiltinRenderTextureType.CameraTarget);
 					}
 					else
 					{
-						context.SetBuffers( colorBuffer, depthBuffer);
-						context.SetSource0( colorBuffer);
 						context.SetTarget0( colorBuffer);
 					}
-					for( i0 = 0, process = null; i0 < caches.Length; ++i0)
-					{
-						nextProcess = caches[ i0];
-						
-						if( nextProcess?.GetPostProcessEvent() != PostProcessEvent.BeforeImageEffectsOpaque)
-						{
-							continue;
-						}
-						if( nextProcess.Valid() != false)
-						{
-							if( nextProcess is IUbarProcess ubarProcess)
-							{
-								if( ubarProcess.Independent() == false)
-								{
-									continue;
-								}
-							}
-							if( process != null)
-							{
-								RecycleTemporaryRT( context);
-								process.BuildCommandBuffer( this, commandBufferOpaqueProcesses, context, nextProcess);
-								context.Next();
-							}
-							process = nextProcess;
-						}
-					}
-					if( process != null)
-					{
-						RecycleTemporaryRT( context);
-						
-						if( OverrideTargetBuffers == false)
-						{
-							context.SetTarget0( BuiltinRenderTextureType.CameraTarget);
-						}
-						else
-						{
-							context.SetTarget0( colorBuffer);
-						}
-						process.BuildCommandBuffer( this, commandBufferOpaqueProcesses, context, null);
-					}
-					ReleaseTemporaryRT();
+					process.BuildCommandBuffer( this, commandBufferOpaqueProcesses, context, null);
 				}
-				if( clearDepthAfterOpaque != false)
-				{
-					commandBufferOpaqueProcesses.ClearRenderTarget( true, false, Color.clear, 1.0f);
-				}
+				ReleaseTemporaryRT();
 				cacheCamera.AddCommandBuffer( CameraEvent.BeforeImageEffectsOpaque, commandBufferOpaqueProcesses);
 			}
 			/* 半透明系プロセス+FinalPass */
@@ -489,8 +479,11 @@ namespace RenderingPipeline
 							if( process != null)
 							{
 								RecycleTemporaryRT( context);
-								process.BuildCommandBuffer( this, commandBufferPostProcesses, context, nextProcess);
-								context.Next();
+								
+								if( process.BuildCommandBuffer( this, commandBufferPostProcesses, context, nextProcess) != false)
+								{
+									context.Next();
+								}
 							}
 							process = nextProcess;
 						}
@@ -686,7 +679,6 @@ namespace RenderingPipeline
 		{
 			get{ return (cacheScreenHeight.HasValue != false)? cacheScreenHeight.Value : Screen.height; }
 		}
-		const string kTipsClearDepthAfterOpaque = "不透明描画後に深度情報をクリアします。";
 		const string kTipsOverrideTargetBuffers = 
 			"レンダリングパスでUpdateDepthTextureが処理されていない状態でも_CameraDepthTextureに深度情報が書き込まれるようになります。\n\n" +
 			"この機能を有効にした場合、UpdateDepthTextureで行われるDrawCallが無駄になるため、UpdateDepthTextureが発生しない様にする必要があります。\n\n" +
@@ -702,8 +694,6 @@ namespace RenderingPipeline
 		Shader ubarShader = default;
 		[SerializeField]
 		DepthTextureMode defaultDepthTextureMode = default;
-		[SerializeField, TooltipAttribute( kTipsClearDepthAfterOpaque)]
-		bool clearDepthAfterOpaque = false;
 		[SerializeField, TooltipAttribute( kTipsOverrideTargetBuffers)]
 		bool overrideTargetBuffers = false;
 		[SerializeField, Range( 0.1f, 5.0f)]
@@ -741,7 +731,6 @@ namespace RenderingPipeline
 		float? cacheResolutionScale;
 	#if UNITY_EDITOR
 		DepthTextureMode? cacheDefaultDepthTextureMode;
-		bool? cacheClearDepthAfterOpaque;
 		bool? cacheOverrideTargetBuffers;
 		bool? cacheOverrideCameraDepthTexture;
 	#endif
