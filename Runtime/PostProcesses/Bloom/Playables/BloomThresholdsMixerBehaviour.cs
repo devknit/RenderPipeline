@@ -11,13 +11,17 @@ namespace RenderingPipeline
 		{
 			if( playerData is RenderPipeline renderPipeline)
 			{
-				if( renderPipeline.Bloom != null)
+				if( renderPipelineComponent == null)
 				{
-					if( cachedRenderPipeline == null)
+					bloomComponent = renderPipeline.FindPostProcess<Bloom>();
+					if( bloomComponent != null)
 					{
-						defaultThresholds = renderPipeline.Bloom.Properties.Thresholds;
-						cachedRenderPipeline = renderPipeline;
+						defaultThresholds = bloomComponent.Properties.Thresholds;
 					}
+					renderPipelineComponent = renderPipeline;
+				}
+				if( bloomComponent != null)
+				{
 					int inputCount = playable.GetInputCount();
 					float thresholds = 0.0f;
 					float totalWeight = 0.0f;
@@ -33,19 +37,22 @@ namespace RenderingPipeline
 						totalWeight += inputWeight;
 					}
 					thresholds += defaultThresholds * (1.0f - totalWeight);
-					renderPipeline.Bloom.Properties.Thresholds = thresholds;
+					bloomComponent.Properties.Thresholds = thresholds;
 				}
 			}
 		}
 		public override void OnGraphStop( Playable playable)
 		{
-			if( cachedRenderPipeline != null)
+			if( bloomComponent != null)
 			{
-				cachedRenderPipeline.Bloom.Properties.Thresholds = defaultThresholds;
+				bloomComponent.Properties.Thresholds = defaultThresholds;
+				bloomComponent = null;
 			}
+			renderPipelineComponent = null;
 		}
 		
-		RenderPipeline cachedRenderPipeline;
 		float defaultThresholds = 1.0f;
+		Bloom bloomComponent;
+		RenderPipeline renderPipelineComponent;
 	}
 }

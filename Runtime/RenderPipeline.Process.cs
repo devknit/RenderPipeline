@@ -7,38 +7,6 @@ namespace RenderingPipeline
 {
 	public sealed partial class RenderPipeline : MonoBehaviour
 	{
-		public EdgeDetection EdgeDetection
-		{
-			get{ return FindPostProcess<EdgeDetection>(); }
-		}
-		public SSAO SSAO
-		{
-			get{ return FindPostProcess<SSAO>(); }
-		}
-		public Bloom Bloom
-		{
-			get{ return FindPostProcess<Bloom>(); }
-		}
-		public DepthOfField.DepthOfField DepthOfField
-		{
-			get{ return FindPostProcess<DepthOfField.DepthOfField>(); }
-		}
-		public CameraMotionBlur CameraMotionBlur
-		{
-			get{ return FindPostProcess<CameraMotionBlur>(); }
-		}
-		public Mosaic Mosaic
-		{
-			get{ return FindPostProcess<Mosaic>(); }
-		}
-		public FXAA FXAA
-		{
-			get{ return FindPostProcess<FXAA>(); }
-		}
-		public ScreenBlend ScreenBlend
-		{
-			get{ return FindPostProcess<ScreenBlend>(); }
-		}
 		public T FindPostProcess<T>() where T : PostProcess
 		{
 			for( int i0 = 0; i0 < caches.Length; ++i0)
