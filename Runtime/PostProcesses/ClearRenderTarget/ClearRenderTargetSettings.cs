@@ -5,9 +5,6 @@ using System.Collections.Generic;
 
 namespace RenderingPipeline
 {
-	public sealed class ClearRenderTargetSettings : Settings<ClearRenderTargetProperties>
-	{
-	}
 	[System.Serializable]
 	public sealed class ClearRenderTargetProperties : IGenericProperties
 	{

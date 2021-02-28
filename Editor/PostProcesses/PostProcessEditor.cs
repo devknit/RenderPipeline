@@ -13,7 +13,7 @@ namespace RenderingPipeline.Editor
 			SerializedProperty useSharedProperties = serializedObject.FindProperty( "useSharedProperties");
 			EditorGUI.BeginChangeCheck();
 			
-			if( sharedSettings == null || properties == null)
+			if( properties == null)
 			{
 				base.OnInspectorGUI();
 			}
@@ -21,42 +21,48 @@ namespace RenderingPipeline.Editor
 			{
 				serializedObject.Update();
 				
-				EditorGUILayout.PropertyField( sharedSettings, true);
+				bool sharedGUI = false;
 				
-				if( sharedSettings.objectReferenceValue != null)
+				if( sharedSettings != null)
 				{
-					EditorGUILayout.PropertyField( useSharedProperties, true);
+					EditorGUILayout.PropertyField( sharedSettings, true);
 					
-					var sharedSettingsObject = new SerializedObject( sharedSettings.objectReferenceValue);
-					sharedSettingsObject.Update();
-					
-					Color defaultBackgroundColor = GUI.backgroundColor;
-					GUI.backgroundColor = new Color32( 194, 230, 237, 255);
+					if( sharedSettings.objectReferenceValue != null && useSharedProperties != null)
 					{
-						OnPropertiesGUI( sharedSettingsObject.FindProperty( "properties"), (propertyName) =>
-						{
-							return propertyName.Equals( "enabled") != false;
-						});
-						if( useSharedProperties.boolValue != false)
+						EditorGUILayout.PropertyField( useSharedProperties, true);
+						
+						var sharedSettingsObject = new SerializedObject( sharedSettings.objectReferenceValue);
+						sharedSettingsObject.Update();
+						
+						Color defaultBackgroundColor = GUI.backgroundColor;
+						GUI.backgroundColor = new Color32( 194, 230, 237, 255);
 						{
 							OnPropertiesGUI( sharedSettingsObject.FindProperty( "properties"), (propertyName) =>
+							{
+								return propertyName.Equals( "enabled") != false;
+							});
+							if( useSharedProperties.boolValue != false)
+							{
+								OnPropertiesGUI( sharedSettingsObject.FindProperty( "properties"), (propertyName) =>
+								{
+									return propertyName.Equals( "enabled") == false;
+								});
+							}
+						}
+						GUI.backgroundColor = defaultBackgroundColor;
+						sharedSettingsObject.ApplyModifiedProperties();
+						
+						if( useSharedProperties.boolValue == false)
+						{
+							OnPropertiesGUI( properties, (propertyName) =>
 							{
 								return propertyName.Equals( "enabled") == false;
 							});
 						}
-					}
-					GUI.backgroundColor = defaultBackgroundColor;
-					sharedSettingsObject.ApplyModifiedProperties();
-					
-					if( useSharedProperties.boolValue == false)
-					{
-						OnPropertiesGUI( properties, (propertyName) =>
-						{
-							return propertyName.Equals( "enabled") == false;
-						});
+						sharedGUI = true;
 					}
 				}
-				else
+				if( sharedGUI == false)
 				{
 					OnPropertiesGUI( properties);
 				}

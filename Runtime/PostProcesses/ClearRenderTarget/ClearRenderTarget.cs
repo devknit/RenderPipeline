@@ -5,23 +5,11 @@ using UnityEngine.Rendering;
 namespace RenderingPipeline
 {
 	[DisallowMultipleComponent]
-	public sealed partial class ClearRenderTarget : GenericProcess<ClearRenderTargetSettings, ClearRenderTargetProperties>
+	public sealed partial class ClearRenderTarget : CommandProcess<ClearRenderTargetProperties>
 	{
-		public override bool Valid()
+		protected override bool OnUpdateProperties( RenderPipeline pipeline)
 		{
-			return Enabled != false;
-		}
-		protected override bool OnUpdateProperties( RenderPipeline pipeline, Material material)
-		{
-			return Properties.UpdateProperties( pipeline, material);
-		}
-		public override DepthTextureMode GetDepthTextureMode()
-		{
-			return DepthTextureMode.None;
-		}
-		public override bool IsRequiredHighDynamicRange()
-		{
-			return false;
+			return Properties.UpdateProperties( pipeline, null);
 		}
 		public override bool BuildCommandBuffer( RenderPipeline pipeline,
 			CommandBuffer commandBuffer, TargetContext context, IPostProcess nextProcess)
