@@ -1,4 +1,4 @@
-Shader "Hidden/RenderPipeline/Antialiasing/FXAA2"
+﻿Shader "Hidden/RenderPipeline/Antialiasing/FXAA2"
 {
 	CGINCLUDE
 	#include "UnityCG.cginc"

@@ -1,4 +1,4 @@
-Shader "Hidden/RenderPipeline/Antialiasing/SSAA"
+﻿Shader "Hidden/RenderPipeline/Antialiasing/SSAA"
 {
 	SubShader
 	{

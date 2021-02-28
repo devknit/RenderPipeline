@@ -1,4 +1,4 @@
-Shader "Hidden/RenderPipeline/DepthOfFieldHdr"
+﻿Shader "Hidden/RenderPipeline/DepthOfFieldHdr"
 {
 //	Properties
 //	{

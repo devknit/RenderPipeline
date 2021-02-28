@@ -1,4 +1,4 @@
-
+﻿
 Shader "Hidden/RenderPipeline/Glitch"
 {
 	Properties

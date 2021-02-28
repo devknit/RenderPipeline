@@ -1,4 +1,4 @@
-Shader "Hidden/Dof/DepthOfFieldHdr"
+﻿Shader "Hidden/Dof/DepthOfFieldHdr"
 {
 	Properties
 	{
