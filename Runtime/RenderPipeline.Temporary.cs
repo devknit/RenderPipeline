@@ -28,8 +28,16 @@ namespace RenderingPipeline
 			}
 		}
 		public int GetTemporaryRT( int width=-1, int height=-1, int depth=0, 
-			FilterMode filterMode=FilterMode.Bilinear, RenderTextureFormat format=RenderTextureFormat.DefaultHDR)
+			FilterMode? filterMode=null, RenderTextureFormat? format=null)
 		{
+			if( filterMode.HasValue == false)
+			{
+				filterMode = FilterMode.Bilinear;
+			}
+			if( format.HasValue == false)
+			{
+				format = (RenderTextureFormat)defaultColorTargetFormat;
+			}
 			foreach( var recycleTemporary in recycleTemporaries.Values)
 			{
 				if( recycleTemporary.width == width
@@ -43,8 +51,8 @@ namespace RenderingPipeline
 				}
 			}
 			int temporary = Shader.PropertyToID( "CameraPipeline::PostTemporary" + temporaryCount);
-			currentCommandBuffer.GetTemporaryRT( temporary, width, height, depth, filterMode, format);
-			usedTemporaries.Add( temporary, new TemporaryTarget( temporary, width, height, depth, filterMode, format));
+			currentCommandBuffer.GetTemporaryRT( temporary, width, height, depth, filterMode.Value, format.Value);
+			usedTemporaries.Add( temporary, new TemporaryTarget( temporary, width, height, depth, filterMode.Value, format.Value));
 			++temporaryCount;
 			return temporary;
 		}

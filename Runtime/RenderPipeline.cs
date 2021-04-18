@@ -1,5 +1,6 @@
 ﻿
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.Rendering;
 
 namespace RenderingPipeline
@@ -53,6 +54,10 @@ namespace RenderingPipeline
 		}
 		void OnDisable()
 		{
+			if( overrideTargetEvent.GetPersistentEventCount() > 0)
+			{
+				overrideTargetEvent.Invoke( null);
+			}
 			cacheCamera.SetTargetBuffers( Display.main.colorBuffer, Display.main.depthBuffer);
 			cacheCamera.depthTextureMode = DepthTextureMode.None;
 			cacheCamera.forceIntoRenderTexture = false;
@@ -281,6 +286,10 @@ namespace RenderingPipeline
 			 */
 			if( OverrideTargetBuffers == false)
 			{
+				if( overrideTargetEvent.GetPersistentEventCount() > 0)
+				{
+					overrideTargetEvent.Invoke( null);
+				}
 				forceIntoRenderTexture = true;
 			#if UNITY_EDITOR
 				cacheCamera.SetTargetBuffers( Display.main.colorBuffer, Display.main.depthBuffer);
@@ -295,6 +304,10 @@ namespace RenderingPipeline
 				
 				if( refreshColorBuffer != false || refreshDepthBuffer != false)
 				{
+					if( overrideTargetEvent.GetPersistentEventCount() > 0)
+					{
+						overrideTargetEvent.Invoke( null);
+					}
 					cacheCamera.SetTargetBuffers( Display.main.colorBuffer, Display.main.depthBuffer);
 					
 					if( refreshColorBuffer != false)
@@ -305,9 +318,9 @@ namespace RenderingPipeline
 						}
 						var colorBufferFormat = RenderTextureFormat.ARGB32;
 						
-						if( SystemInfo.SupportsRenderTextureFormat( RenderTextureFormat.DefaultHDR) != false)
+						if( SystemInfo.SupportsRenderTextureFormat( (RenderTextureFormat)overrideTargetFormat) != false)
 						{
-							colorBufferFormat = RenderTextureFormat.DefaultHDR;
+							colorBufferFormat = (RenderTextureFormat)overrideTargetFormat;
 						}
 						colorBuffer = new RenderTexture( targetWidth, targetHeight, 0, colorBufferFormat);
 						colorBuffer.filterMode = FilterMode.Point;
@@ -329,6 +342,10 @@ namespace RenderingPipeline
 				cacheScreenHeight = Screen.height;
 				cacheResolutionScale = resolutionScale;
 				
+				if( overrideTargetEvent.GetPersistentEventCount() > 0)
+				{
+					overrideTargetEvent.Invoke( colorBuffer);
+				}
 				if( (depthTextureMode & DepthTextureMode.Depth) != 0 && OverrideCameraDepthTexture != false)
 				{
 					commandBufferDepthTexture = new CommandBuffer();
@@ -491,12 +508,20 @@ namespace RenderingPipeline
 					if( process != null)
 					{
 						RecycleTemporaryRT( context);
-						context.SetTarget0( BuiltinRenderTextureType.CameraTarget);
+						
+						if( OverrideTargetBuffers != false && overrideTargetEvent.GetPersistentEventCount() > 0)
+						{
+							context.SetTarget0( colorBuffer);
+						}
+						else
+						{
+							context.SetTarget0( BuiltinRenderTextureType.CameraTarget);
+						}
 						process.BuildCommandBuffer( this, commandBufferPostProcesses, context, null);
 					}
 					ReleaseTemporaryRT();
 				}
-				else
+				else if( overrideTargetEvent.GetPersistentEventCount() == 0)
 				{
 					commandBufferPostProcesses.SetRenderTarget( 
 						BuiltinRenderTextureType.CameraTarget, 
@@ -688,20 +713,40 @@ namespace RenderingPipeline
 		const int kScreenShotPhaseCapture = 0x01;
 		const int kScreenShotPhaseComplete = 0x02;
 		
+		enum RenderTargetFormat
+		{
+			Default = RenderTextureFormat.Default,
+			DefaultHDR = RenderTextureFormat.DefaultHDR,
+			ARGBA32 = RenderTextureFormat.ARGB32,
+		}
+		enum RenderTargetDepth
+		{
+			Bit24 = 24,
+			Bit16 = 16,
+		}
+		
 		[SerializeField]
 		Shader copyShader = default;
 		[SerializeField]
 		Shader ubarShader = default;
 		[SerializeField]
+		RenderTargetFormat defaultColorTargetFormat = RenderTargetFormat.DefaultHDR;
+		[SerializeField]
 		DepthTextureMode defaultDepthTextureMode = default;
 		[SerializeField, TooltipAttribute( kTipsOverrideTargetBuffers)]
 		bool overrideTargetBuffers = false;
+		[SerializeField]
+		RenderTargetFormat overrideTargetFormat = RenderTargetFormat.DefaultHDR;
 		[SerializeField, Range( 0.1f, 5.0f)]
 		float resolutionScale = 1.0f;
 		[SerializeField]
 		bool overrideCameraDepthTexture = true;
 		[SerializeField]
 		GameObject postProcessesTarget = default;
+		[System.Serializable]
+		sealed class OverrideTargetEvent : UnityEvent<RenderTexture>{}
+		[SerializeField]
+		OverrideTargetEvent overrideTargetEvent = new OverrideTargetEvent();
 		
 		Mesh fillMesh;
 		Material copyMaterial;
