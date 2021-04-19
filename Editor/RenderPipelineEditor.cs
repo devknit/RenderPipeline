@@ -10,13 +10,15 @@ namespace RenderingPipeline.Editor
 	{
 		public override void OnInspectorGUI()
 		{
+			var defaultColorTargetFormat = serializedObject.FindProperty( "defaultColorTargetFormat");
 			var defaultDepthTextureMode = serializedObject.FindProperty( "defaultDepthTextureMode");
 			var overrideTargetBuffers = serializedObject.FindProperty( "overrideTargetBuffers");
 			var postProcessesTarget = serializedObject.FindProperty( "postProcessesTarget");
 			
 			if( defaultDepthTextureMode == null
 			||	overrideTargetBuffers == null
-			||	postProcessesTarget == null)
+			||	postProcessesTarget == null
+			||	defaultColorTargetFormat == null)
 			{
 				base.OnInspectorGUI();
 			}
@@ -24,18 +26,28 @@ namespace RenderingPipeline.Editor
 			{
 				serializedObject.Update();
 				
+				EditorGUILayout.PropertyField( defaultColorTargetFormat, true);
 				EditorGUILayout.PropertyField( defaultDepthTextureMode, true);
 				EditorGUILayout.PropertyField( overrideTargetBuffers, true);
 				
 				if( overrideTargetBuffers.boolValue != false)
 				{
+					var overrideTargetFormat = serializedObject.FindProperty( "overrideTargetFormat");
 					var resolutionScale = serializedObject.FindProperty( "resolutionScale");
 					var overrideCameraDepthTexture = serializedObject.FindProperty( "overrideCameraDepthTexture");
+					var overrideTargetEvent = serializedObject.FindProperty( "overrideTargetEvent");
 					
-					if( resolutionScale != null || overrideCameraDepthTexture != null)
+					if( overrideTargetFormat != null
+					||	resolutionScale != null
+					||	overrideCameraDepthTexture != null
+					||	overrideTargetEvent != null)
 					{
 						EditorGUI.indentLevel++;
 						
+						if( overrideTargetFormat != null)
+						{
+							EditorGUILayout.PropertyField( overrideTargetFormat, true);
+						}
 						if( resolutionScale != null)
 						{
 							EditorGUILayout.PropertyField( resolutionScale, true);
@@ -43,6 +55,10 @@ namespace RenderingPipeline.Editor
 						if( overrideCameraDepthTexture != null)
 						{
 							EditorGUILayout.PropertyField( overrideCameraDepthTexture, true);
+						}
+						if( overrideTargetEvent != null)
+						{
+							EditorGUILayout.PropertyField( overrideTargetEvent, true);
 						}
 						EditorGUI.indentLevel--;
 					}
