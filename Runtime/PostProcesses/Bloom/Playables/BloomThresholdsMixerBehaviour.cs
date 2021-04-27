@@ -45,12 +45,16 @@ namespace RenderingPipeline
 		{
 			if( bloomComponent != null)
 			{
-				bloomComponent.Properties.Thresholds = defaultThresholds;
+				if( leaveAsIs == null)
+				{
+					bloomComponent.Properties.Thresholds = defaultThresholds;
+				}
 				bloomComponent = null;
 			}
 			renderPipelineComponent = null;
 		}
 		
+		internal bool leaveAsIs;
 		float defaultThresholds = 1.0f;
 		Bloom bloomComponent;
 		RenderPipeline renderPipelineComponent;

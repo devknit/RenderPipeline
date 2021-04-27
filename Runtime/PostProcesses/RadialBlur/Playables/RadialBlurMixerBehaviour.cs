@@ -67,15 +67,19 @@ namespace RenderingPipeline
 		{
 			if( radialBlurComponent != null)
 			{
-				radialBlurComponent.Properties.Samples = defaultSamples;
-				radialBlurComponent.Properties.Intensity = defaultIntensity;
-				radialBlurComponent.Properties.Radius = defaultRadius;
-				radialBlurComponent.Properties.Center = defaultCenter;
+				if( leaveAsIs == false)
+				{
+					radialBlurComponent.Properties.Samples = defaultSamples;
+					radialBlurComponent.Properties.Intensity = defaultIntensity;
+					radialBlurComponent.Properties.Radius = defaultRadius;
+					radialBlurComponent.Properties.Center = defaultCenter;
+				}
 				radialBlurComponent = null;
 			}
 			renderPipelineComponent = null;
 		}
 		
+		internal bool leaveAsIs;
 		int defaultSamples;
 		float defaultIntensity;
 		float defaultRadius;

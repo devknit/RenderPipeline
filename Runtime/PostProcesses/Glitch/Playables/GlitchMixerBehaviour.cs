@@ -72,16 +72,20 @@ namespace RenderingPipeline
 		{
 			if( glitchComponent != null)
 			{
-				glitchComponent.Properties.Intensity = defaultIntensity;
-				glitchComponent.Properties.TimeScale = defaultTimeScale;
-				glitchComponent.Properties.Slice = defaultSlice;
-				glitchComponent.Properties.Volume = defaultVolume;
-				glitchComponent.Properties.ChromaticAberration = defaultChromaticAberration;
+				if( leaveAsIs == false)
+				{
+					glitchComponent.Properties.Intensity = defaultIntensity;
+					glitchComponent.Properties.TimeScale = defaultTimeScale;
+					glitchComponent.Properties.Slice = defaultSlice;
+					glitchComponent.Properties.Volume = defaultVolume;
+					glitchComponent.Properties.ChromaticAberration = defaultChromaticAberration;
+				}
 				glitchComponent = null;
 			}
 			renderPipelineComponent = null;
 		}
 		
+		internal bool leaveAsIs;
 		float defaultIntensity;
 		float defaultTimeScale;
 		Vector2 defaultSlice;

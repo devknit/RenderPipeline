@@ -71,16 +71,20 @@ namespace RenderingPipeline
 		{
 			if( vignetteComponent != null)
 			{
-				vignetteComponent.Properties.Color = defaultColor;
-				vignetteComponent.Properties.Center = defaultCenter;
-				vignetteComponent.Properties.Intensity = defaultIntensity;
-				vignetteComponent.Properties.Smoothness = defaultSmoothness;
-				vignetteComponent.Properties.Roundness = defaultRoundness;
+				if( leaveAsIs == false)
+				{
+					vignetteComponent.Properties.Color = defaultColor;
+					vignetteComponent.Properties.Center = defaultCenter;
+					vignetteComponent.Properties.Intensity = defaultIntensity;
+					vignetteComponent.Properties.Smoothness = defaultSmoothness;
+					vignetteComponent.Properties.Roundness = defaultRoundness;
+				}
 				vignetteComponent = null;
 			}
 			renderPipelineComponent = null;
 		}
 		
+		internal bool leaveAsIs;
 		Color defaultColor;
 		Vector2 defaultCenter;
 		float defaultIntensity;

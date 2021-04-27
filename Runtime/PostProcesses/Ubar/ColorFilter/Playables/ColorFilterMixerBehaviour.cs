@@ -61,14 +61,18 @@ namespace RenderingPipeline
 		{
 			if( colorFilterComponent != null)
 			{
-				colorFilterComponent.Properties.Dot = defaultDot;
-				colorFilterComponent.Properties.Multiply = defaultMultiply;
-				colorFilterComponent.Properties.Add = defaultAdd;
+				if( leaveAsIs == false)
+				{
+					colorFilterComponent.Properties.Dot = defaultDot;
+					colorFilterComponent.Properties.Multiply = defaultMultiply;
+					colorFilterComponent.Properties.Add = defaultAdd;
+				}
 				colorFilterComponent = null;
 			}
 			renderPipelineComponent = null;
 		}
 		
+		internal bool leaveAsIs;
 		Color defaultDot;
 		Color defaultMultiply;
 		Color defaultAdd;

@@ -71,16 +71,20 @@ namespace RenderingPipeline
 		{
 			if( noiseComponent != null)
 			{
-				noiseComponent.Properties.Color = defaultColor;
-				noiseComponent.Properties.Speed = defaultSpeed;
-				noiseComponent.Properties.Interval = defaultInterval;
-				noiseComponent.Properties.Edge0 = defaultEdge0;
-				noiseComponent.Properties.Edge1 = defaultEdge1;
+				if( leaveAsIs == false)
+				{
+					noiseComponent.Properties.Color = defaultColor;
+					noiseComponent.Properties.Speed = defaultSpeed;
+					noiseComponent.Properties.Interval = defaultInterval;
+					noiseComponent.Properties.Edge0 = defaultEdge0;
+					noiseComponent.Properties.Edge1 = defaultEdge1;
+				}
 				noiseComponent = null;
 			}
 			renderPipelineComponent = null;
 		}
 		
+		internal bool leaveAsIs;
 		Color defaultColor;
 		float defaultSpeed;
 		float defaultInterval;

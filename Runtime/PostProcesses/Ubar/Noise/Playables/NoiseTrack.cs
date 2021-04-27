@@ -12,7 +12,12 @@ namespace RenderingPipeline
 	{
 		public override Playable CreateTrackMixer( PlayableGraph graph, GameObject go, int inputCount)
 		{
-			return ScriptPlayable<NoiseMixerBehaviour>.Create( graph, inputCount);
+			var playable = ScriptPlayable<NoiseMixerBehaviour>.Create( graph, inputCount);
+			playable.GetBehaviour().leaveAsIs = leaveAsIs;
+			return playable;
 		}
+		
+		[SerializeField]
+		bool leaveAsIs = false;
 	}
 }
