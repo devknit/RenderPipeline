@@ -46,10 +46,10 @@ fixed4 glitch( sampler2D tex, float2 uv, float intensity, float timeScale,
 	chromaticAberration *= t;
 	offsetVolume *= t;
 	
-	return fixed4(
-		tex2D( tex, uv + (offset * chromaticAberration.r) * offsetVolume.xy).r,
-		tex2D( tex, uv + (offset * chromaticAberration.g) * offsetVolume.xy).g,
-		tex2D( tex, uv + (offset * chromaticAberration.b) * offsetVolume.xy).b,
-		1);
+	fixed4 r = tex2D( tex, uv + (offset * chromaticAberration.r) * offsetVolume.xy);
+	fixed4 g = tex2D( tex, uv + (offset * chromaticAberration.g) * offsetVolume.xy);
+	fixed4 b = tex2D( tex, uv + (offset * chromaticAberration.b) * offsetVolume.xy);
+	
+	return fixed4( r.r, g.g, b.b, r.a * g.a * b.a);
 }
 #endif /* __GLITCH_CGINC__ */

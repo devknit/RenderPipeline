@@ -59,13 +59,13 @@ Shader "Hidden/RenderPipeline/RadialBlur"
 				float2 uv = i.uv - _Center;
 				float distance = saturate( length( uv) / _Radius);
 				float factar = _Intensity / _Samples * distance;
-				float3 color = 0;
+				float4 color = 0;
 				
 				for( int i0 = 0; i0 < _Samples; ++i0)
 				{
-					color += tex2D( _MainTex, uv * (1.0 - factar * i0) + _Center).rgb;
+					color += tex2D( _MainTex, uv * (1.0 - factar * i0) + _Center);
 				}
-				return fixed4( color / _Samples, 1);
+				return fixed4( color / _Samples);
 			}
 			ENDCG
 		}
