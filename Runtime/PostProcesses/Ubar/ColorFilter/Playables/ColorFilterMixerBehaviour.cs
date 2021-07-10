@@ -10,7 +10,7 @@ namespace RenderingPipeline
 		{
 			if( playerData is RenderPipeline renderPipeline)
 			{
-				if( renderPipelineComponent == null)
+				if( colorFilterComponent == null)
 				{
 					colorFilterComponent = renderPipeline.FindPostProcess<ColorFilter>();
 					if( colorFilterComponent != null)
@@ -19,7 +19,6 @@ namespace RenderingPipeline
 						defaultMultiply = colorFilterComponent.Properties.Multiply;
 						defaultAdd = colorFilterComponent.Properties.Add;
 					}
-					renderPipelineComponent = renderPipeline;
 				}
 				if( colorFilterComponent != null)
 				{
@@ -69,7 +68,6 @@ namespace RenderingPipeline
 				}
 				colorFilterComponent = null;
 			}
-			renderPipelineComponent = null;
 		}
 		
 		internal bool leaveAsIs;
@@ -77,6 +75,5 @@ namespace RenderingPipeline
 		Color defaultMultiply;
 		Color defaultAdd;
 		ColorFilter colorFilterComponent;
-		RenderPipeline renderPipelineComponent;
 	}
 }

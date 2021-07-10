@@ -11,14 +11,13 @@ namespace RenderingPipeline
 		{
 			if( playerData is RenderPipeline renderPipeline)
 			{
-				if( renderPipelineComponent == null)
+				if( bloomComponent == null)
 				{
 					bloomComponent = renderPipeline.FindPostProcess<Bloom>();
 					if( bloomComponent != null)
 					{
 						defaultThresholds = bloomComponent.Properties.Thresholds;
 					}
-					renderPipelineComponent = renderPipeline;
 				}
 				if( bloomComponent != null)
 				{
@@ -45,18 +44,16 @@ namespace RenderingPipeline
 		{
 			if( bloomComponent != null)
 			{
-				if( leaveAsIs == null)
+				if( leaveAsIs == false)
 				{
 					bloomComponent.Properties.Thresholds = defaultThresholds;
 				}
 				bloomComponent = null;
 			}
-			renderPipelineComponent = null;
 		}
 		
 		internal bool leaveAsIs;
 		float defaultThresholds = 1.0f;
 		Bloom bloomComponent;
-		RenderPipeline renderPipelineComponent;
 	}
 }

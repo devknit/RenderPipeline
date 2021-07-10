@@ -11,7 +11,7 @@ namespace RenderingPipeline
 		{
 			if( playerData is RenderPipeline renderPipeline)
 			{
-				if( renderPipelineComponent == null)
+				if( radialBlurComponent == null)
 				{
 					radialBlurComponent = renderPipeline.FindPostProcess<RadialBlur>();
 					if( radialBlurComponent != null)
@@ -21,7 +21,6 @@ namespace RenderingPipeline
 						defaultRadius = radialBlurComponent.Properties.Radius;
 						defaultCenter = radialBlurComponent.Properties.Center;
 					}
-					renderPipelineComponent = renderPipeline;
 				}
 				if( radialBlurComponent != null)
 				{
@@ -76,7 +75,6 @@ namespace RenderingPipeline
 				}
 				radialBlurComponent = null;
 			}
-			renderPipelineComponent = null;
 		}
 		
 		internal bool leaveAsIs;
@@ -85,6 +83,5 @@ namespace RenderingPipeline
 		float defaultRadius;
 		Vector2 defaultCenter;
 		RadialBlur radialBlurComponent;
-		RenderPipeline renderPipelineComponent;
 	}
 }

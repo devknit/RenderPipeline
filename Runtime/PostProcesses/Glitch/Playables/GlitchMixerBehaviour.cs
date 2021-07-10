@@ -11,7 +11,7 @@ namespace RenderingPipeline
 		{
 			if( playerData is RenderPipeline renderPipeline)
 			{
-				if( renderPipelineComponent == null)
+				if( glitchComponent == null)
 				{
 					glitchComponent = renderPipeline.FindPostProcess<Glitch>();
 					if( glitchComponent != null)
@@ -22,7 +22,6 @@ namespace RenderingPipeline
 						defaultVolume = glitchComponent.Properties.Volume;
 						defaultChromaticAberration = glitchComponent.Properties.ChromaticAberration;
 					}
-					renderPipelineComponent = renderPipeline;
 				}
 				if( glitchComponent != null)
 				{
@@ -82,7 +81,6 @@ namespace RenderingPipeline
 				}
 				glitchComponent = null;
 			}
-			renderPipelineComponent = null;
 		}
 		
 		internal bool leaveAsIs;
@@ -92,6 +90,5 @@ namespace RenderingPipeline
 		Vector2 defaultVolume;
 		Vector3 defaultChromaticAberration;
 		Glitch glitchComponent;
-		RenderPipeline renderPipelineComponent;
 	}
 }

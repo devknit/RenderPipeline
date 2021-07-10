@@ -10,7 +10,7 @@ namespace RenderingPipeline
 		{
 			if( playerData is RenderPipeline renderPipeline)
 			{
-				if( renderPipelineComponent == null)
+				if( vignetteComponent == null)
 				{
 					vignetteComponent = renderPipeline.FindPostProcess<Vignette>();
 					if( vignetteComponent != null)
@@ -21,7 +21,6 @@ namespace RenderingPipeline
 						defaultSmoothness = vignetteComponent.Properties.Smoothness;
 						defaultRoundness = vignetteComponent.Properties.Roundness;
 					}
-					renderPipelineComponent = renderPipeline;
 				}
 				if( vignetteComponent != null)
 				{
@@ -81,7 +80,6 @@ namespace RenderingPipeline
 				}
 				vignetteComponent = null;
 			}
-			renderPipelineComponent = null;
 		}
 		
 		internal bool leaveAsIs;
@@ -91,6 +89,5 @@ namespace RenderingPipeline
 		float defaultSmoothness;
 		float defaultRoundness;
 		Vignette vignetteComponent;
-		RenderPipeline renderPipelineComponent;
 	}
 }

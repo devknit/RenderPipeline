@@ -10,7 +10,7 @@ namespace RenderingPipeline
 		{
 			if( playerData is RenderPipeline renderPipeline)
 			{
-				if( renderPipelineComponent == null)
+				if( noiseComponent == null)
 				{
 					noiseComponent = renderPipeline.FindPostProcess<Noise>();
 					if( noiseComponent != null)
@@ -21,7 +21,6 @@ namespace RenderingPipeline
 						defaultEdge0 = noiseComponent.Properties.Edge0;
 						defaultEdge1 = noiseComponent.Properties.Edge1;
 					}
-					renderPipelineComponent = renderPipeline;
 				}
 				if( noiseComponent != null)
 				{
@@ -81,7 +80,6 @@ namespace RenderingPipeline
 				}
 				noiseComponent = null;
 			}
-			renderPipelineComponent = null;
 		}
 		
 		internal bool leaveAsIs;
@@ -91,6 +89,5 @@ namespace RenderingPipeline
 		float defaultEdge0;
 		float defaultEdge1;
 		Noise noiseComponent;
-		RenderPipeline renderPipelineComponent;
 	}
 }
