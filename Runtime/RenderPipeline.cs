@@ -448,6 +448,7 @@ namespace RenderingPipeline
 					process.BuildCommandBuffer( this, commandBufferOpaqueProcesses, context, null);
 				}
 				ReleaseTemporaryRT();
+				commandBufferOpaqueProcesses.SetRenderTarget( -1);
 				cacheCamera.AddCommandBuffer( CameraEvent.BeforeImageEffectsOpaque, commandBufferOpaqueProcesses);
 			}
 			/* 半透明系プロセス+FinalPass */
@@ -543,6 +544,24 @@ namespace RenderingPipeline
 						depthTextureMode &= ~DepthTextureMode.Depth;
 					}
 				}
+				/* [2019.4.1f1、2021.15f1～]
+				 * 一部の Android 端末において RenderPipeline でポストプロセスを処理した後に
+				 * 別の Camera で DepthStencilBuffer をクリアしても正しくクリアされない症状を確認
+				 * ※これは Cameara.clearFlags だけでなく CommandBuffer.ClearRenderTarget を使用しても同様の結果になります
+				 * 
+				 * 他のプラットフォームや大多数の Android 端末では問題ないため、CommandBuffer に対する
+				 * SetRenderTarget の対象が間違っているとは考えにくく、ディスプレイバッファに戻っていると判断できる。
+				 * 
+				 * ここで気になるのはコマンドバッファが処理されるのが BeforeImageEffects という点にあります
+				 * 基本的にこの後には AfterImageEffects と AfterEverything しか存在せず、ほぼレンダリングの最終工程に位置します
+				 *
+				 * 基本的に Unity はダブルバッファ以上で処理されているため、レンダリングの最終工程にはバックバッファのスワップが含まれているはず
+				 * そのため、同じ種類のターゲットを指してはいるが、同一フレームで対象としてきたバックバッファとは異なる対象が設定されたままになっているのではと判断
+				 *
+				 * ドキュメントには記載されていないが SetRenderTarget で -1 を渡すことでバックバッファが設定出来るもよう
+				 * http://blackmasqueradegames.com/2015/04/unity-5-afterimageeffects-and-aftereverything-traps/
+				 */
+				commandBufferPostProcesses.SetRenderTarget( -1);
 				cacheCamera.AddCommandBuffer( CameraEvent.BeforeImageEffects, commandBufferPostProcesses);
 			}
 			cacheCamera.allowHDR = highDynamicRangeTarget;
