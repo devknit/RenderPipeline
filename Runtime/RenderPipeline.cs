@@ -541,7 +541,11 @@ namespace RenderingPipeline
 					if( (depthTextureMode & DepthTextureMode.Depth) != 0)
 					{
 						commandBufferPostProcesses.ReleaseTemporaryRT( ShaderProperty.OverrideDepthTexture);
-						depthTextureMode &= ~DepthTextureMode.Depth;
+						
+						if( depthTextureMode == DepthTextureMode.Depth)
+						{
+							depthTextureMode &= ~DepthTextureMode.Depth;
+						}
 					}
 				}
 				/* [2019.4.1f1、2021.15f1～]
