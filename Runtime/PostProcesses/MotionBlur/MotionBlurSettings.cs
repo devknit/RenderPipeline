@@ -65,7 +65,7 @@ namespace RenderingPipeline
 			
 			if( cacheEnabled != enabled)
 			{
-				updateFlags |= kRebuild;
+				updateFlags |= kEnabled;
 				cacheEnabled = enabled;
 			}
 			if( enabled != false)
@@ -109,11 +109,13 @@ namespace RenderingPipeline
 			}
 			return updateFlags;
 		}
-		internal const int kRebuild = 1 << 0;
-		internal const int kChangeScreen = 1 << 1;
-		internal const int kChangeMaxBlurPixels = 1 << 2;
-		internal const int kChangeShutterAngle = 1 << 3;
-		internal const int kChangeSamples = 1 << 4;
+		const int kEnabled = 1 << 0;
+		const int kChangeScreen = 1 << 1;
+		const int kChangeMaxBlurPixels = 1 << 2;
+		const int kChangeShutterAngle = 1 << 3;
+		const int kChangeSamples = 1 << 4;
+		internal const int kRebuild = kEnabled;
+		internal const int kDescriptor = kChangeScreen | kChangeMaxBlurPixels;
 		
 		const float kMaxBlurRadius = 5.0f;
 		static readonly int kShaderPropertyMaxBlurRadius = Shader.PropertyToID( "_MaxBlurRadius");
@@ -122,7 +124,6 @@ namespace RenderingPipeline
 		static readonly int kShaderPropertyTileMaxLoop = Shader.PropertyToID( "_TileMaxLoop");
 		static readonly int kShaderPropertyTileMaxOffs = Shader.PropertyToID( "_TileMaxOffs");
 		static readonly int kShaderPropertyLoopCount = Shader.PropertyToID( "_LoopCount");
-
 		
 		[SerializeField]
 		bool enabled = true;

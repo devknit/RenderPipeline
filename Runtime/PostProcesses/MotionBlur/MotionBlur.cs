@@ -12,11 +12,11 @@ namespace RenderingPipeline
 		{
 			int updateFlags = Properties.UpdateProperties( pipeline, material);
 			
-			if( (updateFlags & (MotionBlurProperties.kChangeScreen | MotionBlurProperties.kChangeMaxBlurPixels)) != 0)
+			if( (updateFlags & MotionBlurProperties.kDescriptor) != 0)
 			{
 				UpdateDescriptors( Properties.ScreenWidth, Properties.ScreenHeight);
 			}
-			return (updateFlags & MotionBlurProperties.kChangeScreen) != 0;
+			return (updateFlags & MotionBlurProperties.kRebuild) != 0;
 		}
 		public override DepthTextureMode GetDepthTextureMode()
 		{
