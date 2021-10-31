@@ -51,6 +51,11 @@ namespace RenderingPipeline
 			get{ return area; }
 			set{ area = value; }
 		}
+		public float Distance
+		{
+			get{ return distance; }
+			set{ distance = value; }
+		}
 		public void ClearCache()
 		{
 			cacheEnabled = null;
@@ -58,6 +63,7 @@ namespace RenderingPipeline
 			cacheIntensity = null;
 			cacheBlurAmount = null;
 			cacheRadius = null;
+			cacheDistance = null;
 			cacheArea = null;
 		}
 		public bool UpdateProperties( RenderPipeline pipeline, Material material, System.Action<int, int> callback)
@@ -118,6 +124,11 @@ namespace RenderingPipeline
 					material.SetFloat( kShaderPropertyArea, area);
 					cacheArea = area;
 				}
+				if( cacheDistance != distance)
+				{
+					material.SetFloat( kShaderPropertyDistance, distance);
+					cacheDistance = distance;
+				}
 			}
 			return rebuild;
 		}
@@ -127,6 +138,7 @@ namespace RenderingPipeline
 		static readonly int kShaderPropertyBlurAmount = Shader.PropertyToID( "_BlurAmount");
 		static readonly int kShaderPropertyRadius = Shader.PropertyToID( "_Radius");
 		static readonly int kShaderPropertyArea = Shader.PropertyToID( "_Area");
+		static readonly int kShaderPropertyDistance = Shader.PropertyToID( "_Distance");
 		
 		[SerializeField]
 		bool enabled = true;
@@ -144,6 +156,8 @@ namespace RenderingPipeline
 		float radius = 1.0f;
 		[SerializeField, Range( 0, 4)]
 		float area = 1.0f;
+		[SerializeField]
+		float distance = 0.0f;
 		
 		[System.NonSerialized]
 		bool? cacheEnabled;
@@ -159,6 +173,8 @@ namespace RenderingPipeline
 		float? cacheRadius;
 		[System.NonSerialized]
 		float? cacheArea;
+		[System.NonSerialized]
+		float? cacheDistance;
 		[System.NonSerialized]
 		int? cacheScreenWidth;
 		[System.NonSerialized]
