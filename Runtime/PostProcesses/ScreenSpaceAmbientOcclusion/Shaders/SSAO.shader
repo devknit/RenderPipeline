@@ -18,7 +18,7 @@ Shader "Hidden/RenderPipeline/SSAO"
 		half _BlurAmount;
 		half _Radius;
 		half _Area;
-		half _Distance;
+		half _IgnoreDistance;
 		
 		struct VertexInput
 		{
@@ -70,17 +70,17 @@ Shader "Hidden/RenderPipeline/SSAO"
 
 			float2 ray = float2( s * -0.9863h - c * 0.1649h, s * 0.1649h - c * 0.9863h) * i.uv1.zw / depth;
 			float difference = depth - SAMPLE_DEPTH( saturate( i.uv.xy + sign( dot( ray, normal.xy)) * ray));
-			difference -= _Distance;
+			difference = step( 0, difference - _IgnoreDistance) * difference;
 			float occlusion = step( 0.02h, difference) * (1.0h - smoothstep( 0.02h, _Area, difference));
 		#if !defined(FASTMODE)
 			ray = float2( s * -0.38267h - c * 0.92388h, s * 0.92388h - c * 0.38267h) * i.uv1.xy / depth;
 			difference = depth - SAMPLE_DEPTH( saturate( i.uv.xy + sign( dot( ray, normal.xy)) * ray));
-			difference -= _Distance;
+			difference = step( 0, difference - _IgnoreDistance) * difference;
 			occlusion += step( 0.02h, difference) * (1.0h - smoothstep( 0.02h, _Area, difference));
 
 			ray = float2( s * 0.94953h - c * 0.3137h, s * 0.3137h + c * 0.94953h) * i.uv2.xy / depth;
 			difference = depth - SAMPLE_DEPTH( saturate( i.uv.xy + sign( dot( ray, normal.xy)) * ray));
-			difference -= _Distance;
+			difference = step( 0, difference - _IgnoreDistance) * difference;
 			occlusion += step( 0.02h, difference) * (1.0h - smoothstep( 0.02h, _Area, difference));
 
 			return 1.0h - _Intensity * occlusion * 0.3333h;

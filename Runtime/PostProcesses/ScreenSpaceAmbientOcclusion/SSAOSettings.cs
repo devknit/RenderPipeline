@@ -51,10 +51,10 @@ namespace RenderingPipeline
 			get{ return area; }
 			set{ area = value; }
 		}
-		public float Distance
+		public float IgnoreDistance
 		{
-			get{ return distance; }
-			set{ distance = value; }
+			get{ return ignoreDistance; }
+			set{ ignoreDistance = value; }
 		}
 		public void ClearCache()
 		{
@@ -63,8 +63,8 @@ namespace RenderingPipeline
 			cacheIntensity = null;
 			cacheBlurAmount = null;
 			cacheRadius = null;
-			cacheDistance = null;
 			cacheArea = null;
+			cacheIgnoreDistance = null;
 		}
 		public bool UpdateProperties( RenderPipeline pipeline, Material material, System.Action<int, int> callback)
 		{
@@ -124,10 +124,10 @@ namespace RenderingPipeline
 					material.SetFloat( kShaderPropertyArea, area);
 					cacheArea = area;
 				}
-				if( cacheDistance != distance)
+				if( cacheIgnoreDistance != ignoreDistance)
 				{
-					material.SetFloat( kShaderPropertyDistance, distance);
-					cacheDistance = distance;
+					material.SetFloat( kShaderPropertyDistance, ignoreDistance);
+					cacheIgnoreDistance = ignoreDistance;
 				}
 			}
 			return rebuild;
@@ -138,7 +138,7 @@ namespace RenderingPipeline
 		static readonly int kShaderPropertyBlurAmount = Shader.PropertyToID( "_BlurAmount");
 		static readonly int kShaderPropertyRadius = Shader.PropertyToID( "_Radius");
 		static readonly int kShaderPropertyArea = Shader.PropertyToID( "_Area");
-		static readonly int kShaderPropertyDistance = Shader.PropertyToID( "_Distance");
+		static readonly int kShaderPropertyDistance = Shader.PropertyToID( "_IgnoreDistance");
 		
 		[SerializeField]
 		bool enabled = true;
@@ -156,8 +156,8 @@ namespace RenderingPipeline
 		float radius = 1.0f;
 		[SerializeField, Range( 0, 4)]
 		float area = 1.0f;
-		[SerializeField]
-		float distance = 0.0f;
+		[SerializeField, Range( 0, 5)]
+		float ignoreDistance = 0.0f;
 		
 		[System.NonSerialized]
 		bool? cacheEnabled;
@@ -174,7 +174,7 @@ namespace RenderingPipeline
 		[System.NonSerialized]
 		float? cacheArea;
 		[System.NonSerialized]
-		float? cacheDistance;
+		float? cacheIgnoreDistance;
 		[System.NonSerialized]
 		int? cacheScreenWidth;
 		[System.NonSerialized]
