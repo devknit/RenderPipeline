@@ -297,8 +297,28 @@ namespace RenderingPipeline
 			}
 			else
 			{
+			#if UNITY_WEBGL && !UNITY_EDITOR
+				int targetWidth = Screen.width;
+				int targetHeight = Screen.height;
+				
+				if( targetHeight < 720)
+				{
+					resolutionScale = 720.0f / targetHeight;
+				}
+				else if( targetHeight > 1080)
+				{
+					resolutionScale = 1080.0f / targetHeight;
+				}
+				else
+				{
+					resolutionScale = 1.0f;
+				}
+				targetWidth = (int)((float)targetWidth * resolutionScale);
+				targetHeight = (int)((float)targetHeight * resolutionScale);
+			#else
 				int targetWidth = (int)((float)Screen.width * resolutionScale);
 				int targetHeight = (int)((float)Screen.height * resolutionScale);
+			#endif
 				bool refreshColorBuffer = colorBuffer == null || colorBuffer.width != targetWidth || colorBuffer.height != targetHeight;
 				bool refreshDepthBuffer = depthBuffer == null || depthBuffer.width != targetWidth || depthBuffer.height != targetHeight;
 				
