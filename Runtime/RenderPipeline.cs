@@ -300,14 +300,15 @@ namespace RenderingPipeline
 			#if UNITY_WEBGL && !UNITY_EDITOR
 				int targetWidth = Screen.width;
 				int targetHeight = Screen.height;
+				int minimumSize = Mathf.Min( targetWidth, targetHeight);
 				
-				if( targetHeight < 720)
+				if( minimumSize < 720)
 				{
-					resolutionScale = 720.0f / targetHeight;
+					resolutionScale = Mathf.Clamp( 720.0f / minimumSize, 0.1f, 2.0f);
 				}
-				else if( targetHeight > 1080)
+				else if( minimumSize > 1080)
 				{
-					resolutionScale = 1080.0f / targetHeight;
+					resolutionScale = Mathf.Clamp( 1080.0f / minimumSize, 0.1f, 2.0f);
 				}
 				else
 				{
