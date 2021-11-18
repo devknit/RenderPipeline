@@ -297,7 +297,7 @@ namespace RenderingPipeline
 			}
 			else
 			{
-			#if UNITY_WEBGL && !UNITY_EDITOR
+			#if UNITY_WEBGL
 				int targetWidth = Screen.width;
 				int targetHeight = Screen.height;
 				int minimumSize = Mathf.Min( targetWidth, targetHeight);
