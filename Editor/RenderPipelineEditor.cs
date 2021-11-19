@@ -33,12 +33,13 @@ namespace RenderingPipeline.Editor
 				if( overrideTargetBuffers.boolValue != false)
 				{
 					var overrideTargetFormat = serializedObject.FindProperty( "overrideTargetFormat");
-					var resolutionScale = serializedObject.FindProperty( "resolutionScale");
 					var overrideCameraDepthTexture = serializedObject.FindProperty( "overrideCameraDepthTexture");
+					var dynamicResolutionScale = serializedObject.FindProperty( "dynamicResolutionScale");
+					var resolutionScale = serializedObject.FindProperty( "resolutionScale");
 					var overrideTargetEvent = serializedObject.FindProperty( "overrideTargetEvent");
 					
 					if( overrideTargetFormat != null
-					||	resolutionScale != null
+					||	dynamicResolutionScale != null
 					||	overrideCameraDepthTexture != null
 					||	overrideTargetEvent != null)
 					{
@@ -48,13 +49,17 @@ namespace RenderingPipeline.Editor
 						{
 							EditorGUILayout.PropertyField( overrideTargetFormat, true);
 						}
-						if( resolutionScale != null)
-						{
-							EditorGUILayout.PropertyField( resolutionScale, true);
-						}
 						if( overrideCameraDepthTexture != null)
 						{
 							EditorGUILayout.PropertyField( overrideCameraDepthTexture, true);
+						}
+						if( dynamicResolutionScale != null)
+						{
+							EditorGUILayout.PropertyField( dynamicResolutionScale, true);
+						}
+						if( resolutionScale != null)
+						{
+							EditorGUILayout.PropertyField( resolutionScale, true);
 						}
 						if( overrideTargetEvent != null)
 						{

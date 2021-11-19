@@ -297,29 +297,40 @@ namespace RenderingPipeline
 			}
 			else
 			{
-			#if UNITY_WEBGL
-				int targetWidth = Screen.width;
-				int targetHeight = Screen.height;
-				int minimumSize = Mathf.Min( targetWidth, targetHeight);
-				
-				if( minimumSize < 720)
+				int targetWidth;
+				int targetHeight;
+		#if UNITY_WEBGL
+				if( dynamicResolutionScale != false
+			#if UNITY_EDITOR
+				&&	Application.isPlaying != false
+			#endif	
+				)
 				{
-					resolutionScale = Mathf.Clamp( 720.0f / minimumSize, 0.1f, 2.0f);
-				}
-				else if( minimumSize > 1080)
-				{
-					resolutionScale = Mathf.Clamp( 1080.0f / minimumSize, 0.1f, 2.0f);
+					targetWidth = Screen.width;
+					targetHeight = Screen.height;
+					int minimumSize = Mathf.Min( targetWidth, targetHeight);
+					
+					if( minimumSize < 720)
+					{
+						resolutionScale = Mathf.Clamp( 720.0f / minimumSize, 0.1f, 2.0f);
+					}
+					else if( minimumSize > 1080)
+					{
+						resolutionScale = Mathf.Clamp( 1080.0f / minimumSize, 0.1f, 2.0f);
+					}
+					else
+					{
+						resolutionScale = 1.0f;
+					}
+					targetWidth = (int)((float)targetWidth * resolutionScale);
+					targetHeight = (int)((float)targetHeight * resolutionScale);
 				}
 				else
+		#endif
 				{
-					resolutionScale = 1.0f;
+					targetWidth = (int)((float)Screen.width * resolutionScale);
+					targetHeight = (int)((float)Screen.height * resolutionScale);
 				}
-				targetWidth = (int)((float)targetWidth * resolutionScale);
-				targetHeight = (int)((float)targetHeight * resolutionScale);
-			#else
-				int targetWidth = (int)((float)Screen.width * resolutionScale);
-				int targetHeight = (int)((float)Screen.height * resolutionScale);
-			#endif
 				bool refreshColorBuffer = colorBuffer == null || colorBuffer.width != targetWidth || colorBuffer.height != targetHeight;
 				bool refreshDepthBuffer = depthBuffer == null || depthBuffer.width != targetWidth || depthBuffer.height != targetHeight;
 				
@@ -754,6 +765,9 @@ namespace RenderingPipeline
 			"UpdateDepthTextureが発生しない様にするにはModeがRealtimeに設定されているLightのShadowTypeにNoShadowsが設定されている必要があります。\n\n" +
 			"※この機能はUpdateDepthTextureで_CameraDepthTextureが利用可能になる場合と異なり、ForwardOpaque中に使用することが出来ません。\n\n" +
 			"※ポストプロセスの使用状況によって_CameraDepthTextureに書き込まれない場合があるため、強制する場合は DefaultDepthTextureMode の Depth を有効にしてください。";
+		const string kTipsDynamicResolutionScale =
+			"動的にレンダリングターゲットの解像度を変更します。\n\n" + 
+			"※この機能は WebGL でのみ動作します。";
 		const int kScreenShotPhaseCapture = 0x01;
 		const int kScreenShotPhaseComplete = 0x02;
 		
@@ -781,7 +795,9 @@ namespace RenderingPipeline
 		bool overrideTargetBuffers = false;
 		[SerializeField]
 		RenderTargetFormat overrideTargetFormat = RenderTargetFormat.DefaultHDR;
-		[SerializeField, Range( 0.1f, 5.0f)]
+		[SerializeField, TooltipAttribute( kTipsDynamicResolutionScale)]
+		bool dynamicResolutionScale = true;
+		[SerializeField, Range( 0.1f, 2.0f)]
 		float resolutionScale = 1.0f;
 		[SerializeField]
 		bool overrideCameraDepthTexture = true;
