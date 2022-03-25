@@ -38,12 +38,18 @@ namespace RenderingPipeline
 			get{ return add; }
 			set{ add = value; }
 		}
+		public float Invert
+		{
+			get{ return invert; }
+			set{ invert = Mathf.Clamp01( value); }
+		}
 		public void ClearCache()
 		{
 			cacheEnabled = null;
 			cacheDot = null;
 			cacheAdd = null;
 			cacheMultiply = null;
+			cacheInvert = null;
 		}
 		public bool UpdateProperties( RenderPipeline pipeline, Material material)
 		{
@@ -75,6 +81,11 @@ namespace RenderingPipeline
 					material.SetColor( kShaderPropertyAdd, add);
 					cacheAdd = add;
 				}
+				if( cacheInvert != invert)
+				{
+					material.SetFloat( kShaderPropertyInvert, invert);
+					cacheInvert = invert;
+				}
 				if( material.IsKeywordEnabled( kShaderKeywordColorFilter) == false)
 				{
 					material.EnableKeyword( kShaderKeywordColorFilter);
@@ -91,6 +102,7 @@ namespace RenderingPipeline
 		static readonly int kShaderPropertyDot = Shader.PropertyToID( "_ColorFilterDot");
 		static readonly int kShaderPropertyMultiply = Shader.PropertyToID( "_ColorFilterMultiply");
 		static readonly int kShaderPropertyAdd = Shader.PropertyToID( "_ColorFilterAdd");
+		static readonly int kShaderPropertyInvert = Shader.PropertyToID( "_ColorFilterInvert");
 		
 		[SerializeField]
 		bool enabled = true;
@@ -100,6 +112,8 @@ namespace RenderingPipeline
 		Color multiply = kSepiaMultiply;
 		[SerializeField, ColorUsage( true, true)]
 		Color add = Color.clear;
+		[SerializeField, Range( 0, 1)]
+		float invert = 0;
 		
 		[System.NonSerialized]
 		bool? cacheEnabled;
@@ -107,6 +121,8 @@ namespace RenderingPipeline
 		Color? cacheDot;
 		[System.NonSerialized]
 		Color? cacheMultiply;
+		[System.NonSerialized]
+		float? cacheInvert;
 		[System.NonSerialized]
 		Color? cacheAdd;
 	}

@@ -13,5 +13,7 @@ namespace RenderingPipeline
 		public Color multiply = ColorFilterProperties.kSepiaMultiply;
 		[SerializeField, ColorUsage( true, true)]
 		public Color add = Color.clear;
+		[SerializeField, Range( 0, 1)]
+		public float invert = 0;
 	}
 }
