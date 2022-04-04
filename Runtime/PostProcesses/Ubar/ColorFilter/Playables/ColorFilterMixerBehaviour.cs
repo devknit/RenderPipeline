@@ -93,10 +93,10 @@ namespace RenderingPipeline
 		Color defaultMultiply;
 		Color defaultAdd;
 		float defaultInvert;
-		Color overwriteDot;
-		Color overwriteMultiply;
-		Color overwriteAdd;
-		float overwriteInvert;
+		internal Color overwriteDot;
+		internal Color overwriteMultiply;
+		internal Color overwriteAdd;
+		internal float overwriteInvert;
 		ColorFilter colorFilterComponent;
 	}
 }
