@@ -65,22 +65,38 @@ namespace RenderingPipeline
 		{
 			if( colorFilterComponent != null)
 			{
-				if( leaveAsIs == false)
+				switch( postPlaybackState)
 				{
-					colorFilterComponent.Properties.Dot = defaultDot;
-					colorFilterComponent.Properties.Multiply = defaultMultiply;
-					colorFilterComponent.Properties.Add = defaultAdd;
-					colorFilterComponent.Properties.Invert = defaultInvert;
+					case ColorFilterTrack.PostPlaybackState.Revert:
+					{
+						colorFilterComponent.Properties.Dot = defaultDot;
+						colorFilterComponent.Properties.Multiply = defaultMultiply;
+						colorFilterComponent.Properties.Add = defaultAdd;
+						colorFilterComponent.Properties.Invert = defaultInvert;
+						break;
+					}
+					case ColorFilterTrack.PostPlaybackState.Overwrite:
+					{
+						colorFilterComponent.Properties.Dot = overwriteDot;
+						colorFilterComponent.Properties.Multiply = overwriteMultiply;
+						colorFilterComponent.Properties.Add = overwriteAdd;
+						colorFilterComponent.Properties.Invert = overwriteInvert;
+						break;
+					}
 				}
 				colorFilterComponent = null;
 			}
 		}
 		
-		internal bool leaveAsIs;
+		internal ColorFilterTrack.PostPlaybackState postPlaybackState;
 		Color defaultDot;
 		Color defaultMultiply;
 		Color defaultAdd;
 		float defaultInvert;
+		Color overwriteDot;
+		Color overwriteMultiply;
+		Color overwriteAdd;
+		float overwriteInvert;
 		ColorFilter colorFilterComponent;
 	}
 }

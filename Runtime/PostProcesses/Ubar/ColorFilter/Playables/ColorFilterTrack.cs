@@ -10,14 +10,33 @@ namespace RenderingPipeline
 	[TrackBindingType( typeof( RenderPipeline))]
 	public sealed class ColorFilterTrack : TrackAsset
 	{
+		internal enum PostPlaybackState
+		{
+			Revert,
+			LeaveAsIs,
+			Overwrite,
+		}
 		public override Playable CreateTrackMixer( PlayableGraph graph, GameObject go, int inputCount)
 		{
 			var playable = ScriptPlayable<ColorFilterMixerBehaviour>.Create( graph, inputCount);
-			playable.GetBehaviour().leaveAsIs = leaveAsIs;
+			var behaviour = playable.GetBehaviour();
+			behaviour.postPlaybackState = postPlaybackState;
+			behaviour.overwriteDot = overwriteDot;
+			behaviour.overwriteMultiply = overwriteMultiply;
+			behaviour.overwriteAdd = overwriteAdd;
+			behaviour.overwriteInvert = overwriteInvert;
 			return playable;
 		}
 		
 		[SerializeField]
-		bool leaveAsIs = false;
+		PostPlaybackState postPlaybackState = PostPlaybackState.Revert;
+		[SerializeField, ColorUsage( true, true)]
+		Color overwriteDot = ColorFilterProperties.kMonochromeDot;
+		[SerializeField, ColorUsage( true, true)]
+		Color overwriteMultiply = ColorFilterProperties.kSepiaMultiply;
+		[SerializeField, ColorUsage( true, true)]
+		Color overwriteAdd = Color.clear;
+		[SerializeField, Range( 0, 1)]
+		float overwriteInvert = 0;
 	}
 }
