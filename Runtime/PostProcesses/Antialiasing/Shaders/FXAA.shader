@@ -66,8 +66,8 @@ Shader "Hidden/RenderPipeline/Antialiasing/FXAA"
 			{
 				UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX( i);
 				
-				float3 col = SAMPLE( i.uv).rgb;
-				float gr = dot( col, lum);
+				float4 col = SAMPLE( i.uv);
+				float gr = dot( col.rgb, lum);
 				float gtl = dot( SAMPLE( i.uv1.xy).rgb, lum);
 				float gbl = dot( SAMPLE( i.uv1.xw).rgb, lum);
 				float gtr = dot( SAMPLE( i.uv1.zy).rgb, lum) + 0.0026041667;
@@ -78,7 +78,7 @@ Shader "Hidden/RenderPipeline/Antialiasing/FXAA"
 
 				if( max( gmax, gr) - min( gmin, gr) < max( 0.0, gmax * _Threshold))
 				{
-					return fixed4( col, 1.0);
+					return fixed4( col);
 				}
 
 				float diff1 = gbl - gtr;
@@ -87,18 +87,18 @@ Shader "Hidden/RenderPipeline/Antialiasing/FXAA"
 				float2 mltp = normalize( float2( diff1 + diff2, diff1 - diff2));
 				float dvd = min( abs( mltp.x), abs( mltp.y)) * _Sharpness;
 
-				float3 tmp1 = saturate( SAMPLE( i.uv - mltp * i.uv2.xy).rgb);
-				float3 tmp2 = saturate( SAMPLE( i.uv + mltp * i.uv2.xy).rgb);
+				float4 tmp1 = saturate( SAMPLE( i.uv - mltp * i.uv2.xy));
+				float4 tmp2 = saturate( SAMPLE( i.uv + mltp * i.uv2.xy));
 
 				mltp = clamp( mltp.xy / dvd, -2.0, 2.0);
 
-				float3 tmp3 = saturate( SAMPLE( i.uv - mltp * i.uv2.zw).rgb);
-				float3 tmp4 = saturate( SAMPLE( i.uv + mltp * i.uv2.zw).rgb);
+				float4 tmp3 = saturate( SAMPLE( i.uv - mltp * i.uv2.zw));
+				float4 tmp4 = saturate( SAMPLE( i.uv + mltp * i.uv2.zw));
 
-				float3 col1 = tmp1 + tmp2;
-				float3 col2 = ((tmp3 + tmp4) * 0.25) + (col1 * 0.25);
+				float4 col1 = tmp1 + tmp2;
+				float4 col2 = ((tmp3 + tmp4) * 0.25) + (col1 * 0.25);
 				
-				return fixed4( saturate( (dot( col1, lum) < gmin || dot( col2, lum) > gmax)? col1 * 0.5 : col2), 1.0);
+				return fixed4( saturate( (dot( col1, lum) < gmin || dot( col2, lum) > gmax)? col1 * 0.5 : col2));
 			}
 			ENDCG
 		}
