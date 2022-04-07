@@ -135,6 +135,11 @@ namespace RenderingPipeline
 				cacheOverrideTargetBuffers = OverrideTargetBuffers;
 				isRebuildCommandBuffers = true;
 			}
+			if( cacheOverrideTargetFormat != overrideTargetFormat)
+			{
+				cacheOverrideTargetFormat = overrideTargetFormat;
+				isRebuildCommandBuffers = true;
+			}
 			if( cacheOverrideCameraDepthTexture != OverrideCameraDepthTexture)
 			{
 				cacheOverrideCameraDepthTexture = OverrideCameraDepthTexture;
@@ -775,7 +780,9 @@ namespace RenderingPipeline
 		{
 			Default = RenderTextureFormat.Default,
 			DefaultHDR = RenderTextureFormat.DefaultHDR,
-			ARGBA32 = RenderTextureFormat.ARGB32,
+			ARGB32 = RenderTextureFormat.ARGB32,
+			ARGBHalf = RenderTextureFormat.ARGBHalf,
+			ARGBFloat = RenderTextureFormat.ARGBFloat,
 		}
 		enum RenderTargetDepth
 		{
@@ -837,6 +844,7 @@ namespace RenderingPipeline
 	#if UNITY_EDITOR
 		DepthTextureMode? cacheDefaultDepthTextureMode;
 		bool? cacheOverrideTargetBuffers;
+		RenderTargetFormat? cacheOverrideTargetFormat;
 		bool? cacheOverrideCameraDepthTexture;
 	#endif
 	}
