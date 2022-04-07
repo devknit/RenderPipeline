@@ -36,7 +36,7 @@ namespace RenderingPipeline
 		Color overwriteMultiply = ColorFilterProperties.kSepiaMultiply;
 		[SerializeField, ColorUsage( true, true)]
 		Color overwriteAdd = Color.clear;
-		[SerializeField, Range( 0, 1)]
+		[SerializeField, Range( -5, 5)]
 		float overwriteContrast = 1;
 	}
 }

@@ -42,7 +42,7 @@ namespace RenderingPipeline
 							blendedDot += input.dot * inputWeight;
 							blendedMultiply += input.multiply * inputWeight;
 							blendedAdd += input.add * inputWeight;
-							blendedContrast += input.invert * inputWeight;
+							blendedContrast += input.contrast * inputWeight;
 							totalWeight += inputWeight;
 						}
 					}
