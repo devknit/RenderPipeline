@@ -38,10 +38,10 @@ namespace RenderingPipeline
 			get{ return add; }
 			set{ add = value; }
 		}
-		public float Invert
+		public float Contrast
 		{
-			get{ return invert; }
-			set{ invert = Mathf.Clamp01( value); }
+			get{ return contrast; }
+			set{ contrast = value; }
 		}
 		public void ClearCache()
 		{
@@ -49,7 +49,7 @@ namespace RenderingPipeline
 			cacheDot = null;
 			cacheAdd = null;
 			cacheMultiply = null;
-			cacheInvert = null;
+			cacheContrast = null;
 		}
 		public bool UpdateProperties( RenderPipeline pipeline, Material material)
 		{
@@ -81,10 +81,10 @@ namespace RenderingPipeline
 					material.SetColor( kShaderPropertyAdd, add);
 					cacheAdd = add;
 				}
-				if( cacheInvert != invert)
+				if( cacheContrast != contrast)
 				{
-					material.SetFloat( kShaderPropertyInvert, invert);
-					cacheInvert = invert;
+					material.SetFloat( kShaderPropertyContrast, contrast);
+					cacheContrast = contrast;
 				}
 				if( material.IsKeywordEnabled( kShaderKeywordColorFilter) == false)
 				{
@@ -102,7 +102,7 @@ namespace RenderingPipeline
 		static readonly int kShaderPropertyDot = Shader.PropertyToID( "_ColorFilterDot");
 		static readonly int kShaderPropertyMultiply = Shader.PropertyToID( "_ColorFilterMultiply");
 		static readonly int kShaderPropertyAdd = Shader.PropertyToID( "_ColorFilterAdd");
-		static readonly int kShaderPropertyInvert = Shader.PropertyToID( "_ColorFilterInvert");
+		static readonly int kShaderPropertyContrast = Shader.PropertyToID( "_ColorFilterContrast");
 		
 		[SerializeField]
 		bool enabled = true;
@@ -112,8 +112,8 @@ namespace RenderingPipeline
 		Color multiply = kSepiaMultiply;
 		[SerializeField, ColorUsage( true, true)]
 		Color add = Color.clear;
-		[SerializeField, Range( 0, 1)]
-		float invert = 0;
+		[SerializeField, Range( -5, 5)]
+		float contrast = 1;
 		
 		[System.NonSerialized]
 		bool? cacheEnabled;
@@ -122,7 +122,7 @@ namespace RenderingPipeline
 		[System.NonSerialized]
 		Color? cacheMultiply;
 		[System.NonSerialized]
-		float? cacheInvert;
+		float? cacheContrast;
 		[System.NonSerialized]
 		Color? cacheAdd;
 	}

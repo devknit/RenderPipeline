@@ -24,7 +24,7 @@ namespace RenderingPipeline
 			behaviour.overwriteDot = overwriteDot;
 			behaviour.overwriteMultiply = overwriteMultiply;
 			behaviour.overwriteAdd = overwriteAdd;
-			behaviour.overwriteInvert = overwriteInvert;
+			behaviour.overwriteContrast = overwriteContrast;
 			return playable;
 		}
 		
@@ -37,6 +37,6 @@ namespace RenderingPipeline
 		[SerializeField, ColorUsage( true, true)]
 		Color overwriteAdd = Color.clear;
 		[SerializeField, Range( 0, 1)]
-		float overwriteInvert = 0;
+		float overwriteContrast = 1;
 	}
 }

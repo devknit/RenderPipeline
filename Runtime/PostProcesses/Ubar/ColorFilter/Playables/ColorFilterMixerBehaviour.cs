@@ -18,7 +18,7 @@ namespace RenderingPipeline
 						defaultDot = colorFilterComponent.Properties.Dot;
 						defaultMultiply = colorFilterComponent.Properties.Multiply;
 						defaultAdd = colorFilterComponent.Properties.Add;
-						defaultInvert = colorFilterComponent.Properties.Invert;
+						defaultContrast = colorFilterComponent.Properties.Contrast;
 					}
 				}
 				if( colorFilterComponent != null)
@@ -27,7 +27,7 @@ namespace RenderingPipeline
 					Color blendedDot = Color.clear;
 					Color blendedMultiply = Color.clear;
 					Color blendedAdd = Color.clear;
-					float blendedInvert = 0;
+					float blendedContrast = 0;
 					float totalWeight = 0.0f;
 					
 					for( int i0 = 0; i0 < inputCount; ++i0)
@@ -42,7 +42,7 @@ namespace RenderingPipeline
 							blendedDot += input.dot * inputWeight;
 							blendedMultiply += input.multiply * inputWeight;
 							blendedAdd += input.add * inputWeight;
-							blendedInvert += input.invert * inputWeight;
+							blendedContrast += input.invert * inputWeight;
 							totalWeight += inputWeight;
 						}
 					}
@@ -52,12 +52,12 @@ namespace RenderingPipeline
 						blendedDot += defaultDot * defaultWeight;
 						blendedMultiply += defaultMultiply * defaultWeight;
 						blendedAdd += defaultAdd * defaultWeight;
-						blendedInvert += defaultInvert * defaultWeight;
+						blendedContrast += defaultContrast * defaultWeight;
 					}
 					colorFilterComponent.Properties.Dot = blendedDot;
 					colorFilterComponent.Properties.Multiply = blendedMultiply;
 					colorFilterComponent.Properties.Add = blendedAdd;
-					colorFilterComponent.Properties.Invert = blendedInvert;
+					colorFilterComponent.Properties.Contrast = blendedContrast;
 				}
 			}
 		}
@@ -72,7 +72,7 @@ namespace RenderingPipeline
 						colorFilterComponent.Properties.Dot = defaultDot;
 						colorFilterComponent.Properties.Multiply = defaultMultiply;
 						colorFilterComponent.Properties.Add = defaultAdd;
-						colorFilterComponent.Properties.Invert = defaultInvert;
+						colorFilterComponent.Properties.Contrast = defaultContrast;
 						break;
 					}
 					case ColorFilterTrack.PostPlaybackState.Overwrite:
@@ -80,7 +80,7 @@ namespace RenderingPipeline
 						colorFilterComponent.Properties.Dot = overwriteDot;
 						colorFilterComponent.Properties.Multiply = overwriteMultiply;
 						colorFilterComponent.Properties.Add = overwriteAdd;
-						colorFilterComponent.Properties.Invert = overwriteInvert;
+						colorFilterComponent.Properties.Contrast = overwriteContrast;
 						break;
 					}
 				}
@@ -92,11 +92,11 @@ namespace RenderingPipeline
 		Color defaultDot;
 		Color defaultMultiply;
 		Color defaultAdd;
-		float defaultInvert;
+		float defaultContrast;
 		internal Color overwriteDot;
 		internal Color overwriteMultiply;
 		internal Color overwriteAdd;
-		internal float overwriteInvert;
+		internal float overwriteContrast;
 		ColorFilter colorFilterComponent;
 	}
 }
