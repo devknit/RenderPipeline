@@ -700,6 +700,13 @@ namespace RenderingPipeline
 		}
 		internal void SetViewport( CommandBuffer commandBuffer, IPostProcess nextProcess)
 		{
+			if( OverrideTargetBuffers != false)
+			{
+				if( overrideTargetEvent.GetPersistentEventCount() > 0)
+				{
+					return;
+				}
+			}
 			if( commandBuffer == commandBufferPostProcesses && nextProcess == null)
 			{
 				commandBuffer.SetViewport( new Rect( 0, 0, Screen.width, Screen.height));
