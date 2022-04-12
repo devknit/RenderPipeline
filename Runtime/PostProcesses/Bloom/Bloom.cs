@@ -200,11 +200,16 @@ namespace RenderingPipeline
 			
 			if( width > 0 && height > 0)
 			{
-				var renderTextureFormat = RenderTextureFormat.ARGB32;
+				var renderTextureFormat = Properties.Format;
 				
-				if( SystemInfo.SupportsRenderTextureFormat( RenderTextureFormat.DefaultHDR) != false)
+				if( SystemInfo.SupportsRenderTextureFormat( renderTextureFormat) == false)
 				{
 					renderTextureFormat = RenderTextureFormat.DefaultHDR;
+					
+					if( SystemInfo.SupportsRenderTextureFormat( renderTextureFormat) == false)
+					{
+						renderTextureFormat = RenderTextureFormat.ARGB32;
+					}
 				}
 				int topBloomWidth = width >> Properties.DownSampleLevel;
 				int topBloomHeight = height >> Properties.DownSampleLevel;

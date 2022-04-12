@@ -21,6 +21,10 @@ namespace RenderingPipeline
 		{
 			get{ return phase; }
 		}
+		public RenderTextureFormat Format
+		{
+			get{ return format; }
+		}
 		public float Thresholds
 		{
 			get{ return thresholds; }
@@ -197,6 +201,8 @@ namespace RenderingPipeline
 		bool enabled = true;
 		[SerializeField]
 		PostProcessEvent phase = PostProcessEvent.BeforeImageEffects;
+		[SerializeField]
+		RenderTextureFormat format = RenderTextureFormat.DefaultHDR;
 		[SerializeField]
 		float thresholds = 1.0f;
 		[SerializeField]
