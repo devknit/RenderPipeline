@@ -2,6 +2,8 @@
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Rendering;
+using System.Linq;
+using System.Collections.Generic;
 
 namespace RenderingPipeline
 {
@@ -44,16 +46,72 @@ namespace RenderingPipeline
 			CollectionProcesses();
 			RebuildCommandBuffers();
 		}
-	#if UNITY_EDITOR
+		static List<RenderPipeline> s_Pipelines = new List<RenderPipeline>();
+		
 		void OnEnable()
 		{
+			if( s_Pipelines.Contains( this) == false)
+			{
+				s_Pipelines.Add( this);
+				s_Pipelines.Sort( (a, b) => (int)a.cacheCamera.depth - (int)b.cacheCamera.depth);
+				
+				RenderPipeline firstPipeline = null;
+				RenderPipeline prevPipeline = null;
+				
+				foreach( var pipeline in s_Pipelines)
+				{
+					if( prevPipeline != null)
+					{
+						prevPipeline.nextPipeline = pipeline;
+					}
+					pipeline.firstPipeline = firstPipeline;
+					pipeline.prevPipeline = prevPipeline;
+					pipeline.isRebuildCommandBuffers = true;
+					
+					if( firstPipeline == null)
+					{
+						firstPipeline = pipeline;
+					}
+					prevPipeline = pipeline;
+				}
+			}
+		#if UNITY_EDITOR
 			RenderPipelineEvent.saveAssets = () =>
 			{
 				ClearPropertiesCache();
 			};
+		#endif
 		}
 		void OnDisable()
 		{
+			if( s_Pipelines.Contains( this) != false)
+			{
+				s_Pipelines.Remove( this);
+				
+				if( s_Pipelines.Count > 0)
+				{
+					RenderPipeline firstPipeline = null;
+					RenderPipeline prevPipeline = null;
+					
+					foreach( var pipeline in s_Pipelines)
+					{
+						if( prevPipeline != null)
+						{
+							prevPipeline.nextPipeline = pipeline;
+						}
+						pipeline.firstPipeline = firstPipeline;
+						pipeline.prevPipeline = prevPipeline;
+						pipeline.isRebuildCommandBuffers = true;
+						
+						if( firstPipeline == null)
+						{
+							firstPipeline = pipeline;
+						}
+						prevPipeline = pipeline;
+					}
+				}
+			}
+		#if UNITY_EDITOR
 			if( overrideTargetEvent.GetPersistentEventCount() > 0)
 			{
 				overrideTargetEvent.Invoke( null);
@@ -66,7 +124,9 @@ namespace RenderingPipeline
 			
 			RemoveCommandBuffers();
 			ClearPropertiesCache();
+		#endif
 		}
+	#if UNITY_EDITOR
 		void ClearPropertiesCache()
 		{
 			for( int i0 = 0; i0 < caches.Length; ++i0)
@@ -96,15 +156,15 @@ namespace RenderingPipeline
 				postScreenShot.Release();
 				postScreenShot = null;
 			}
-			if( colorBuffer != null)
+			if( overrideColorBuffer != null)
 			{
-				colorBuffer.Release();
-				colorBuffer = null;
+				overrideColorBuffer.Release();
+				overrideColorBuffer = null;
 			}
-			if( depthBuffer != null)
+			if( overrideDepthBuffer != null)
 			{
-				depthBuffer.Release();
-				depthBuffer = null;
+				overrideDepthBuffer.Release();
+				overrideDepthBuffer = null;
 			}
 			if( copyMaterial != null)
 			{
@@ -302,86 +362,104 @@ namespace RenderingPipeline
 			}
 			else
 			{
-				int targetWidth;
-				int targetHeight;
-		#if UNITY_WEBGL
-				if( dynamicResolutionScale != false
-			#if UNITY_EDITOR
-				&&	Application.isPlaying != false
-			#endif	
-				)
+				if( firstPipeline == null || CallbackTargetBuffer != false)
 				{
-					targetWidth = Screen.width;
-					targetHeight = Screen.height;
-					int minimumSize = Mathf.Min( targetWidth, targetHeight);
-					
-					if( minimumSize < 720)
+					int targetWidth;
+					int targetHeight;
+			#if false
+					if( dynamicResolutionScale != false
+				#if UNITY_EDITOR
+					&&	Application.isPlaying != false
+				#endif	
+					)
 					{
-						resolutionScale = Mathf.Clamp( 720.0f / minimumSize, 0.1f, 2.0f);
-					}
-					else if( minimumSize > 1080)
-					{
-						resolutionScale = Mathf.Clamp( 1080.0f / minimumSize, 0.1f, 2.0f);
+						targetWidth = Screen.width;
+						targetHeight = Screen.height;
+						int minimumSize = Mathf.Min( targetWidth, targetHeight);
+						
+						if( minimumSize < 720)
+						{
+							resolutionScale = Mathf.Clamp( 720.0f / minimumSize, 0.1f, 2.0f);
+						}
+						else if( minimumSize > 1080)
+						{
+							resolutionScale = Mathf.Clamp( 1080.0f / minimumSize, 0.1f, 2.0f);
+						}
+						else
+						{
+							resolutionScale = 1.0f;
+						}
+						targetWidth = (int)((float)targetWidth * resolutionScale);
+						targetHeight = (int)((float)targetHeight * resolutionScale);
 					}
 					else
+			#endif
 					{
-						resolutionScale = 1.0f;
+						targetWidth = (int)((float)Screen.width * resolutionScale);
+						targetHeight = (int)((float)Screen.height * resolutionScale);
 					}
-					targetWidth = (int)((float)targetWidth * resolutionScale);
-					targetHeight = (int)((float)targetHeight * resolutionScale);
+					bool refreshColorBuffer = overrideColorBuffer == null || overrideColorBuffer.width != targetWidth || overrideColorBuffer.height != targetHeight;
+					bool refreshDepthBuffer = overrideDepthBuffer == null || overrideDepthBuffer.width != targetWidth || overrideDepthBuffer.height != targetHeight;
+					
+					if( refreshColorBuffer != false || refreshDepthBuffer != false)
+					{
+						if( overrideTargetEvent.GetPersistentEventCount() > 0)
+						{
+							overrideTargetEvent.Invoke( null);
+						}
+						foreach( var pipeline in s_Pipelines)
+						{
+							if( pipeline.CallbackTargetBuffer == false)
+							{
+								pipeline.cacheCamera.SetTargetBuffers( Display.main.colorBuffer, Display.main.depthBuffer);
+							}
+						}
+						if( refreshColorBuffer != false)
+						{
+							if( overrideColorBuffer != null)
+							{
+								overrideColorBuffer.Release();
+							}
+							var colorBufferFormat = RenderTextureFormat.ARGB32;
+							
+							if( SystemInfo.SupportsRenderTextureFormat( (RenderTextureFormat)overrideTargetFormat) != false)
+							{
+								colorBufferFormat = (RenderTextureFormat)overrideTargetFormat;
+							}
+							var colorDescriptor = new RenderTextureDescriptor( 
+								targetWidth, targetHeight, colorBufferFormat, 0, 3);
+							colorDescriptor.useMipMap = true;
+							overrideColorBuffer = new RenderTexture( colorDescriptor);
+							overrideColorBuffer.filterMode = FilterMode.Point;
+							overrideColorBuffer.name = $"CameraPipeline::ColorBuffer{GetInstanceID()}";
+						}
+						if( refreshDepthBuffer != false)
+						{
+							if( overrideDepthBuffer != null)
+							{
+								overrideDepthBuffer.Release();
+							}
+							overrideDepthBuffer = new RenderTexture( targetWidth, targetHeight, 24, RenderTextureFormat.Depth);
+							overrideDepthBuffer.filterMode = FilterMode.Point;
+							overrideDepthBuffer.name = $"CameraPipeline::DepthBuffer{GetInstanceID()}";
+						}
+					}
+					currentColorBuffer = overrideColorBuffer;
+					currentDepthBuffer = overrideDepthBuffer;
 				}
 				else
-		#endif
 				{
-					targetWidth = (int)((float)Screen.width * resolutionScale);
-					targetHeight = (int)((float)Screen.height * resolutionScale);
+					currentColorBuffer = firstPipeline.overrideColorBuffer;
+					currentDepthBuffer = firstPipeline.overrideDepthBuffer;
 				}
-				bool refreshColorBuffer = colorBuffer == null || colorBuffer.width != targetWidth || colorBuffer.height != targetHeight;
-				bool refreshDepthBuffer = depthBuffer == null || depthBuffer.width != targetWidth || depthBuffer.height != targetHeight;
-				
-				if( refreshColorBuffer != false || refreshDepthBuffer != false)
-				{
-					if( overrideTargetEvent.GetPersistentEventCount() > 0)
-					{
-						overrideTargetEvent.Invoke( null);
-					}
-					cacheCamera.SetTargetBuffers( Display.main.colorBuffer, Display.main.depthBuffer);
-					
-					if( refreshColorBuffer != false)
-					{
-						if( colorBuffer != null)
-						{
-							colorBuffer.Release();
-						}
-						var colorBufferFormat = RenderTextureFormat.ARGB32;
-						
-						if( SystemInfo.SupportsRenderTextureFormat( (RenderTextureFormat)overrideTargetFormat) != false)
-						{
-							colorBufferFormat = (RenderTextureFormat)overrideTargetFormat;
-						}
-						colorBuffer = new RenderTexture( targetWidth, targetHeight, 0, colorBufferFormat);
-						colorBuffer.filterMode = FilterMode.Point;
-						colorBuffer.name = "CameraPipeline::ColorBuffer";
-					}
-					if( refreshDepthBuffer != false)
-					{
-						if( depthBuffer != null)
-						{
-							depthBuffer.Release();
-						}
-						depthBuffer = new RenderTexture( targetWidth, targetHeight, 24, RenderTextureFormat.Depth);
-						depthBuffer.filterMode = FilterMode.Point;
-						depthBuffer.name = "CameraPipeline::DepthBuffer";
-					}
-				}
-				cacheCamera.SetTargetBuffers( colorBuffer.colorBuffer, depthBuffer.depthBuffer);
+				cacheCamera.SetTargetBuffers( currentColorBuffer.colorBuffer, currentDepthBuffer.depthBuffer);
 				cacheScreenWidth = Screen.width;
 				cacheScreenHeight = Screen.height;
 				cacheResolutionScale = resolutionScale;
 				
 				if( overrideTargetEvent.GetPersistentEventCount() > 0)
 				{
-					overrideTargetEvent.Invoke( colorBuffer);
+					overrideTargetEvent.Invoke( currentColorBuffer);
 				}
 				if( (depthTextureMode & DepthTextureMode.Depth) != 0 && OverrideCameraDepthTexture != false)
 				{
@@ -411,7 +489,7 @@ namespace RenderingPipeline
 						RenderBufferStoreAction.Store,
 						RenderBufferLoadAction.DontCare,
 						RenderBufferStoreAction.DontCare);
-					commandBufferDepthTexture.SetGlobalTexture( ShaderProperty.MainTex, depthBuffer);
+					commandBufferDepthTexture.SetGlobalTexture( ShaderProperty.MainTex, currentDepthBuffer);
 					DrawCopy( commandBufferDepthTexture);
 					commandBufferDepthTexture.SetGlobalTexture( ShaderProperty.CameraDepthTexture, overrideDepthTexture);
 					cacheCamera.AddCommandBuffer( CameraEvent.AfterForwardOpaque, commandBufferDepthTexture);
@@ -437,9 +515,9 @@ namespace RenderingPipeline
 				}
 				else
 				{
-					context.SetBuffers( colorBuffer, depthBuffer);
-					context.SetSource0( colorBuffer);
-					context.SetTarget0( colorBuffer);
+					context.SetBuffers( currentColorBuffer, currentDepthBuffer);
+					context.SetSource0( currentColorBuffer);
+					context.SetTarget0( currentColorBuffer);
 				}
 				for( i0 = 0, process = null; i0 < caches.Length; ++i0)
 				{
@@ -480,7 +558,7 @@ namespace RenderingPipeline
 					}
 					else
 					{
-						context.SetTarget0( colorBuffer);
+						context.SetTarget0( currentColorBuffer);
 					}
 					process.BuildCommandBuffer( this, commandBufferOpaqueProcesses, context, null);
 				}
@@ -510,9 +588,9 @@ namespace RenderingPipeline
 					}
 					else
 					{
-						context.SetBuffers( colorBuffer, depthBuffer);
-						context.SetSource0( colorBuffer);
-						context.SetTarget0( colorBuffer);
+						context.SetBuffers( currentColorBuffer, currentDepthBuffer);
+						context.SetSource0( currentColorBuffer);
+						context.SetTarget0( currentColorBuffer);
 					}
 					for( i0 = 0, process = null; i0 < caches.Length; ++i0)
 					{
@@ -546,10 +624,21 @@ namespace RenderingPipeline
 					if( process != null)
 					{
 						RecycleTemporaryRT( context);
-						
-						if( OverrideTargetBuffers != false && overrideTargetEvent.GetPersistentEventCount() > 0)
+						bool overrideTarget = false;
+							
+					#if UNITY_EDITOR
+						if( Application.isPlaying == false)
 						{
-							context.SetTarget0( colorBuffer);
+							overrideTarget = false;
+						}
+						else
+					#endif
+						{
+							overrideTarget = overrideTargetBuffers;
+						}
+						if( CallbackTargetBuffer != false || nextPipeline != null)
+						{
+							context.SetTarget0( currentColorBuffer);
 						}
 						else
 						{
@@ -568,12 +657,12 @@ namespace RenderingPipeline
 						RenderBufferLoadAction.DontCare,
 						RenderBufferStoreAction.DontCare);
 					commandBufferPostProcesses.SetViewport( new Rect( 0, 0, Screen.width, Screen.height));
-					commandBufferPostProcesses.SetGlobalTexture( ShaderProperty.MainTex, colorBuffer);
+					commandBufferPostProcesses.SetGlobalTexture( ShaderProperty.MainTex, currentColorBuffer);
 					DrawCopy( commandBufferPostProcesses);
 				}
 				if( OverrideCameraDepthTexture != false)
 				{
-					commandBufferPostProcesses.ClearRenderTarget( true, false, Color.clear, 1.0f);
+					// commandBufferPostProcesses.ClearRenderTarget( true, false, Color.clear, 1.0f);
 					
 					if( (depthTextureMode & DepthTextureMode.Depth) != 0)
 					{
@@ -700,14 +789,7 @@ namespace RenderingPipeline
 		}
 		internal void SetViewport( CommandBuffer commandBuffer, IPostProcess nextProcess)
 		{
-			if( OverrideTargetBuffers != false)
-			{
-				if( overrideTargetEvent.GetPersistentEventCount() > 0)
-				{
-					return;
-				}
-			}
-			if( commandBuffer == commandBufferPostProcesses && nextProcess == null)
+			if( CallbackTargetBuffer == false && commandBuffer == commandBufferPostProcesses && nextProcess == null && nextPipeline == null)
 			{
 				commandBuffer.SetViewport( new Rect( 0, 0, Screen.width, Screen.height));
 			}
@@ -730,13 +812,26 @@ namespace RenderingPipeline
 			{
 				if( OverrideCameraDepthTexture != false)
 				{
-					return depthBuffer;
+					return overrideDepthBuffer;
 				}
 			#if UNITY_EDITOR
 				return BuiltinRenderTextureType.RenderTexture;
 			#else
 				return BuiltinRenderTextureType.CameraTarget;
 			#endif
+			}
+		}
+		internal bool CallbackTargetBuffer
+		{
+			get
+			{
+			#if UNITY_EDITOR
+				if( Application.isPlaying == false)
+				{
+					return false;
+				}
+			#endif
+				return overrideTargetBuffers && overrideTargetEvent.GetPersistentEventCount() > 0;
 			}
 		}
 		internal bool OverrideTargetBuffers
@@ -749,6 +844,10 @@ namespace RenderingPipeline
 					return false;
 				}
 			#endif
+				if( firstPipeline != null)
+				{
+					return firstPipeline.overrideColorBuffer != null;
+				}
 				return overrideTargetBuffers;
 			}
 		}
@@ -824,8 +923,10 @@ namespace RenderingPipeline
 		
 		Mesh fillMesh;
 		Material copyMaterial;
-		RenderTexture colorBuffer;
-		RenderTexture depthBuffer;
+		RenderTexture currentColorBuffer;
+		RenderTexture currentDepthBuffer;
+		RenderTexture overrideColorBuffer;
+		RenderTexture overrideDepthBuffer;
 		RenderTexture opaqueScreenShot;
 		RenderTexture postScreenShot;
 		bool isRebuildCommandBuffers;
@@ -843,6 +944,9 @@ namespace RenderingPipeline
 		int phasePostScreenShot;
 		
 		Camera cacheCamera;
+		RenderPipeline firstPipeline;
+		RenderPipeline prevPipeline;
+		RenderPipeline nextPipeline;
 		int? cacheDisplayWidth;
 		int? cacheDisplayHeight;
 		int? cacheScreenWidth;
