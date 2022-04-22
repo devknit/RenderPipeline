@@ -1,5 +1,21 @@
 ﻿Shader "Hidden/RenderPipeline/GaussianBlur"
 {
+	Properties
+	{
+		// Blending Status
+		[Enum( UnityEngine.Rendering.BlendOp)]
+		_ColorBlendOp( "Color Blend Op", float) = 0 // Add
+		[Enum( UnityEngine.Rendering.BlendMode)]
+		_ColorSrcFactor( "Color Src Factor", float) = 1 // One
+		[Enum( UnityEngine.Rendering.BlendMode)]
+		_ColorDstFactor( "Color Dst Factor", float) = 0 // Zero
+		[Enum( UnityEngine.Rendering.BlendOp)]
+		_AlphaBlendOp( "Alpha Blend Op", float) = 0 // Add
+		[Enum( UnityEngine.Rendering.BlendMode)]
+		_AlphaSrcFactor( "Alpha Src Factor", float) = 1 // One
+		[Enum( UnityEngine.Rendering.BlendMode)]
+		_AlphaDstFactor( "Alpha Dst Factor", float) = 0 // Zero
+	}
 	SubShader
 	{
 		Cull Off
@@ -8,6 +24,9 @@
 		
 		Pass
 		{
+			BlendOp Add, Add
+			Blend One Zero, One Zero
+			
 			CGPROGRAM
 			#pragma vertex vert
 			#pragma fragment frag
@@ -16,6 +35,9 @@
 		}
 		Pass
 		{
+			BlendOp Add, Add
+			Blend One Zero, One Zero
+			
 			CGPROGRAM
 			#pragma vertex vert
 			#pragma fragment frag
@@ -24,6 +46,9 @@
 		}
 		Pass
 		{
+			BlendOp Add, Add
+			Blend One Zero, One Zero
+			
 			CGPROGRAM
 			#pragma vertex vert
 			#pragma fragment frag
@@ -35,6 +60,9 @@
 		}
 		Pass
 		{
+			BlendOp [_ColorBlendOp], [_AlphaBlendOp]
+			Blend [_ColorSrcFactor] [_ColorDstFactor], [_AlphaSrcFactor] [_AlphaDstFactor]
+			
 			CGPROGRAM
 			#pragma vertex vert
 			#pragma fragment frag
@@ -47,6 +75,9 @@
 		}
 		Pass
 		{
+			BlendOp [_ColorBlendOp], [_AlphaBlendOp]
+			Blend [_ColorSrcFactor] [_ColorDstFactor], [_AlphaSrcFactor] [_AlphaDstFactor]
+			
 			CGPROGRAM
 			#pragma vertex vert
 			#pragma fragment fragMRT

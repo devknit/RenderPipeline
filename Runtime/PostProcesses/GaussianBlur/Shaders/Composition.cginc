@@ -3,7 +3,6 @@
 
 #include "UnityCG.cginc"
 
-sampler2D _MainTex;
 sampler2D _BlurTex;
 sampler2D _BlurCombinedTex;
 float4 _BlurUvTransform0;
@@ -20,6 +19,7 @@ float _BlurWeight3;
 float _BlurWeight4;
 float _BlurWeight5;
 float _BlurWeightCombined;
+fixed _BlendWeight;
 
 struct VertexInput
 {
@@ -56,7 +56,7 @@ void vert( VertexInput v, out VertexOutput o)
 }
 fixed4 composite( VertexOutput i)
 {
-	fixed4 c = fixed4( 0, 0, 0, 1);//tex2D( _MainTex, i.mainUv);
+	fixed4 c = fixed4( 0, 0, 0, 1);
 #ifdef COMPOSITION_SAMPLE4
 	c += tex2D( _BlurTex, i.blurUv0) * _BlurWeight0;
 	c += tex2D( _BlurTex, i.blurUv1) * _BlurWeight1;
@@ -83,7 +83,7 @@ fixed4 composite( VertexOutput i)
 #ifdef COMPOSITION_COMBINED
 	c += tex2D( _BlurCombinedTex, i.blurUvCombined) * _BlurWeightCombined;
 #endif
-	return saturate( c);
+	return saturate( fixed4( c.rgb, _BlendWeight));
 }
 fixed4 frag( VertexOutput i) : COLOR
 {

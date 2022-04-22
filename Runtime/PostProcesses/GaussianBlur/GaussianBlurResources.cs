@@ -1,15 +1,22 @@
-﻿
+﻿#define WITH_CLEARRENDERTARGET
+
 using UnityEngine;
+using UnityEngine.Rendering;
 using System.Collections.Generic;
 
 namespace RenderingPipeline
 {
 	public sealed class GaussianBlurResources
 	{
+		public enum BlendMode
+		{
+			Alpha,
+			Add,
+		}
 		public void Create()
 		{
-			brightnessExtractionMesh = new Mesh();
-			brightnessExtractionMesh.MarkDynamic();
+			mipmapMesh = new Mesh();
+			mipmapMesh.MarkDynamic();
 			blurHorizontalMesh = new Mesh();
 			blurHorizontalMesh.MarkDynamic();
 			blurVerticalMesh = new Mesh();
@@ -19,10 +26,10 @@ namespace RenderingPipeline
 		}
 		public void Dispose()
 		{
-			if( brightnessExtractionMesh != null)
+			if( mipmapMesh != null)
 			{
-				ObjectUtility.Release( brightnessExtractionMesh);
-				brightnessExtractionMesh = null;
+				ObjectUtility.Release( mipmapMesh);
+				mipmapMesh = null;
 			}
 			if( blurHorizontalMesh != null)
 			{
@@ -38,6 +45,122 @@ namespace RenderingPipeline
 			{
 				ObjectUtility.Release( combineMesh);
 				combineMesh = null;
+			}
+		}
+		public bool BuildCommandBuffer( 
+			RenderPipeline pipeline, CommandBuffer commandBuffer, 
+			TargetContext context, IPostProcess nextProcess, Material material)
+		{
+			/* mipmap */
+			var mipmapTarget = new RenderTargetIdentifier( kShaderPropertyMipmapTarget);
+			commandBuffer.GetTemporaryRT( kShaderPropertyMipmapTarget, mipmapDescriptor, FilterMode.Bilinear);
+			
+			commandBuffer.SetRenderTarget( 
+				mipmapTarget,
+				RenderBufferLoadAction.DontCare,	
+				RenderBufferStoreAction.Store,
+				RenderBufferLoadAction.DontCare,	
+				RenderBufferStoreAction.DontCare);
+		#if WITH_CLEARRENDERTARGET
+			commandBuffer.ClearRenderTarget( false, true, Color.clear, 0);
+		#endif
+			commandBuffer.SetGlobalTexture( ShaderProperty.MainTex, context.source0);
+			commandBuffer.DrawMesh( mipmapMesh, Matrix4x4.identity, material, 0, 0);
+			
+			/* blur horizontal */
+			var blurHorizontalTarget = new RenderTargetIdentifier( kShaderPropertyBlurHorizontalTarget);
+			commandBuffer.GetTemporaryRT( kShaderPropertyBlurHorizontalTarget, blurDescriptor, FilterMode.Bilinear);
+			
+			commandBuffer.SetRenderTarget( 
+				blurHorizontalTarget,
+				RenderBufferLoadAction.DontCare,	
+				RenderBufferStoreAction.Store,
+				RenderBufferLoadAction.DontCare,	
+				RenderBufferStoreAction.DontCare);
+		#if WITH_CLEARRENDERTARGET
+			commandBuffer.ClearRenderTarget( false, true, Color.clear, 0);
+		#endif
+			commandBuffer.SetGlobalTexture( ShaderProperty.MainTex, mipmapTarget);
+			commandBuffer.DrawMesh( blurHorizontalMesh, Matrix4x4.identity, material, 0, 1);
+			
+			/* blur vertical */
+			var blurVerticalTarget = new RenderTargetIdentifier( kShaderPropertyBlurVerticalTarget);
+			commandBuffer.GetTemporaryRT( kShaderPropertyBlurVerticalTarget, blurDescriptor, FilterMode.Bilinear);
+			
+			commandBuffer.SetRenderTarget( 
+				blurVerticalTarget,
+				RenderBufferLoadAction.DontCare,	
+				RenderBufferStoreAction.Store,
+				RenderBufferLoadAction.DontCare,	
+				RenderBufferStoreAction.DontCare);
+		#if WITH_CLEARRENDERTARGET
+			commandBuffer.ClearRenderTarget( false, true, Color.clear, 0);
+		#endif
+			commandBuffer.SetGlobalTexture( ShaderProperty.MainTex, kShaderPropertyBlurHorizontalTarget);
+			commandBuffer.DrawMesh( blurVerticalMesh, Matrix4x4.identity, material, 0, 1);
+			
+			/* combine */
+			if( combinePassCount > 1)
+			{
+				commandBuffer.SetRenderTarget( 
+					blurHorizontalTarget,
+					RenderBufferLoadAction.DontCare,	
+					RenderBufferStoreAction.Store,
+					RenderBufferLoadAction.DontCare,	
+					RenderBufferStoreAction.DontCare);
+			#if WITH_CLEARRENDERTARGET
+				commandBuffer.ClearRenderTarget( false, true, Color.clear, 0);
+			#endif
+				commandBuffer.SetGlobalTexture( ShaderProperty.MainTex, blurVerticalTarget);
+				commandBuffer.DrawMesh( combineMesh, Matrix4x4.identity, material, 0, 2);
+				commandBuffer.SetGlobalTexture( kShaderPropertyBlurTex, blurVerticalTarget);
+				commandBuffer.SetGlobalTexture( kShaderPropertyBlurCombinedTex, kShaderPropertyBlurHorizontalTarget);
+			}
+			else
+			{
+				commandBuffer.SetGlobalTexture( kShaderPropertyBlurCombinedTex, blurVerticalTarget);
+			}
+			commandBuffer.SetRenderTarget( 
+				context.target0,
+				RenderBufferLoadAction.DontCare,	
+				RenderBufferStoreAction.Store,
+				RenderBufferLoadAction.DontCare,	
+				RenderBufferStoreAction.DontCare);
+			pipeline.SetViewport( commandBuffer, nextProcess);
+			pipeline.DrawFill( commandBuffer, material, 3);
+			context.duplicated = false;
+			
+			commandBuffer.ReleaseTemporaryRT( kShaderPropertyBlurVerticalTarget);
+			commandBuffer.ReleaseTemporaryRT( kShaderPropertyBlurHorizontalTarget);
+			commandBuffer.ReleaseTemporaryRT( kShaderPropertyMipmapTarget);
+			return true;
+		}
+		public void UpdateBlendWeight( Material material, float blendWeight, BlendMode blendMode)
+		{
+			material.SetFloat( kShaderPropertyBlendWeight, blendWeight);
+			
+			switch( blendMode)
+			{
+				case BlendMode.Alpha:
+				{
+					if( blendWeight < 1.0f)
+					{
+						material.SetFloat( kShaderPropertyColorSrcFacter, 5);
+						material.SetFloat( kShaderPropertyColorDstFacter, 10);
+					}
+					else
+					{
+						material.SetFloat( kShaderPropertyColorSrcFacter, 1);
+						material.SetFloat( kShaderPropertyColorDstFacter, 0);
+					}
+					break;
+				}
+				case BlendMode.Add:
+				{
+					material.SetFloat( kShaderPropertyColorSrcFacter, 5);
+					material.SetFloat( kShaderPropertyColorDstFacter, 1);
+					break;
+				}
 			}
 		}
 		public void UpdateSigmaInPixel( Material material, float sigmaInPixel)
@@ -57,16 +180,16 @@ namespace RenderingPipeline
 				int topBlurHeight = height >> downSampleLevel;
 				int blurWidth, blurHeight;
 				
-				brightnessExtractionDescriptor = new RenderTextureDescriptor(
+				mipmapDescriptor = new RenderTextureDescriptor(
 					TextureUtil.ToPow2RoundUp( topBlurWidth), 
 					TextureUtil.ToPow2RoundUp( topBlurHeight), 
 					renderTextureFormat, 0);
-				brightnessExtractionDescriptor.useMipMap = true;
-				brightnessExtractionDescriptor.autoGenerateMips = true;
+				mipmapDescriptor.useMipMap = true;
+				mipmapDescriptor.autoGenerateMips = true;
 				brightnessNetWidth = width >> downSampleLevel;
 				brightnessNetHeight = height >> downSampleLevel;
-				brightnessOffsetX = (brightnessExtractionDescriptor.width - brightnessNetWidth) / 2;
-				brightnessOffsetY = (brightnessExtractionDescriptor.height - brightnessNetHeight) / 2;
+				brightnessOffsetX = (mipmapDescriptor.width - brightnessNetWidth) / 2;
+				brightnessOffsetY = (mipmapDescriptor.height - brightnessNetHeight) / 2;
 				
 				blurRects = CalculateMipmapArrangement(
 					out blurWidth,
@@ -260,15 +383,15 @@ namespace RenderingPipeline
 		}
 		void UpdateBrightnessExtractionMesh()
 		{
-			brightnessExtractionMesh.Clear();
+			mipmapMesh.Clear();
 			
-			float x0 = (float)brightnessOffsetX / (float)brightnessExtractionDescriptor.width;
-			float x1 = (float)(brightnessOffsetX + brightnessNetWidth) / (float)brightnessExtractionDescriptor.width;
-			float y0 = (float)brightnessOffsetY / (float)brightnessExtractionDescriptor.height;
-			float y1 = (float)(brightnessOffsetY + brightnessNetHeight) / (float)brightnessExtractionDescriptor.height;
+			float x0 = (float)brightnessOffsetX / (float)mipmapDescriptor.width;
+			float x1 = (float)(brightnessOffsetX + brightnessNetWidth) / (float)mipmapDescriptor.width;
+			float y0 = (float)brightnessOffsetY / (float)mipmapDescriptor.height;
+			float y1 = (float)(brightnessOffsetY + brightnessNetHeight) / (float)mipmapDescriptor.height;
 		#if false
-			float w1 = 8.0f / (float)brightnessExtractionDescriptor.width;
-			float h1 = 8.0f / (float)brightnessExtractionDescriptor.height;
+			float w1 = 8.0f / (float)mipmapDescriptor.width;
+			float h1 = 8.0f / (float)mipmapDescriptor.height;
 			float w2 = w1 * 0.5f;
 			float h2 = h1 * 0.5f;
 			float u0 = Mathf.Max( 0.0f, x0 - w2);
@@ -280,21 +403,21 @@ namespace RenderingPipeline
 			float v3 = Mathf.Min( 1.0f, y1 + h2);
 			float v2 = Mathf.Max( 0.0f, v3 - h1);
 			
-			brightnessExtractionMesh.SetVertices(
+			mipmapMesh.SetVertices(
 				new Vector3[]{
 					new Vector3( u0, v0, 0), new Vector3( u0, v1, 0), new Vector3( u0, v2, 0), new Vector3( u0, v3, 0),
 					new Vector3( u1, v0, 0), new Vector3( u1, v3, 0), new Vector3( u2, v0, 0), new Vector3( u2, v3, 0),
 					new Vector3( u3, v0, 0), new Vector3( u3, v1, 0), new Vector3( u3, v2, 0), new Vector3( u3, v3, 0),
 					new Vector3( x0, y0, 0), new Vector3( x0, y1, 0), new Vector3( x1, y1, 0), new Vector3( x1, y0, 0)
 				});
-			brightnessExtractionMesh.SetColors(
+			mipmapMesh.SetColors(
 				new Color[]{
 					Color.clear, Color.clear, Color.clear, Color.clear,
 					Color.clear, Color.clear, Color.clear, Color.clear,
 					Color.clear, Color.clear, Color.clear, Color.clear,
 					Color.white, Color.white, Color.white, Color.white
 				});
-			brightnessExtractionMesh.SetUVs( 
+			mipmapMesh.SetUVs( 
 				0,
 				new Vector2[]{
 					Vector2.zero, Vector2.zero, Vector2.zero, Vector2.zero,
@@ -302,7 +425,7 @@ namespace RenderingPipeline
 					Vector2.zero, Vector2.zero, Vector2.zero, Vector2.zero,
 					Vector2.zero, Vector2.up, Vector2.one, Vector2.right   
 				});
-			brightnessExtractionMesh.SetIndices(
+			mipmapMesh.SetIndices(
 				new int[]{
 					0, 1, 9, 8,
 					0, 3, 5, 4,
@@ -311,21 +434,21 @@ namespace RenderingPipeline
 					12, 13, 14, 15,
 				}, MeshTopology.Quads, 0);
 		#else
-			brightnessExtractionMesh.SetVertices(
+			mipmapMesh.SetVertices(
 				new Vector3[]{
 					new Vector3( x0, y0, 0),
 					new Vector3( x0, y1, 0),
 					new Vector3( x1, y1, 0),
 					new Vector3( x1, y0, 0)
 				});
-			brightnessExtractionMesh.SetColors(
+			mipmapMesh.SetColors(
 				new Color[]{ Color.white, Color.white, Color.white, Color.white });
-			brightnessExtractionMesh.SetUVs( 
+			mipmapMesh.SetUVs( 
 				0, new Vector2[]{ Vector2.zero, Vector2.up, Vector2.one, Vector2.right });
-			brightnessExtractionMesh.SetIndices(
+			mipmapMesh.SetIndices(
 				new int[]{ 0, 1, 2, 3 }, MeshTopology.Quads, 0);
 		#endif
-			brightnessExtractionMesh.UploadMeshData( false);
+			mipmapMesh.UploadMeshData( false);
 		}
 		public void UpdateGaussianBlurHorizontalMesh()
 		{
@@ -338,7 +461,7 @@ namespace RenderingPipeline
 			var indices = new int[ vertexCount];
 			int vertexIndex = 0;
 			
-			int scale = brightnessExtractionDescriptor.width;
+			int scale = mipmapDescriptor.width;
 			
 			for( int i0 = 0; i0 < blurRects.Length; ++i0)
 			{
@@ -346,7 +469,7 @@ namespace RenderingPipeline
 				
 				UpdateGaussianBlurMesh( 
 					vertexIndex, vertex, uv0, uv1, uv2, uv3,
-					brightnessExtractionDescriptor, brightnessOffsetX, brightnessOffsetY, brightnessNetWidth, brightnessNetHeight,
+					mipmapDescriptor, brightnessOffsetX, brightnessOffsetY, brightnessNetWidth, brightnessNetHeight,
 					blurDescriptor, rect.x, rect.y, rect.width, rect.height, 1.0f / (float)scale, true);
 					
 				for( int i1 = 0; i1 < 4; ++i1)
@@ -598,14 +721,14 @@ namespace RenderingPipeline
 		const string kShaderKeywordCompositionSample4 = "COMPOSITION_SAMPLE4";
 		const string kShaderKeywordCompositionCombined = "COMPOSITION_COMBINED";
 		
-		public static readonly int kShaderPropertyBrightnessExtractionTarget = Shader.PropertyToID( "_BrightnessExtractionTarget");
-		public static readonly int kShaderPropertyGaussianBlurHorizontalTarget = Shader.PropertyToID( "_GaussianBlurHorizontalTarget");
-		public static readonly int kShaderPropertyGaussianBlurVerticalTarget = Shader.PropertyToID( "_GaussianBlurVerticalTarget");
+		public static readonly int kShaderPropertyMipmapTarget = Shader.PropertyToID( "_MipmapTarget");
+		public static readonly int kShaderPropertyBlurHorizontalTarget = Shader.PropertyToID( "_BlurHorizontalTarget");
+		public static readonly int kShaderPropertyBlurVerticalTarget = Shader.PropertyToID( "_BlurVerticalTarget");
 		public static readonly int kShaderPropertyCombineTarget = Shader.PropertyToID( "_CombineTarget");
+		
+		public static readonly int kShaderPropertyBlendWeight = Shader.PropertyToID( "_BlendWeight");
 		public static readonly int kShaderPropertyBlurTex = Shader.PropertyToID( "_BlurTex");
 		public static readonly int kShaderPropertyBlurCombinedTex = Shader.PropertyToID( "_BlurCombinedTex");
-		public static readonly int kShaderPropertyThresholds = Shader.PropertyToID( "_Thresholds");
-		public static readonly int kShaderPropertyColorTransform = Shader.PropertyToID( "_ColorTransform");
 		public static readonly int kShaderPropertyInvertOffsetScale01 = Shader.PropertyToID( "_InvertOffsetScale01");
 		static readonly int[] kShaderPropertyUvTransforms = new int[]
 		{
@@ -629,13 +752,15 @@ namespace RenderingPipeline
 		};
 		static readonly int kShaderPropertyBlurWeightCombined = Shader.PropertyToID( "_BlurWeightCombined");
 		static readonly int kShaderPropertyBlurUvTransformCombined = Shader.PropertyToID( "_BlurUvTransformCombined");
+		static readonly int kShaderPropertyColorSrcFacter = Shader.PropertyToID( "_ColorSrcFactor");
+		static readonly int kShaderPropertyColorDstFacter = Shader.PropertyToID( "_ColorDstFactor");
 		
-		public Mesh brightnessExtractionMesh;
+		public Mesh mipmapMesh;
 		public Mesh blurHorizontalMesh;
 		public Mesh blurVerticalMesh;
 		public Mesh combineMesh;
 		
-		public RenderTextureDescriptor brightnessExtractionDescriptor;
+		public RenderTextureDescriptor mipmapDescriptor;
 		public RenderTextureDescriptor blurDescriptor;
 		public RenderTextureDescriptor combineDescriptor;
 		

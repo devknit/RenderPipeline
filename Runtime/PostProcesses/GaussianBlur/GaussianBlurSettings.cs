@@ -14,8 +14,8 @@ namespace RenderingPipeline
 	{
 		public bool Enabled
 		{
-			get{ return enabled; }
-			set{ enabled = value; }
+			get{ return blendWeight > 0; }
+			set{ blendWeight = (value == false)? 0 : 1; }
 		}
 		public PostProcessEvent Phase
 		{
@@ -31,19 +31,33 @@ namespace RenderingPipeline
 		}
 		public void ClearCache()
 		{
-			cacheEnabled = null;
+			cacheBlendWeight = null;
+			cacheSigmaInPixel = null;
 			cacheIntensity = null;
+			cacheIntensityMultiplier = null;
+			cacheDownSampleLevel = null;
+			cacheDownSampleCount = null;
+			cacheCombineStartLevel = null;
+			cacheScreenWidth = null;
+			cacheScreenHeight = null;
 		}
 		public bool UpdateProperties( RenderPipeline pipeline, Material material, GaussianBlurResources resources)
 		{
 			int updateFlag = kUpdateFlagNone;
 			
-			if( cacheEnabled != enabled)
+			if( cacheBlendWeight != blendWeight)
 			{
-				updateFlag = kUpdateFlagRebuild;
-				cacheEnabled = enabled;
+				bool cacheEnabled = cacheBlendWeight > 0;
+				bool enabled = blendWeight > 0;
+				
+				if( cacheEnabled != enabled)
+				{
+					updateFlag |= kUpdateFlagRebuild;
+				}
+				updateFlag |= kUpdateFlagBlendWeight;
+				cacheBlendWeight = blendWeight;
 			}
-			if( enabled != false)
+			if( blendWeight > 0)
 			{
 				if( cacheSigmaInPixel != sigmaInPixel)
 				{
@@ -82,6 +96,10 @@ namespace RenderingPipeline
 					cacheScreenWidth = pipeline.ScreenWidth;
 					cacheScreenHeight = pipeline.ScreenHeight;
 				}
+				if( (updateFlag & kUpdateFlagBlendWeight) != 0)
+				{
+					resources.UpdateBlendWeight( material, blendWeight, GaussianBlurResources.BlendMode.Alpha);
+				}
 				if( (updateFlag & kUpdateFlagSigmaInPixel) != 0)
 				{
 					resources.UpdateSigmaInPixel( material, sigmaInPixel);
@@ -105,19 +123,20 @@ namespace RenderingPipeline
 		}
 		const int kUpdateFlagNone = 0;
 		const int kUpdateFlagRebuild = 1 << 0;
-		const int kUpdateFlagSigmaInPixel = 1 << 1;
-		const int kUpdateFlagCombineComposition = 1 << 2;
-		const int kUpdateFlagDescriptors = 1 << 3;
-		const int kUpdateFlagGaussianBlurMesh = 1 << 4;
+		const int kUpdateFlagBlendWeight = 1 << 1;
+		const int kUpdateFlagSigmaInPixel = 1 << 2;
+		const int kUpdateFlagCombineComposition = 1 << 3;
+		const int kUpdateFlagDescriptors = 1 << 4;
+		const int kUpdateFlagGaussianBlurMesh = 1 << 5;
 		
-		[SerializeField]
-		bool enabled = true;
+		[SerializeField, Range( 0, 1)]
+		float blendWeight = 1.0f;
 		[SerializeField]
 		float sigmaInPixel = 3.0f;
 		[SerializeField]
 		float intensity = 1.0f;
 		[SerializeField] 
-		float intensityMultiplier = 2.0f;
+		float intensityMultiplier = 1.0f;
 		[SerializeField, Range( 0, 4)] 
 		int downSampleLevel = 2;
 		[SerializeField, Range( 1, 7)] 
@@ -126,7 +145,7 @@ namespace RenderingPipeline
 		int combineStartLevel = 1;
 		
 		[System.NonSerialized]
-		bool? cacheEnabled;
+		float? cacheBlendWeight;
 		[System.NonSerialized]
 		float? cacheSigmaInPixel;
 		[System.NonSerialized]
