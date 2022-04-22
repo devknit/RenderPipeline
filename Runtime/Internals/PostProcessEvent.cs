@@ -8,6 +8,6 @@ namespace RenderingPipeline
 	{
 		PostOpaque,
 		PostTransparent,
-	//	PreOpaque,
+		PreOpaque,
 	}
 }

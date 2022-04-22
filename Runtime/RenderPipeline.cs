@@ -277,6 +277,11 @@ namespace RenderingPipeline
 				cacheCamera.RemoveCommandBuffer( CameraEvent.AfterForwardOpaque, commandBufferDepthTexture);
 				commandBufferDepthTexture = null;
 			}
+			if( commandBufferPreProcesses != null)
+			{
+				cacheCamera.RemoveCommandBuffer( CameraEvent.BeforeForwardOpaque, commandBufferPreProcesses);
+				commandBufferPreProcesses = null;
+			}
 			if( commandBufferOpaqueProcesses != null)
 			{
 				cacheCamera.RemoveCommandBuffer( CameraEvent.BeforeImageEffectsOpaque, commandBufferOpaqueProcesses);
@@ -336,6 +341,9 @@ namespace RenderingPipeline
 			RemoveCommandBuffers();
 			
 			/* 有効なプロセス数を求める */
+			int enabledPreProcessCount = EnabledProcessCount( 
+				caches, PostProcessEvent.PreOpaque, 
+				ref depthTextureMode, ref highDynamicRangeTarget);
 			int enabledOpaqueProcessCount = EnabledProcessCount( 
 				caches, PostProcessEvent.PostOpaque, 
 				ref depthTextureMode, ref highDynamicRangeTarget);
@@ -494,6 +502,77 @@ namespace RenderingPipeline
 					commandBufferDepthTexture.SetGlobalTexture( ShaderProperty.CameraDepthTexture, overrideDepthTexture);
 					cacheCamera.AddCommandBuffer( CameraEvent.AfterForwardOpaque, commandBufferDepthTexture);
 				}
+			}
+			/* 事前プロセス */
+			if( enabledPreProcessCount > 0)
+			{
+				commandBufferPreProcesses = new CommandBuffer();
+				commandBufferPreProcesses.name = "CameraPipeline::PreProcesses";
+				commandBufferPreProcesses.Clear();
+				commandBufferPreProcesses.SetProjectionMatrix( Matrix4x4.Ortho( 0, 1, 0, 1, 0, 1));
+				commandBufferPreProcesses.SetViewMatrix( Matrix4x4.identity);
+				ResetTemporaryRT( commandBufferPreProcesses);
+				
+				var context = new TargetContext();
+				
+				if( OverrideTargetBuffers == false)
+				{
+					context.SetBuffers();
+					context.SetSource0( BuiltinRenderTextureType.CameraTarget);
+					context.SetTarget0( BuiltinRenderTextureType.CameraTarget);
+				}
+				else
+				{
+					context.SetBuffers( currentColorBuffer, currentDepthBuffer);
+					context.SetSource0( currentColorBuffer);
+					context.SetTarget0( currentColorBuffer);
+				}
+				for( i0 = 0, process = null; i0 < caches.Length; ++i0)
+				{
+					nextProcess = caches[ i0];
+					
+					if( nextProcess?.GetPostProcessEvent() != PostProcessEvent.PreOpaque)
+					{
+						continue;
+					}
+					if( nextProcess.Valid() != false)
+					{
+						if( nextProcess is IUbarProcess ubarProcess)
+						{
+							if( ubarProcess.Independent() == false)
+							{
+								continue;
+							}
+						}
+						if( process != null)
+						{
+							RecycleTemporaryRT( context);
+							
+							if( process.BuildCommandBuffer( this, commandBufferPreProcesses, context, nextProcess) != false)
+							{
+								context.Next();
+							}
+						}
+						process = nextProcess;
+					}
+				}
+				if( process != null)
+				{
+					RecycleTemporaryRT( context);
+					
+					if( OverrideTargetBuffers == false)
+					{
+						context.SetTarget0( BuiltinRenderTextureType.CameraTarget);
+					}
+					else
+					{
+						context.SetTarget0( currentColorBuffer);
+					}
+					process.BuildCommandBuffer( this, commandBufferPreProcesses, context, null);
+				}
+				ReleaseTemporaryRT();
+				commandBufferPreProcesses.SetRenderTarget( -1);
+				cacheCamera.AddCommandBuffer( CameraEvent.BeforeForwardOpaque, commandBufferPreProcesses);
 			}
 			/* 不透明系プロセス */
 			if( enabledOpaqueProcessCount > 0)
@@ -933,6 +1012,7 @@ namespace RenderingPipeline
 		
 		IPostProcess[] caches = new IPostProcess[ 2];
 		CommandBuffer commandBufferDepthTexture;
+		CommandBuffer commandBufferPreProcesses;
 		CommandBuffer commandBufferOpaqueProcesses;
 		CommandBuffer commandBufferPostProcesses;
 		CommandBuffer commandBufferOpaqueScreenShot;

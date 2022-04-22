@@ -17,9 +17,14 @@ namespace RenderingPipeline
 			get{ return blendWeight > 0; }
 			set{ blendWeight = (value == false)? 0 : 1; }
 		}
+		public float BlendWeight
+		{
+			get{ return blendWeight; }
+			set{ blendWeight = Mathf.Clamp01( value); }
+		}
 		public PostProcessEvent Phase
 		{
-			get{ return PostProcessEvent.PostOpaque; }
+			get{ return PostProcessEvent.PreOpaque; }
 		}
 		public int ScreenWidth
 		{
@@ -140,9 +145,9 @@ namespace RenderingPipeline
 		[SerializeField, Range( 0, 4)] 
 		int downSampleLevel = 2;
 		[SerializeField, Range( 1, 7)] 
-		int downSampleCount = 3;
+		int downSampleCount = 1;
 		[SerializeField, Range( 0, 6)]
-		int combineStartLevel = 1;
+		int combineStartLevel = 0;
 		
 		[System.NonSerialized]
 		float? cacheBlendWeight;
