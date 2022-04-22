@@ -51,10 +51,31 @@ namespace RenderingPipeline
 			RenderPipeline pipeline, CommandBuffer commandBuffer, 
 			TargetContext context, IPostProcess nextProcess, Material material)
 		{
-			/* mipmap */
 			var mipmapTarget = new RenderTargetIdentifier( kShaderPropertyMipmapTarget);
 			commandBuffer.GetTemporaryRT( kShaderPropertyMipmapTarget, mipmapDescriptor, FilterMode.Bilinear);
+			var blurHorizontalTarget = new RenderTargetIdentifier( kShaderPropertyBlurHorizontalTarget);
+			commandBuffer.GetTemporaryRT( kShaderPropertyBlurHorizontalTarget, blurDescriptor, FilterMode.Bilinear);
+			var blurVerticalTarget = new RenderTargetIdentifier( kShaderPropertyBlurVerticalTarget);
+			commandBuffer.GetTemporaryRT( kShaderPropertyBlurVerticalTarget, blurDescriptor, FilterMode.Bilinear);
+			bool clearMRT = false;
 			
+		#if WITH_CLEARRENDERTARGET
+			if( SystemInfo.supportedRenderTargetCount >= 3)
+			{
+				commandBuffer.SetRenderTarget( 
+					new RenderTargetBinding( 
+						new []{ mipmapTarget, blurHorizontalTarget, blurVerticalTarget },
+						new []{ RenderBufferLoadAction.DontCare, RenderBufferLoadAction.DontCare, RenderBufferLoadAction.DontCare },
+						new []{ RenderBufferStoreAction.Store, RenderBufferStoreAction.Store, RenderBufferStoreAction.Store },
+						BuiltinRenderTextureType.None,
+						RenderBufferLoadAction.DontCare,
+						RenderBufferStoreAction.DontCare));
+				commandBuffer.ClearRenderTarget( false, true, Color.clear, 0);
+				clearMRT = true;
+			}
+		#endif
+			
+			/* mipmap */
 			commandBuffer.SetRenderTarget( 
 				mipmapTarget,
 				RenderBufferLoadAction.DontCare,	
@@ -62,15 +83,15 @@ namespace RenderingPipeline
 				RenderBufferLoadAction.DontCare,	
 				RenderBufferStoreAction.DontCare);
 		#if WITH_CLEARRENDERTARGET
-			commandBuffer.ClearRenderTarget( false, true, Color.clear, 0);
+			if( clearMRT == false)
+			{
+				commandBuffer.ClearRenderTarget( false, true, Color.clear, 0);
+			}
 		#endif
 			commandBuffer.SetGlobalTexture( ShaderProperty.MainTex, context.source0);
 			commandBuffer.DrawMesh( mipmapMesh, Matrix4x4.identity, material, 0, 0);
 			
 			/* blur horizontal */
-			var blurHorizontalTarget = new RenderTargetIdentifier( kShaderPropertyBlurHorizontalTarget);
-			commandBuffer.GetTemporaryRT( kShaderPropertyBlurHorizontalTarget, blurDescriptor, FilterMode.Bilinear);
-			
 			commandBuffer.SetRenderTarget( 
 				blurHorizontalTarget,
 				RenderBufferLoadAction.DontCare,	
@@ -78,15 +99,15 @@ namespace RenderingPipeline
 				RenderBufferLoadAction.DontCare,	
 				RenderBufferStoreAction.DontCare);
 		#if WITH_CLEARRENDERTARGET
-			commandBuffer.ClearRenderTarget( false, true, Color.clear, 0);
+			if( clearMRT == false)
+			{
+				commandBuffer.ClearRenderTarget( false, true, Color.clear, 0);
+			}
 		#endif
 			commandBuffer.SetGlobalTexture( ShaderProperty.MainTex, mipmapTarget);
 			commandBuffer.DrawMesh( blurHorizontalMesh, Matrix4x4.identity, material, 0, 1);
 			
 			/* blur vertical */
-			var blurVerticalTarget = new RenderTargetIdentifier( kShaderPropertyBlurVerticalTarget);
-			commandBuffer.GetTemporaryRT( kShaderPropertyBlurVerticalTarget, blurDescriptor, FilterMode.Bilinear);
-			
 			commandBuffer.SetRenderTarget( 
 				blurVerticalTarget,
 				RenderBufferLoadAction.DontCare,	
@@ -94,7 +115,10 @@ namespace RenderingPipeline
 				RenderBufferLoadAction.DontCare,	
 				RenderBufferStoreAction.DontCare);
 		#if WITH_CLEARRENDERTARGET
-			commandBuffer.ClearRenderTarget( false, true, Color.clear, 0);
+			if( clearMRT == false)
+			{
+				commandBuffer.ClearRenderTarget( false, true, Color.clear, 0);
+			}
 		#endif
 			commandBuffer.SetGlobalTexture( ShaderProperty.MainTex, kShaderPropertyBlurHorizontalTarget);
 			commandBuffer.DrawMesh( blurVerticalMesh, Matrix4x4.identity, material, 0, 1);
@@ -389,9 +413,23 @@ namespace RenderingPipeline
 			float x1 = (float)(brightnessOffsetX + brightnessNetWidth) / (float)mipmapDescriptor.width;
 			float y0 = (float)brightnessOffsetY / (float)mipmapDescriptor.height;
 			float y1 = (float)(brightnessOffsetY + brightnessNetHeight) / (float)mipmapDescriptor.height;
-		#if false
-			float w1 = 8.0f / (float)mipmapDescriptor.width;
-			float h1 = 8.0f / (float)mipmapDescriptor.height;
+		#if WITH_CLEARRENDERTARGET
+			mipmapMesh.SetVertices(
+				new Vector3[]{
+					new Vector3( x0, y0, 0),
+					new Vector3( x0, y1, 0),
+					new Vector3( x1, y1, 0),
+					new Vector3( x1, y0, 0)
+				});
+			mipmapMesh.SetColors(
+				new Color[]{ Color.white, Color.white, Color.white, Color.white });
+			mipmapMesh.SetUVs( 
+				0, new Vector2[]{ Vector2.zero, Vector2.up, Vector2.one, Vector2.right });
+			mipmapMesh.SetIndices(
+				new int[]{ 0, 1, 2, 3 }, MeshTopology.Quads, 0);
+		#else
+			float w1 = (float)mipmapDescriptor.width;
+			float h1 = (float)mipmapDescriptor.height;
 			float w2 = w1 * 0.5f;
 			float h2 = h1 * 0.5f;
 			float u0 = Mathf.Max( 0.0f, x0 - w2);
@@ -412,9 +450,9 @@ namespace RenderingPipeline
 				});
 			mipmapMesh.SetColors(
 				new Color[]{
-					Color.clear, Color.clear, Color.clear, Color.clear,
-					Color.clear, Color.clear, Color.clear, Color.clear,
-					Color.clear, Color.clear, Color.clear, Color.clear,
+					Color.red, Color.red, Color.red, Color.red,
+					Color.red, Color.red, Color.red, Color.red,
+					Color.red, Color.red, Color.red, Color.red,
 					Color.white, Color.white, Color.white, Color.white
 				});
 			mipmapMesh.SetUVs( 
@@ -433,39 +471,76 @@ namespace RenderingPipeline
 					6, 7, 11, 8,
 					12, 13, 14, 15,
 				}, MeshTopology.Quads, 0);
-		#else
-			mipmapMesh.SetVertices(
-				new Vector3[]{
-					new Vector3( x0, y0, 0),
-					new Vector3( x0, y1, 0),
-					new Vector3( x1, y1, 0),
-					new Vector3( x1, y0, 0)
-				});
-			mipmapMesh.SetColors(
-				new Color[]{ Color.white, Color.white, Color.white, Color.white });
-			mipmapMesh.SetUVs( 
-				0, new Vector2[]{ Vector2.zero, Vector2.up, Vector2.one, Vector2.right });
-			mipmapMesh.SetIndices(
-				new int[]{ 0, 1, 2, 3 }, MeshTopology.Quads, 0);
 		#endif
 			mipmapMesh.UploadMeshData( false);
 		}
 		public void UpdateGaussianBlurHorizontalMesh()
 		{
-			int vertexCount = blurRects.Length * 4;
+			int vertexCount = blurRects.Length * 4
+		#if !WITH_CLEARRENDERTARGET
+				+ 12
+		#endif
+				;
 			var vertex = new Vector3[ vertexCount];
 			var uv0 = new Vector3[ vertexCount];
 			var uv1 = new Vector3[ vertexCount];
 			var uv2 = new Vector3[ vertexCount];
 			var uv3 = new Vector3[ vertexCount];
-			var indices = new int[ vertexCount];
+			var indices = new int[ vertexCount
+		#if !WITH_CLEARRENDERTARGET
+				+ 4
+		#endif	
+				];
 			int vertexIndex = 0;
+			int indicesIndex = 0;
+			BlurRect rect;
 			
+		#if !WITH_CLEARRENDERTARGET
+			rect = blurRects[ 0];
+			float u00 = 0;
+			float u01 = rect.x;
+			float u09 = rect.x + rect.width;
+			float u10 = blurDescriptor.width;
+			float v00 = 0;
+			float v04 = rect.y;
+			float v09 = rect.y + rect.height;
+			float v10 = blurDescriptor.height;
+			
+			vertex[ vertexIndex++] = new Vector3( u00, v00, 0);
+			vertex[ vertexIndex++] = new Vector3( u00, v04, 0);
+			vertex[ vertexIndex++] = new Vector3( u00, v09, 0);
+			vertex[ vertexIndex++] = new Vector3( u00, v10, 0);
+			vertex[ vertexIndex++] = new Vector3( u10, v00, 0);
+			vertex[ vertexIndex++] = new Vector3( u10, v04, 0);
+			vertex[ vertexIndex++] = new Vector3( u10, v09, 0);
+			vertex[ vertexIndex++] = new Vector3( u10, v10, 0);
+			vertex[ vertexIndex++] = new Vector3( u01, v04, 0);
+			vertex[ vertexIndex++] = new Vector3( u01, v09, 0);
+			vertex[ vertexIndex++] = new Vector3( u09, v04, 0);
+			vertex[ vertexIndex++] = new Vector3( u09, v09, 0);
+			
+			indices[ indicesIndex++] = 0;
+			indices[ indicesIndex++] = 1;
+			indices[ indicesIndex++] = 5;
+			indices[ indicesIndex++] = 4;
+			indices[ indicesIndex++] = 2;
+			indices[ indicesIndex++] = 3;
+			indices[ indicesIndex++] = 7;
+			indices[ indicesIndex++] = 6;
+			indices[ indicesIndex++] = 1;
+			indices[ indicesIndex++] = 2;
+			indices[ indicesIndex++] = 9;
+			indices[ indicesIndex++] = 8;
+			indices[ indicesIndex++] = 10;
+			indices[ indicesIndex++] = 11;
+			indices[ indicesIndex++] = 6;
+			indices[ indicesIndex++] = 5;
+		#endif
 			int scale = mipmapDescriptor.width;
 			
 			for( int i0 = 0; i0 < blurRects.Length; ++i0)
 			{
-				var rect = blurRects[ i0];
+				rect = blurRects[ i0];
 				
 				UpdateGaussianBlurMesh( 
 					vertexIndex, vertex, uv0, uv1, uv2, uv3,
@@ -474,7 +549,7 @@ namespace RenderingPipeline
 					
 				for( int i1 = 0; i1 < 4; ++i1)
 				{
-					indices[ vertexIndex] = vertexIndex;
+					indices[ indicesIndex++] = vertexIndex;
 					++vertexIndex;
 				}
 				scale /= 2;
@@ -490,18 +565,70 @@ namespace RenderingPipeline
 		}
 		public void UpdateGaussianBlurVerticalMesh()
 		{
-			int vertexCount = blurRects.Length * 4;
+			int vertexCount = blurRects.Length * 4
+		#if !WITH_CLEARRENDERTARGET
+				+ 12
+		#endif
+				;
 			var vertex = new Vector3[ vertexCount];
 			var uv0 = new Vector3[ vertexCount];
 			var uv1 = new Vector3[ vertexCount];
 			var uv2 = new Vector3[ vertexCount];
 			var uv3 = new Vector3[ vertexCount];
-			var indices = new int[ vertexCount];
+			var indices = new int[ vertexCount
+		#if !WITH_CLEARRENDERTARGET
+				+ 4
+		#endif	
+				];
 			int vertexIndex = 0;
+			int indicesIndex = 0;
+			BlurRect rect;
+			
+		#if !WITH_CLEARRENDERTARGET
+			rect = blurRects[ 0];
+			float u00 = 0;
+			float u01 = rect.x;
+			float u09 = rect.x + rect.width;
+			float u10 = blurDescriptor.width;
+			float v00 = 0;
+			float v04 = rect.y;
+			float v09 = rect.y + rect.height;
+			float v10 = blurDescriptor.height;
+			
+			vertex[ vertexIndex++] = new Vector3( u00, v00, 0);
+			vertex[ vertexIndex++] = new Vector3( u00, v04, 0);
+			vertex[ vertexIndex++] = new Vector3( u00, v09, 0);
+			vertex[ vertexIndex++] = new Vector3( u00, v10, 0);
+			vertex[ vertexIndex++] = new Vector3( u10, v00, 0);
+			vertex[ vertexIndex++] = new Vector3( u10, v04, 0);
+			vertex[ vertexIndex++] = new Vector3( u10, v09, 0);
+			vertex[ vertexIndex++] = new Vector3( u10, v10, 0);
+			vertex[ vertexIndex++] = new Vector3( u01, v04, 0);
+			vertex[ vertexIndex++] = new Vector3( u01, v09, 0);
+			vertex[ vertexIndex++] = new Vector3( u09, v04, 0);
+			vertex[ vertexIndex++] = new Vector3( u09, v09, 0);
+			
+			indices[ indicesIndex++] = 0;
+			indices[ indicesIndex++] = 1;
+			indices[ indicesIndex++] = 5;
+			indices[ indicesIndex++] = 4;
+			indices[ indicesIndex++] = 2;
+			indices[ indicesIndex++] = 3;
+			indices[ indicesIndex++] = 7;
+			indices[ indicesIndex++] = 6;
+			indices[ indicesIndex++] = 1;
+			indices[ indicesIndex++] = 2;
+			indices[ indicesIndex++] = 9;
+			indices[ indicesIndex++] = 8;
+			indices[ indicesIndex++] = 10;
+			indices[ indicesIndex++] = 11;
+			indices[ indicesIndex++] = 6;
+			indices[ indicesIndex++] = 5;
+		#endif
 			
 			for( int i0 = 0; i0 < blurRects.Length; ++i0)
 			{
-				var rect = blurRects[ i0];
+				rect = blurRects[ i0];
 				
 				UpdateGaussianBlurMesh( 
 					vertexIndex, vertex, uv0, uv1, uv2, uv3,
@@ -511,7 +638,7 @@ namespace RenderingPipeline
 					
 				for( int i1 = 0; i1 < 4; ++i1)
 				{
-					indices[ vertexIndex] = vertexIndex;
+					indices[ indicesIndex++] = vertexIndex;
 					++vertexIndex;
 				}
 			}

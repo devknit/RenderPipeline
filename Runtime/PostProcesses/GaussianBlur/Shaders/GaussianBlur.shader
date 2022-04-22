@@ -30,7 +30,7 @@
 			CGPROGRAM
 			#pragma vertex vert
 			#pragma fragment frag
-			#include "../../Shaders/Copy.cginc"
+			#include "Copy.cginc"
 			ENDCG
 		}
 		Pass
