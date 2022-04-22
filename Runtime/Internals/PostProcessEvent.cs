@@ -6,7 +6,8 @@ namespace RenderingPipeline
 {
 	public enum PostProcessEvent
 	{
-		BeforeImageEffectsOpaque,
-		BeforeImageEffects,
+		PostOpaque,
+		PostTransparent,
+	//	PreOpaque,
 	}
 }

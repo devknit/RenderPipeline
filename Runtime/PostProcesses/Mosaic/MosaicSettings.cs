@@ -122,7 +122,7 @@ namespace RenderingPipeline
 		[SerializeField]
 		bool enabled = true;
 		[SerializeField]
-		PostProcessEvent phase = PostProcessEvent.BeforeImageEffects;
+		PostProcessEvent phase = PostProcessEvent.PostTransparent;
 		[SerializeField]
 		int blockSize = 16;
 		[SerializeField, Range(0, 255)]

@@ -21,7 +21,7 @@ namespace RenderingPipeline
 		}
 		public PostProcessEvent Phase
 		{
-			get{ return PostProcessEvent.BeforeImageEffects; }
+			get{ return PostProcessEvent.PostTransparent; }
 		}
 		public Color Dot
 		{

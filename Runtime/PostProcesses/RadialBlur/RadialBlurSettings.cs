@@ -95,7 +95,7 @@ namespace RenderingPipeline
 		[SerializeField]
 		bool enabled = true;
 		[SerializeField]
-		PostProcessEvent phase = PostProcessEvent.BeforeImageEffects;
+		PostProcessEvent phase = PostProcessEvent.PostTransparent;
 		[SerializeField, Range( 4, 32)]
 		int samples = 16;
 		[SerializeField, Range( 0, 1)]

@@ -337,10 +337,10 @@ namespace RenderingPipeline
 			
 			/* 有効なプロセス数を求める */
 			int enabledOpaqueProcessCount = EnabledProcessCount( 
-				caches, PostProcessEvent.BeforeImageEffectsOpaque, 
+				caches, PostProcessEvent.PostOpaque, 
 				ref depthTextureMode, ref highDynamicRangeTarget);
 			int enabledProcessCount = EnabledProcessCount( 
-				caches, PostProcessEvent.BeforeImageEffects,
+				caches, PostProcessEvent.PostTransparent,
 				ref depthTextureMode, ref highDynamicRangeTarget);
 			
 			/* [2019.4.1f1]
@@ -427,8 +427,8 @@ namespace RenderingPipeline
 								colorBufferFormat = (RenderTextureFormat)overrideTargetFormat;
 							}
 							var colorDescriptor = new RenderTextureDescriptor( 
-								targetWidth, targetHeight, colorBufferFormat, 0, 3);
-							colorDescriptor.useMipMap = true;
+								targetWidth, targetHeight, colorBufferFormat, 0, 0);
+							colorDescriptor.useMipMap = false;
 							overrideColorBuffer = new RenderTexture( colorDescriptor);
 							overrideColorBuffer.filterMode = FilterMode.Point;
 							overrideColorBuffer.name = $"CameraPipeline::ColorBuffer{GetInstanceID()}";
@@ -523,7 +523,7 @@ namespace RenderingPipeline
 				{
 					nextProcess = caches[ i0];
 					
-					if( nextProcess?.GetPostProcessEvent() != PostProcessEvent.BeforeImageEffectsOpaque)
+					if( nextProcess?.GetPostProcessEvent() != PostProcessEvent.PostOpaque)
 					{
 						continue;
 					}
@@ -596,7 +596,7 @@ namespace RenderingPipeline
 					{
 						nextProcess = caches[ i0];
 						
-						if( nextProcess?.GetPostProcessEvent() != PostProcessEvent.BeforeImageEffects)
+						if( nextProcess?.GetPostProcessEvent() != PostProcessEvent.PostTransparent)
 						{
 							continue;
 						}
@@ -701,7 +701,7 @@ namespace RenderingPipeline
 		}
 		internal bool Capture( PostProcessEvent phase, System.Action<Texture> onComplete)
 		{
-			if( phase == PostProcessEvent.BeforeImageEffectsOpaque)
+			if( phase == PostProcessEvent.PostOpaque)
 			{
 				if( onOpaqueScreenShot == null
 				||	onOpaqueScreenShot == onComplete)
@@ -715,7 +715,7 @@ namespace RenderingPipeline
 					return true;
 				}
 			}
-			else if( phase == PostProcessEvent.BeforeImageEffects)
+			else if( phase == PostProcessEvent.PostTransparent)
 			{
 				if( onPostScreenShot == null
 				||	onPostScreenShot == onComplete)

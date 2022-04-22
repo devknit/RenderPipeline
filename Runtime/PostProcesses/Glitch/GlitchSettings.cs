@@ -122,7 +122,7 @@ namespace RenderingPipeline
 		[SerializeField]
 		bool enabled = true;
 		[SerializeField]
-		PostProcessEvent phase = PostProcessEvent.BeforeImageEffects;
+		PostProcessEvent phase = PostProcessEvent.PostTransparent;
 		
 		[SerializeField, Range( 0.0f, 0.9999f)]
 		float intensity = 0.025f;

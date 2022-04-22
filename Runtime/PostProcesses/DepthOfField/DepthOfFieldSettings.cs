@@ -119,7 +119,7 @@ namespace RenderingPipeline.DepthOfField
 		[SerializeField]
 		bool enabled = true;
 		[SerializeField]
-		PostProcessEvent phase = PostProcessEvent.BeforeImageEffects;
+		PostProcessEvent phase = PostProcessEvent.PostTransparent;
 		[SerializeField]
 		Transform focalTransform = null;
 		[SerializeField]

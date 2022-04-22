@@ -68,7 +68,7 @@ namespace RenderingPipeline
 		[SerializeField]
 		bool enabled = true;
 		[SerializeField]
-		PostProcessEvent phase = PostProcessEvent.BeforeImageEffects;
+		PostProcessEvent phase = PostProcessEvent.PostTransparent;
 		[SerializeField]
 		float threshold = 0.1f;//0.2f;
 		[SerializeField]

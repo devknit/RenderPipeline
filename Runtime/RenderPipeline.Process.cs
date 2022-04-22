@@ -78,14 +78,14 @@ namespace RenderingPipeline
 			/* 不透明用の Ubar プロセスの生成状態を確認 */
 			if( opaqueCaches == null)
 			{
-				opaqueUbar = new UbarBehavior( ubarShader, PostProcessEvent.BeforeImageEffectsOpaque);
+				opaqueUbar = new UbarBehavior( ubarShader, PostProcessEvent.PostOpaque);
 				opaqueUbar.Create();
 				rebuild = true;
 			}
 			/* 半透明用の Ubar プロセスの生成状態を確認 */
 			if( beforeCaches == null)
 			{
-				beforeUbar = new UbarBehavior( ubarShader, PostProcessEvent.BeforeImageEffects);
+				beforeUbar = new UbarBehavior( ubarShader, PostProcessEvent.PostTransparent);
 				beforeUbar.Create();
 				rebuild = true;
 			}
@@ -121,12 +121,12 @@ namespace RenderingPipeline
 					{
 						switch( ubarProcess.GetPostProcessEvent())
 						{
-							case PostProcessEvent.BeforeImageEffectsOpaque:
+							case PostProcessEvent.PostOpaque:
 							{
 								opaqueUbar.SetProperty( ubarProcess);
 								break;
 							}
-							case PostProcessEvent.BeforeImageEffects:
+							case PostProcessEvent.PostTransparent:
 							{
 								beforeUbar.SetProperty( ubarProcess);
 								break;

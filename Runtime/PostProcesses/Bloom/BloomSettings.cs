@@ -200,7 +200,7 @@ namespace RenderingPipeline
 		[SerializeField]
 		bool enabled = true;
 		[SerializeField]
-		PostProcessEvent phase = PostProcessEvent.BeforeImageEffects;
+		PostProcessEvent phase = PostProcessEvent.PostTransparent;
 		[SerializeField]
 		RenderTextureFormat format = RenderTextureFormat.DefaultHDR;
 		[SerializeField]

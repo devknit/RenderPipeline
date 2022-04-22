@@ -142,7 +142,7 @@ namespace RenderingPipeline
 		[SerializeField]
 		bool enabled = true;
 		[SerializeField]
-		PostProcessEvent phase = PostProcessEvent.BeforeImageEffectsOpaque;
+		PostProcessEvent phase = PostProcessEvent.PostOpaque;
 		[SerializeField]
 		DetectType detectType = DetectType.kThin;
 		[SerializeField]

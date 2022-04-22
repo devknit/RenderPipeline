@@ -89,7 +89,7 @@ namespace RenderingPipeline
 		[SerializeField]
 		bool enabled = true;
 		[SerializeField]
-		PostProcessEvent phase = PostProcessEvent.BeforeImageEffectsOpaque;
+		PostProcessEvent phase = PostProcessEvent.PostOpaque;
 		[SerializeField]
 		bool clearColor = false;
 		[SerializeField]

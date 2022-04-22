@@ -158,7 +158,7 @@ namespace RenderingPipeline
 		[SerializeField]
 		bool enabled = true;
 		[SerializeField]
-		PostProcessEvent phase = PostProcessEvent.BeforeImageEffectsOpaque;
+		PostProcessEvent phase = PostProcessEvent.PostOpaque;
 		[SerializeField]
 		Color color = new Color( 0.5f, 0.7f, 0.8f);
 		[SerializeField]
