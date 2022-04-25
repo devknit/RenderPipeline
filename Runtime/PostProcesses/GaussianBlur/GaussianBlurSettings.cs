@@ -24,7 +24,7 @@ namespace RenderingPipeline
 		}
 		public PostProcessEvent Phase
 		{
-			get{ return PostProcessEvent.PreOpaque; }
+			get{ return phase; }
 		}
 		public int ScreenWidth
 		{
@@ -33,6 +33,10 @@ namespace RenderingPipeline
 		public int ScreenHeight
 		{
 			get{ return cacheScreenHeight ?? 0; }
+		}
+		public bool Verify()
+		{
+			return (cacheScreenWidth ?? 0) > 0 && (cacheScreenHeight ?? 0) > 0;
 		}
 		public void ClearCache()
 		{
@@ -111,8 +115,9 @@ namespace RenderingPipeline
 				}
 				if( (updateFlag & kUpdateFlagDescriptors) != 0)
 				{
-					resources.UpdateDescriptors( material, pipeline.ScreenWidth, pipeline.ScreenHeight, 
-						RenderTextureFormat.ARGB32, downSampleLevel, downSampleCount, combineStartLevel);
+					resources.UpdateDescriptors( 
+						material, pipeline.ScreenWidth, pipeline.ScreenHeight, 
+						format, downSampleLevel, downSampleCount, combineStartLevel);
 				}
 				if( (updateFlag & kUpdateFlagGaussianBlurMesh) != 0)
 				{
@@ -134,6 +139,10 @@ namespace RenderingPipeline
 		const int kUpdateFlagDescriptors = 1 << 4;
 		const int kUpdateFlagGaussianBlurMesh = 1 << 5;
 		
+		[SerializeField]
+		PostProcessEvent phase = PostProcessEvent.PreOpaque;
+		[SerializeField]
+		RenderTextureFormat format = RenderTextureFormat.ARGB32;
 		[SerializeField, Range( 0, 1)]
 		float blendWeight = 1.0f;
 		[SerializeField]

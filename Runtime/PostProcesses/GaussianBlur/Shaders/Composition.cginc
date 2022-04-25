@@ -37,11 +37,6 @@ struct VertexOutput
 	float2 blurUv5 : TEXCOORD6;
 	float2 blurUvCombined : TEXCOORD7;
 };
-struct mrt
-{
-	fixed4 color0 : COLOR0;
-	fixed4 color1 : COLOR1;
-};
 void vert( VertexInput v, out VertexOutput o)
 {
 	o.vertex = UnityObjectToClipPos(v.vertex);
@@ -54,7 +49,7 @@ void vert( VertexInput v, out VertexOutput o)
 	o.blurUv5 = v.vertex * _BlurUvTransform5.xy + _BlurUvTransform5.zw;
 	o.blurUvCombined = v.vertex * _BlurUvTransformCombined.xy + _BlurUvTransformCombined.zw;
 }
-fixed4 composite( VertexOutput i)
+fixed4 frag( VertexOutput i) : COLOR
 {
 	fixed4 c = fixed4( 0, 0, 0, 1);
 #ifdef COMPOSITION_SAMPLE4
@@ -84,14 +79,5 @@ fixed4 composite( VertexOutput i)
 	c += tex2D( _BlurCombinedTex, i.blurUvCombined) * _BlurWeightCombined;
 #endif
 	return saturate( fixed4( c.rgb, _BlendWeight));
-}
-fixed4 frag( VertexOutput i) : COLOR
-{
-	return composite( i);
-}
-void fragMRT( VertexOutput i, out mrt o)
-{
-	o.color0 = composite( i);
-	o.color1 = o.color0;
 }
 #endif /* __COMPOSITION_CGINC__ */

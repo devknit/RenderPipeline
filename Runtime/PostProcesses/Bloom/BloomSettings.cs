@@ -14,8 +14,13 @@ namespace RenderingPipeline
 	{
 		public bool Enabled
 		{
-			get{ return enabled; }
-			set{ enabled = value; }
+			get{ return blendWeight > 0; }
+			set{ blendWeight = (value == false)? 0 : 1; }
+		}
+		public float BlendWeight
+		{
+			get{ return blendWeight; }
+			set{ blendWeight = Mathf.Clamp01( value); }
 		}
 		public PostProcessEvent Phase
 		{
@@ -74,7 +79,7 @@ namespace RenderingPipeline
 		}
 		public void ClearCache()
 		{
-			cacheEnabled = null;
+			cacheBlendWeight = null;
 			cacheThresholds = null;
 			cacheSigmaInPixel = null;
 			cacheIntensity = null;
@@ -85,141 +90,160 @@ namespace RenderingPipeline
 			cacheScreenWidth = null;
 			cacheScreenHeight = null;
 		}
-		public int UpdateProperties( RenderPipeline pipeline)
+		public bool UpdateProperties( RenderPipeline pipeline, Material material, GaussianBlurResources resources)
 		{
-			int updateFlags = 0;
+			int updateFlag = kUpdateFlagNone;
 			
-			if( cacheEnabled != enabled)
+			if( cacheBlendWeight != blendWeight)
 			{
-				updateFlags |= kRebuild;
-				cacheEnabled = enabled;
-			}
-			if( enabled != false)
-			{
-				if( cacheScreenWidth != pipeline.ScreenWidth
-				||	cacheScreenHeight != pipeline.ScreenHeight)
+				bool cacheEnabled = cacheBlendWeight > 0;
+				bool enabled = blendWeight > 0;
+				
+				if( cacheEnabled != enabled)
 				{
-					cacheScreenWidth = pipeline.ScreenWidth;
-					cacheScreenHeight = pipeline.ScreenHeight;
-					updateFlags |= kChangeScreen;
+					updateFlag |= kUpdateFlagRebuild;
 				}
+				updateFlag |= kUpdateFlagBlendWeight;
+				cacheBlendWeight = blendWeight;
+			}
+			if( blendWeight > 0)
+			{
 				if( cacheThresholds != thresholds)
 				{
+					updateFlag |= kUpdateFlagThresholds;
 					cacheThresholds = thresholds;
-					updateFlags |= kChangeThresholds;
 				}
 				if( cacheSigmaInPixel != sigmaInPixel)
 				{
+					updateFlag |= kUpdateFlagSigmaInPixel | kUpdateFlagGaussianBlurMesh | kUpdateFlagRebuild;
 					cacheSigmaInPixel = sigmaInPixel;
-					updateFlags |= kChangeSigmaInPixel;
 				}
 				if( cacheIntensity != intensity)
 				{
+					updateFlag |= kUpdateFlagCombineComposition;
 					cacheIntensity = intensity;
-					updateFlags |= kChangeIntensity;
 				}
 				if( cacheIntensityMultiplier != intensityMultiplier)
 				{
+					updateFlag |= kUpdateFlagCombineComposition;
 					cacheIntensityMultiplier = intensityMultiplier;
-					updateFlags |= kChangeIntensityMultiplier;
 				}
 				if( cacheDownSampleLevel != downSampleLevel)
 				{
-					if( downSampleLevel < 0)
-					{
-						downSampleLevel = 0;
-					}
-					if( downSampleLevel > 4)
-					{
-						downSampleLevel = 4;
-					}
+					updateFlag |= kUpdateFlagGaussianBlurMesh | kUpdateFlagDescriptors | kUpdateFlagCombineComposition | kUpdateFlagRebuild;
 					cacheDownSampleLevel = downSampleLevel;
-					updateFlags |= kChangeDownSampleLevel;
 				}
 				if( cacheDownSampleCount != downSampleCount)
 				{
-					if( downSampleCount < 1)
-					{
-						downSampleCount = 1;
-					}
-					if( downSampleCount > 7)
-					{
-						downSampleCount = 7;
-					}
+					updateFlag |= kUpdateFlagGaussianBlurMesh | kUpdateFlagDescriptors | kUpdateFlagCombineComposition | kUpdateFlagRebuild;
 					cacheDownSampleCount = downSampleCount;
-					updateFlags |= kChangeDownSampleCount;
 				}
 				if( cacheCombineStartLevel != combineStartLevel)
 				{
-					if( combineStartLevel < 0)
-					{
-						combineStartLevel = 0;
-					}
-					if( combineStartLevel > 6)
-					{
-						combineStartLevel = 6;
-					}
+					updateFlag |= kUpdateFlagGaussianBlurMesh | kUpdateFlagDescriptors | kUpdateFlagCombineComposition | kUpdateFlagRebuild;
 					cacheCombineStartLevel = combineStartLevel;
-					updateFlags |= kChangeCombineStartLevel;
+				}
+				if( cacheScreenWidth != pipeline.ScreenWidth
+				||	cacheScreenHeight != pipeline.ScreenHeight)
+				{
+					updateFlag |= kUpdateFlagGaussianBlurMesh | kUpdateFlagDescriptors | kUpdateFlagCombineComposition | kUpdateFlagRebuild;
+					cacheScreenWidth = pipeline.ScreenWidth;
+					cacheScreenHeight = pipeline.ScreenHeight;
+				}
+				if( (updateFlag & kUpdateFlagBlendWeight) != 0)
+				{
+					resources.UpdateBlendWeight( material, blendWeight, GaussianBlurResources.BlendMode.Add);
+				}
+				if( (updateFlag & kUpdateFlagThresholds) != 0)
+				{
+					if( SystemInfo.SupportsRenderTextureFormat( RenderTextureFormat.ARGBHalf) != false
+					||	SystemInfo.SupportsRenderTextureFormat( RenderTextureFormat.ARGBFloat) != false
+					||	SystemInfo.SupportsRenderTextureFormat( RenderTextureFormat.RGB111110Float) != false)
+					{
+						if( material.IsKeywordEnabled( kShaderKeywordLDR) != false)
+						{
+							material.DisableKeyword( kShaderKeywordLDR);
+						}
+						material.SetFloat( kShaderPropertyThresholds, thresholds);
+					}
+					else
+					{
+						if( material.IsKeywordEnabled( kShaderKeywordLDR) == false)
+						{
+							material.EnableKeyword( kShaderKeywordLDR);
+						}
+						var colorTransform = new Vector4();
+						
+						if( thresholds >= 1.0f)
+						{
+							colorTransform.x = 0.0f;
+							colorTransform.y = 0.0f;
+						}
+						else
+						{
+							colorTransform.x = 1.0f / (1.0f - thresholds);
+							colorTransform.y = -thresholds / (1.0f - thresholds);
+						}
+						material.SetVector( kShaderPropertyColorTransform, colorTransform);
+					}
+				}
+				if( (updateFlag & kUpdateFlagSigmaInPixel) != 0)
+				{
+					resources.UpdateSigmaInPixel( material, sigmaInPixel);
+				}
+				if( (updateFlag & kUpdateFlagDescriptors) != 0)
+				{
+					resources.UpdateDescriptors( material, pipeline.ScreenWidth, pipeline.ScreenHeight, 
+						format, downSampleLevel, downSampleCount, combineStartLevel);
+				}
+				if( (updateFlag & kUpdateFlagGaussianBlurMesh) != 0)
+				{
+					resources.UpdateGaussianBlurHorizontalMesh();
+					resources.UpdateGaussianBlurVerticalMesh();
+				}
+				if( (updateFlag & kUpdateFlagCombineComposition) != 0)
+				{
+					resources.UpdateCombineComposition( material, intensity, intensityMultiplier);
 				}
 			}
-			return updateFlags;
+			return (updateFlag & kUpdateFlagRebuild) != 0;
 		}
+		const int kUpdateFlagNone = 0;
+		const int kUpdateFlagRebuild = 1 << 0;
+		const int kUpdateFlagBlendWeight = 1 << 1;
+		const int kUpdateFlagThresholds = 1 << 2;
+		const int kUpdateFlagSigmaInPixel = 1 << 3;
+		const int kUpdateFlagCombineComposition = 1 << 4;
+		const int kUpdateFlagDescriptors = 1 << 5;
+		const int kUpdateFlagGaussianBlurMesh = 1 << 6;
 		
-		internal const int kRebuild = 1 << 0;
-		internal const int kChangeThresholds = 1 << 1;
-		internal const int kChangeSigmaInPixel = 1 << 2;
-		internal const int kChangeIntensity = 1 << 3;
-		internal const int kChangeIntensityMultiplier = 1 << 4;
-		internal const int kChangeDownSampleLevel = 1 << 5;
-		internal const int kChangeDownSampleCount = 1 << 6;
-		internal const int kChangeCombineStartLevel = 1 << 7;
-		internal const int kChangeScreen = 1 << 8;
+		const string kShaderKeywordLDR = "LDR";
+		static readonly int kShaderPropertyThresholds = Shader.PropertyToID( "_Thresholds");
+		static readonly int kShaderPropertyColorTransform = Shader.PropertyToID( "_ColorTransform");
 		
-		internal const int kChangeBrightnessExtractionMesh = 1 << 9;
-		internal const int kChangeGaussianBlurMesh = 1 << 10;
-		internal const int kChangeCombineMesh = 1 << 11;
-		internal const int kChangeBloomRects = 1 << 12;
-		internal const int kChangeCombinePassCount = 1 << 13;
-		internal const int kChangeBloomRectCount = 1 << 14;
-		
-		internal const int kVerifyDescriptors = 
-			kChangeDownSampleLevel |
-			kChangeDownSampleCount |
-			kChangeScreen;
-		internal const int kVerifyCombinePassCount = 
-			kChangeBloomRects |
-			kChangeCombineStartLevel |
-			kChangeDownSampleLevel;
-		internal const int kVerifyCombineComposition = 
-			kChangeIntensity |
-			kChangeIntensityMultiplier |
-			kChangeBloomRects |
-			kChangeCombinePassCount;
-		
-		[SerializeField]
-		bool enabled = true;
 		[SerializeField]
 		PostProcessEvent phase = PostProcessEvent.PostTransparent;
 		[SerializeField]
 		RenderTextureFormat format = RenderTextureFormat.DefaultHDR;
+		[SerializeField, Range( 0, 1)]
+		float blendWeight = 1.0f;
 		[SerializeField]
 		float thresholds = 1.0f;
 		[SerializeField]
-		float sigmaInPixel = 3.0f; /**/
+		float sigmaInPixel = 3.0f;
 		[SerializeField]
 		float intensity = 5.0f;
 		[SerializeField] 
 		float intensityMultiplier = 1.5f;
 		[SerializeField, Range( 0, 4)] 
-		int downSampleLevel = 2;	 /**/
+		int downSampleLevel = 2;
 		[SerializeField, Range( 1, 7)] 
-		int downSampleCount = 7;	 /**/
+		int downSampleCount = 7;
 		[SerializeField, Range( 0, 6)]
 		int combineStartLevel = 0;
 		
 		[System.NonSerialized]
-		bool? cacheEnabled;
+		float? cacheBlendWeight;
 		[System.NonSerialized]
 		float? cacheThresholds;
 		[System.NonSerialized]

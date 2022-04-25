@@ -73,20 +73,5 @@
 			#include "Composition.cginc"
 			ENDCG
 		}
-		Pass
-		{
-			BlendOp [_ColorBlendOp], [_AlphaBlendOp]
-			Blend [_ColorSrcFactor] [_ColorDstFactor], [_AlphaSrcFactor] [_AlphaDstFactor]
-			
-			CGPROGRAM
-			#pragma vertex vert
-			#pragma fragment fragMRT
-			#pragma multi_compile_local _ COMPOSITION_SAMPLE1
-			#pragma multi_compile_local _ COMPOSITION_SAMPLE2
-			#pragma multi_compile_local _ COMPOSITION_SAMPLE4
-			#pragma multi_compile_local _ COMPOSITION_COMBINED
-			#include "Composition.cginc"
-			ENDCG
-		}
 	}
 }
