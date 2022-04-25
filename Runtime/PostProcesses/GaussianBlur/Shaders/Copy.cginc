@@ -25,6 +25,6 @@ void vert( VertexInput v, out VertexOutput o)
 }
 float4 frag( VertexOutput i) : SV_Target 
 {
-	return tex2D( _MainTex, i.uv) * i.color;
+	return saturate( tex2D( _MainTex, i.uv) * i.color);
 }
 #endif /* __COPY_CGINC__ */
