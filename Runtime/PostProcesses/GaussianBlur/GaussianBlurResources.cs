@@ -59,7 +59,7 @@ namespace RenderingPipeline
 			commandBuffer.GetTemporaryRT( kShaderPropertyBlurVerticalTarget, blurDescriptor, FilterMode.Bilinear);
 			bool clearMRT = false;
 			
-		#if WITH_CLEARRENDERTARGET
+		#if false
 			if( SystemInfo.supportedRenderTargetCount >= 3)
 			{
 				commandBuffer.SetRenderTarget( 
