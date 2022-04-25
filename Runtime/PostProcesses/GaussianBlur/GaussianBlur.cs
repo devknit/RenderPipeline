@@ -1,5 +1,4 @@
-﻿#define WITH_CLEARRENDERTARGET
-
+﻿
 using UnityEngine;
 using UnityEngine.Rendering;
 

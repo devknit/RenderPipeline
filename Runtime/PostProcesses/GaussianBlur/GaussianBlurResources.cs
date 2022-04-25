@@ -1,4 +1,10 @@
-﻿#define WITH_CLEARRENDERTARGET
+﻿//#define WITH_LOADACTIONCLEAR
+#if !WITH_LOADACTIONCLEAR
+	#define WITH_CLEARRENDERTARGET
+#endif
+#if WITH_CLEARRENDERTARGET
+	// #define WITH_MULTITARGETCLEAR
+#endif
 
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -59,7 +65,7 @@ namespace RenderingPipeline
 			commandBuffer.GetTemporaryRT( kShaderPropertyBlurVerticalTarget, blurDescriptor, FilterMode.Bilinear);
 			bool clearMRT = false;
 			
-		#if false
+		#if WITH_MULTITARGETCLEAR
 			if( SystemInfo.supportedRenderTargetCount >= 3)
 			{
 				commandBuffer.SetRenderTarget( 
@@ -78,7 +84,11 @@ namespace RenderingPipeline
 			/* mipmap */
 			commandBuffer.SetRenderTarget( 
 				mipmapTarget,
-				RenderBufferLoadAction.DontCare,	
+			#if WITH_LOADACTIONCLEAR
+				RenderBufferLoadAction.Clear,
+			#else
+				RenderBufferLoadAction.DontCare,
+			#endif
 				RenderBufferStoreAction.Store,
 				RenderBufferLoadAction.DontCare,	
 				RenderBufferStoreAction.DontCare);
@@ -94,7 +104,11 @@ namespace RenderingPipeline
 			/* blur horizontal */
 			commandBuffer.SetRenderTarget( 
 				blurHorizontalTarget,
-				RenderBufferLoadAction.DontCare,	
+			#if WITH_LOADACTIONCLEAR
+				RenderBufferLoadAction.Clear,
+			#else
+				RenderBufferLoadAction.DontCare,
+			#endif
 				RenderBufferStoreAction.Store,
 				RenderBufferLoadAction.DontCare,	
 				RenderBufferStoreAction.DontCare);
@@ -110,7 +124,11 @@ namespace RenderingPipeline
 			/* blur vertical */
 			commandBuffer.SetRenderTarget( 
 				blurVerticalTarget,
-				RenderBufferLoadAction.DontCare,	
+			#if WITH_LOADACTIONCLEAR
+				RenderBufferLoadAction.Clear,
+			#else
+				RenderBufferLoadAction.DontCare,
+			#endif
 				RenderBufferStoreAction.Store,
 				RenderBufferLoadAction.DontCare,	
 				RenderBufferStoreAction.DontCare);
@@ -128,7 +146,11 @@ namespace RenderingPipeline
 			{
 				commandBuffer.SetRenderTarget( 
 					blurHorizontalTarget,
-					RenderBufferLoadAction.DontCare,	
+				#if WITH_LOADACTIONCLEAR
+					RenderBufferLoadAction.Clear,
+				#else
+					RenderBufferLoadAction.DontCare,
+				#endif
 					RenderBufferStoreAction.Store,
 					RenderBufferLoadAction.DontCare,	
 					RenderBufferStoreAction.DontCare);
@@ -146,7 +168,7 @@ namespace RenderingPipeline
 			}
 			commandBuffer.SetRenderTarget( 
 				context.target0,
-				RenderBufferLoadAction.DontCare,	
+				RenderBufferLoadAction.Load,	
 				RenderBufferStoreAction.Store,
 				RenderBufferLoadAction.DontCare,	
 				RenderBufferStoreAction.DontCare);
