@@ -84,6 +84,11 @@ namespace RenderingPipeline
 					material.SetVector( kShaderPropertyCenter, center);
 					cacheCenter = center;
 				}
+				if( cacheVolume != volume)
+				{
+					material.SetVector( kShaderPropertyVolume, volume);
+					cacheVolume = volume;
+				}
 			}
 			return rebuild;
 		}
@@ -91,6 +96,7 @@ namespace RenderingPipeline
 		static readonly int kShaderPropertyIntensity = Shader.PropertyToID( "_Intensity");
 		static readonly int kShaderPropertyRadius = Shader.PropertyToID( "_Radius");
 		static readonly int kShaderPropertyCenter = Shader.PropertyToID( "_Center");
+		static readonly int kShaderPropertyVolume = Shader.PropertyToID( "_Volume");
 		
 		[SerializeField]
 		bool enabled = true;
@@ -99,11 +105,13 @@ namespace RenderingPipeline
 		[SerializeField, Range( 4, 32)]
 		int samples = 16;
 		[SerializeField, Range( 0, 1)]
-		float intensity = 1.0f;
+		float intensity = 0.1f;
 		[SerializeField, Range( 0, 50)]
 		float radius = 0.1f;
 		[SerializeField]
 		Vector2 center = new Vector2( 0.5f, 0.5f);
+		[SerializeField]
+		Vector2 volume = Vector2.one;
 		
 		[System.NonSerialized]
 		bool? cacheEnabled;
@@ -115,5 +123,7 @@ namespace RenderingPipeline
 		float? cacheRadius;
 		[System.NonSerialized]
 		Vector2? cacheCenter;
+		[System.NonSerialized]
+		Vector2? cacheVolume;
 	}
 }

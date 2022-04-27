@@ -4,9 +4,10 @@ Shader "Hidden/RenderPipeline/RadialBlur"
 	Properties
 	{
 		_Samples( "Samples", Range( 4, 32)) = 16
-        _Intensity( "Intensity", float) = 1.0
-        _Center( "Center", Vector) = (0.5, 0.5, 0, 0)
+        _Intensity( "Intensity", float) = 0.1
         _Radius( "Radius", float) = 0.1
+        _Center( "Center", Vector) = (0.5, 0.5, 0, 0)
+        _Volume( "Volume", Vector) = (1.0, 1.0, 0, 0)
 	}
 	SubShader
 	{
@@ -29,8 +30,9 @@ Shader "Hidden/RenderPipeline/RadialBlur"
 			sampler2D _MainTex;
 			float _Samples;
 			float _Intensity;
-			float2 _Center;
 			float _Radius;
+			float2 _Center;
+			float2 _Volume;
 			
 			struct VertexInput
 			{
@@ -58,7 +60,7 @@ Shader "Hidden/RenderPipeline/RadialBlur"
 				
 				float2 uv = i.uv - _Center;
 				float distance = saturate( length( uv) / _Radius);
-				float factar = _Intensity / _Samples * distance;
+				float2 factar = _Intensity / _Samples * distance * _Volume;
 				float4 color = 0;
 				
 				for( int i0 = 0; i0 < _Samples; ++i0)
