@@ -42,6 +42,11 @@ namespace RenderingPipeline
 			get{ return center; }
 			set{ center = value; }
 		}
+		public Vector2 Volume
+		{
+			get{ return volume; }
+			set{ volume = value; }
+		}
 		public void ClearCache()
 		{
 			cacheEnabled = null;
@@ -49,6 +54,7 @@ namespace RenderingPipeline
 			cacheIntensity = null;
 			cacheRadius = null;
 			cacheCenter = null;
+			cacheVolume = null;
 		}
 		public bool UpdateProperties( RenderPipeline pipeline, Material material)
 		{

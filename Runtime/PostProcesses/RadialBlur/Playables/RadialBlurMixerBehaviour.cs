@@ -20,6 +20,7 @@ namespace RenderingPipeline
 						defaultIntensity = radialBlurComponent.Properties.Intensity;
 						defaultRadius = radialBlurComponent.Properties.Radius;
 						defaultCenter = radialBlurComponent.Properties.Center;
+						defaultVolume = radialBlurComponent.Properties.Volume;
 					}
 				}
 				if( radialBlurComponent != null)
@@ -29,6 +30,7 @@ namespace RenderingPipeline
 					float blendedIntensity = 0.0f;
 					float blendedRadius = 0.0f;
 					Vector2 blendedCenter = Vector2.zero;
+					Vector2 blendedVolume = Vector2.zero;
 					float totalWeight = 0.0f;
 					
 					for( int i0 = 0; i0 < inputCount; ++i0)
@@ -44,6 +46,7 @@ namespace RenderingPipeline
 							blendedIntensity += input.intensity * inputWeight;
 							blendedRadius += input.radius * inputWeight;
 							blendedCenter += input.center * inputWeight;
+							blendedVolume += input.volume * inputWeight;
 							totalWeight += inputWeight;
 						}
 					}
@@ -54,11 +57,13 @@ namespace RenderingPipeline
 						blendedIntensity += defaultIntensity * defaultWeight;
 						blendedRadius += defaultRadius * defaultWeight;
 						blendedCenter += defaultCenter * defaultWeight;
+						blendedVolume += defaultVolume * defaultWeight;
 					}
 					radialBlurComponent.Properties.Samples = (int)blendedSamples;
 					radialBlurComponent.Properties.Intensity = blendedIntensity;
 					radialBlurComponent.Properties.Radius = blendedRadius;
 					radialBlurComponent.Properties.Center = blendedCenter;
+					radialBlurComponent.Properties.Volume = blendedVolume;
 				}
 			}
 		}
@@ -82,6 +87,7 @@ namespace RenderingPipeline
 		float defaultIntensity;
 		float defaultRadius;
 		Vector2 defaultCenter;
+		Vector2 defaultVolume;
 		RadialBlur radialBlurComponent;
 	}
 }

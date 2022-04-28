@@ -351,6 +351,14 @@ namespace RenderingPipeline
 				caches, PostProcessEvent.PostTransparent,
 				ref depthTextureMode, ref highDynamicRangeTarget);
 			
+			/* 非再生中の場合 HDR を Use Graphics Settings にする */
+		#if UNITY_EDITOR
+			if( Application.isPlaying == false)
+			{
+				highDynamicRangeTarget = true;
+			}
+		#endif
+			
 			/* [2019.4.1f1]
 			 * SetTargetBuffers の引数に Display.main.*****Buffer を渡しても実機では正しく動作しない。
 			 * エディタ上では動作し、SetTargetBuffers を呼び出す前と同じ状態に戻る。

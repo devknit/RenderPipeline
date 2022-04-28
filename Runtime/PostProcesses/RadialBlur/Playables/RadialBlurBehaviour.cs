@@ -15,5 +15,7 @@ namespace RenderingPipeline
 		public float radius = 0.1f;
 		[SerializeField]
 		public Vector2 center = new Vector2( 0.5f, 0.5f);
+		[SerializeField]
+		public Vector2 volume = new Vector2( 1.0f, 1.0f);
 	}
 }
