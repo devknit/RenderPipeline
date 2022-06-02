@@ -18,7 +18,7 @@ namespace RenderingPipeline
 		}
 		public PostProcessEvent Phase
 		{
-			get{ return PostProcessEvent.PostTransparent; }
+			get{ return phase; }
 		}
 		public float Amount
 		{
@@ -124,6 +124,8 @@ namespace RenderingPipeline
 		
 		[SerializeField]
 		bool enabled = true;
+		[SerializeField]
+		PostProcessEvent phase = PostProcessEvent.PostTransparent;
 		[SerializeField, Range( -100, 100)]
 		float amount = 0.0f;
 		[SerializeField, Range( -1, 1)]

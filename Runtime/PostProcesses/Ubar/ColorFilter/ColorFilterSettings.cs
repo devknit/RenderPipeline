@@ -21,7 +21,7 @@ namespace RenderingPipeline
 		}
 		public PostProcessEvent Phase
 		{
-			get{ return PostProcessEvent.PostTransparent; }
+			get{ return phase; }
 		}
 		public Color Dot
 		{
@@ -106,6 +106,8 @@ namespace RenderingPipeline
 		
 		[SerializeField]
 		bool enabled = true;
+		[SerializeField]
+		PostProcessEvent phase = PostProcessEvent.PostTransparent;
 		[SerializeField, ColorUsage( true, true)]
 		Color dot = kMonochromeDot;
 		[SerializeField, ColorUsage( true, true)]

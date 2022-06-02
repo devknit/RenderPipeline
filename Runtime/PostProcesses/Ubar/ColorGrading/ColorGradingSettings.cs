@@ -23,7 +23,7 @@ namespace RenderingPipeline
 		}
 		public PostProcessEvent Phase
 		{
-			get{ return PostProcessEvent.PostTransparent; }
+			get{ return phase; }
 		}
 		public void ClearCache()
 		{
@@ -212,6 +212,8 @@ namespace RenderingPipeline
 		
 		[SerializeField]
 		bool enabled = true;
+		[SerializeField]
+		PostProcessEvent phase = PostProcessEvent.PostTransparent;
 		
 		[SerializeField, Range( -100, 100)]
 		float temperature = 0.0f;

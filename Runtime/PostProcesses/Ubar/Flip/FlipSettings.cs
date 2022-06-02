@@ -18,7 +18,7 @@ namespace RenderingPipeline
 		}
 		public PostProcessEvent Phase
 		{
-			get{ return PostProcessEvent.PostTransparent; }
+			get{ return phase; }
 		}
 		public bool X
 		{
@@ -102,6 +102,8 @@ namespace RenderingPipeline
 		
 		[SerializeField]
 		bool enabled = true;
+		[SerializeField]
+		PostProcessEvent phase = PostProcessEvent.PostTransparent;
 		[SerializeField]
 		bool x;
 		[SerializeField]

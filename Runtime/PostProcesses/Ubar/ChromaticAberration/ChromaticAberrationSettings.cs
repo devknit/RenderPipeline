@@ -22,7 +22,7 @@ namespace RenderingPipeline
 		}
 		public PostProcessEvent Phase
 		{
-			get{ return PostProcessEvent.PostTransparent; }
+			get{ return phase; }
 		}
 		public float Intensity
 		{
@@ -135,6 +135,8 @@ namespace RenderingPipeline
 		
 		[SerializeField]
 		bool enabled = true;
+		[SerializeField]
+		PostProcessEvent phase = PostProcessEvent.PostTransparent;
 		[SerializeField]
 		Texture2D spectralLut = default;
 		[SerializeField, Range( 0, 1)]
