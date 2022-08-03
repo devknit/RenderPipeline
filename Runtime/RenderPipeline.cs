@@ -269,6 +269,14 @@ namespace RenderingPipeline
 				ref opaqueScreenShot, CameraEvent.BeforeImageEffectsOpaque, ref commandBufferOpaqueScreenShot, ref onOpaqueScreenShot);
 			RebuildScreenShotCommandBuffer( "CameraPipeline::PostScreenShot", ref phasePostScreenShot, 
 				ref postScreenShot,	CameraEvent.BeforeImageEffects, ref commandBufferPostScreenShot, ref onPostScreenShot);
+			
+			float deltaTime = Time.smoothDeltaTime;
+			smoothTime005 += deltaTime * 0.05f;
+			smoothTime100 += deltaTime;
+			smoothTime200 += deltaTime * 2.0f;
+			smoothTime300 += deltaTime * 3.0f;
+			Shader.SetGlobalVector( kShaderPropertySmoothTimeId, 
+				new Vector4( smoothTime005, smoothTime100, smoothTime200, smoothTime300));
 		}
 		void RemoveCommandBuffers()
 		{
@@ -968,6 +976,7 @@ namespace RenderingPipeline
 			"※この機能は WebGL でのみ動作します。";
 		const int kScreenShotPhaseCapture = 0x01;
 		const int kScreenShotPhaseComplete = 0x02;
+		static readonly int kShaderPropertySmoothTimeId = Shader.PropertyToID( "_SmoothTime");
 		
 		enum RenderTargetFormat
 		{
@@ -1046,6 +1055,11 @@ namespace RenderingPipeline
 		RenderTargetFormat? cacheOverrideTargetFormat;
 		bool? cacheOverrideCameraDepthTexture;
 	#endif
+	
+		float smoothTime005;
+		float smoothTime100;
+		float smoothTime200;
+		float smoothTime300;
 	}
 #if UNITY_EDITOR
 	internal class RenderPipelineEvent : UnityEditor.AssetModificationProcessor
