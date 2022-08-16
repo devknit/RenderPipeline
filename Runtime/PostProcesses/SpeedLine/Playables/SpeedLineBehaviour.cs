@@ -10,7 +10,7 @@ namespace RenderingPipeline
 		[SerializeField]
 		internal SpeedLineType type = SpeedLineType.Radial;
 		[SerializeField]
-		internal Color color = Color.black;
+		internal Color color = Color.white;
 		[SerializeField]
 		internal Vector2 center = new Vector2( 0.5f, 0.5f);
 		[SerializeField]
