@@ -8,22 +8,28 @@ namespace RenderingPipeline
 	public sealed class SpeedLineBehaviour : PlayableBehaviour
 	{
 		[SerializeField]
+		internal SpeedLineType type = SpeedLineType.Radial;
+		[SerializeField]
 		internal Color color = Color.black;
 		[SerializeField]
 		internal Vector2 center = new Vector2( 0.5f, 0.5f);
 		[SerializeField]
-		internal Vector2 axisVolume = Vector2.one;
+		internal Vector2 axisMask = Vector2.one;
 		[SerializeField]
 		internal float tiling = 200;
-		[SerializeField, Range( 0, 10)]
-		internal float radialScale = 0.1f;
 		[SerializeField]
-		internal float smoothWidth = 0.3f;
+		internal float sparse = 3.0f;
+		[SerializeField, Range( 0, 1)]
+		internal float remap = 0.5f;
+		[SerializeField, Range( 0, 10)]
+		internal float radialScale = 0.5f;
+		[SerializeField]
+		internal float smoothWidth = 0.45f;
 		[SerializeField]
 		internal float smoothBorder = 0.3f;
 		[SerializeField]
-		internal float animationSpeed = 3;
-		[Space]
+		internal float animationSpeed = 3.0f;
+		
 		[SerializeField, HideInInspector]
 		internal Transform transform;
 		[SerializeField]
@@ -34,16 +40,16 @@ namespace RenderingPipeline
 		{
 			internal float ToRemap( float value)
 			{
-				return outputMin + (value - inputMin) * (outputMax - outputMin) / (inputMax - inputMin);
+				return outputBorderMin + (value - inputDistanceMin) * (outputBorderMax - outputBorderMin) / (inputDistanceMax - inputDistanceMin);
 			}
 			[SerializeField]
-			float inputMin = 2.0f;
+			float inputDistanceMin = 1.0f;
 			[SerializeField]
-			float inputMax = 8.0f;
-			[SerializeField, Range( 0, 1)]
-			float outputMin = 0.5f;
-			[SerializeField, Range( 0, 1)]
-			float outputMax = 0.8f;
+			float inputDistanceMax = 15.0f;
+			[SerializeField]
+			float outputBorderMin = 0.5f;
+			[SerializeField]
+			float outputBorderMax = -0.45f;
 		}
 	}
 }

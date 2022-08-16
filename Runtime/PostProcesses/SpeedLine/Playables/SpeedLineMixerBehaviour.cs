@@ -16,10 +16,13 @@ namespace RenderingPipeline
 					baindedComponent = renderPipeline.FindPostProcess<SpeedLine>();
 					if( baindedComponent != null)
 					{
+						defaultType = baindedComponent.Properties.Type;
 						defaultColor = baindedComponent.Properties.Color;
 						defaultCenter = baindedComponent.Properties.Center;
-						defaultAxisVolume = baindedComponent.Properties.AxisVolume;
+						defaultAxisMask = baindedComponent.Properties.AxisMask;
 						defaultTiling = baindedComponent.Properties.Tiling;
+						defaultSparse = baindedComponent.Properties.Sparse;
+						defaultRemap = baindedComponent.Properties.Remap;
 						defaultRadialScale = baindedComponent.Properties.RadialScale;
 						defaultSmoothWidth = baindedComponent.Properties.SmoothWidth;
 						defaultSmoothBorder = baindedComponent.Properties.SmoothBorder;
@@ -31,13 +34,16 @@ namespace RenderingPipeline
 					int inputCount = playable.GetInputCount();
 					Color blendedColor = Color.clear;
 					Vector2 blendedCenter = Vector2.zero;
-					Vector2 blendedAxisVolume = Vector2.zero;
+					Vector2 blendedAxisMask = Vector2.zero;
 					float blendedTiling = 0;
+					float blendedSparse = 0;
+					float blendedRemap = 0;
 					float blendedRadialScale = 0;
 					float blendedSmoothWidth = 0;
 					float blendedSmoothBorder = 0;
 					float blendedAnimationSpeed = 0;
 					SpeedLineBehaviour positioning = null;
+					SpeedLineType? lastType = null;
 					float totalWeight = 0.0f;
 					
 					for( int i0 = 0; i0 < inputCount; ++i0)
@@ -51,8 +57,10 @@ namespace RenderingPipeline
 							
 							blendedColor += input.color * inputWeight;
 							blendedCenter += input.center * inputWeight;
-							blendedAxisVolume += input.axisVolume * inputWeight;
+							blendedAxisMask += input.axisMask * inputWeight;
 							blendedTiling += input.tiling * inputWeight;
+							blendedSparse += input.sparse * inputWeight;
+							blendedRemap += input.remap * inputWeight;
 							blendedRadialScale += input.radialScale * inputWeight;
 							blendedSmoothWidth += input.smoothWidth * inputWeight;
 							blendedSmoothBorder += input.smoothBorder * inputWeight;
@@ -63,6 +71,7 @@ namespace RenderingPipeline
 							{
 								positioning = input;
 							}
+							lastType = input.type;
 						}
 					}
 					float defaultWeight = 1.0f - totalWeight;
@@ -70,16 +79,24 @@ namespace RenderingPipeline
 					{
 						blendedColor += defaultColor * defaultWeight;
 						blendedCenter += defaultCenter * defaultWeight;
-						blendedAxisVolume += defaultAxisVolume * defaultWeight;
+						blendedAxisMask += defaultAxisMask * defaultWeight;
 						blendedTiling += defaultTiling * defaultWeight;
+						blendedSparse += defaultSparse * defaultWeight;
+						blendedRemap += defaultRemap * defaultWeight;
 						blendedRadialScale += defaultRadialScale * defaultWeight;
 						blendedSmoothWidth += defaultSmoothWidth * defaultWeight;
 						blendedSmoothBorder += defaultSmoothBorder * defaultWeight;
 						blendedAnimationSpeed += defaultAnimationSpeed * defaultWeight;
 					}
+					if( lastType.HasValue != false)
+					{
+						baindedComponent.Properties.Type = lastType.Value;
+					}
 					baindedComponent.Properties.Color = blendedColor;
-					baindedComponent.Properties.AxisVolume = blendedAxisVolume;
+					baindedComponent.Properties.AxisMask = blendedAxisMask;
 					baindedComponent.Properties.Tiling = blendedTiling;
+					baindedComponent.Properties.Sparse = blendedSparse;
+					baindedComponent.Properties.Remap = blendedRemap;
 					baindedComponent.Properties.RadialScale = blendedRadialScale;
 					
 					if( positioning != null && renderPipeline.CacheCamera != null)
@@ -89,8 +106,7 @@ namespace RenderingPipeline
 						
 						baindedComponent.Properties.Center = renderPipeline.CacheCamera.WorldToViewportPoint( targetPosition);
 						float distance = Vector3.Distance( targetPosition, cameraPosition);
-						baindedComponent.Properties.SmoothBorder = Mathf.Clamp01( 
-							positioning.smoothBorderDistanceRemap.ToRemap( distance));
+						baindedComponent.Properties.SmoothBorder = positioning.smoothBorderDistanceRemap.ToRemap( distance);
 					}
 					else
 					{
@@ -108,10 +124,13 @@ namespace RenderingPipeline
 			{
 				if( leaveAsIs == false)
 				{
+					baindedComponent.Properties.Type = defaultType;
 					baindedComponent.Properties.Color = defaultColor;
 					baindedComponent.Properties.Center = defaultCenter;
-					baindedComponent.Properties.AxisVolume = defaultAxisVolume;
+					baindedComponent.Properties.AxisMask = defaultAxisMask;
 					baindedComponent.Properties.Tiling = defaultTiling;
+					baindedComponent.Properties.Sparse = defaultSparse;
+					baindedComponent.Properties.Remap = defaultRemap;
 					baindedComponent.Properties.RadialScale = defaultRadialScale;
 					baindedComponent.Properties.SmoothWidth = defaultSmoothWidth;
 					baindedComponent.Properties.SmoothBorder = defaultSmoothBorder;
@@ -123,10 +142,13 @@ namespace RenderingPipeline
 		
 		internal bool leaveAsIs;
 		SpeedLine baindedComponent;
+		SpeedLineType defaultType;
 		Color defaultColor;
 		Vector2 defaultCenter;
-		Vector2 defaultAxisVolume;
+		Vector2 defaultAxisMask;
 		float defaultTiling;
+		float defaultSparse;
+		float defaultRemap;
 		float defaultRadialScale;
 		float defaultSmoothWidth;
 		float defaultSmoothBorder;

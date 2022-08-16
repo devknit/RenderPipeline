@@ -24,6 +24,7 @@ Shader "Hidden/RenderPipeline/SpeedLine"
 			#pragma vertex vert
 			#pragma fragment frag
 			#pragma fragmentoption ARB_precision_hint_fastest
+			#pragma multi_compile_local _ _PATTERN_HORIZONTAL _PATTERN_VERTICAL //_PATTERN_RING
 			#include "UnityCG.cginc"
 			#include "SimplexNoise.cginc"
 			
@@ -33,12 +34,12 @@ Shader "Hidden/RenderPipeline/SpeedLine"
 			float4  _MainTex_TexelSize;
 		#endif
 			float2 _Center; 
-			float2 _AxisVolume; 
+			float2 _AxisMask; 
 			float4 _Color;
 			float _Tiling;
 			float _RadialScale;
-			float _ToneVolume;
-			float _ToneBorder;
+			float _Sparse;
+			float _Remap;
 			float _SmoothWidth;
 			float _SmoothBorder;
 			float _AnimationSpeed;
@@ -54,8 +55,6 @@ Shader "Hidden/RenderPipeline/SpeedLine"
 				half4 pos : SV_POSITION;
 				float2 uv : TEXCOORD0;
 			};
-			#define PI2I	0.15915494309189 /* 1 / 2π */
-			
 			void vert( VertexInput v, out VertexOutput o)
 			{
 				UNITY_SETUP_INSTANCE_ID( v);
@@ -66,22 +65,35 @@ Shader "Hidden/RenderPipeline/SpeedLine"
 				o.uv.y = (_MainTex_TexelSize.y < 0.0)? 1.0 - o.uv.y : o.uv.y;
 			#endif	
 			}
+			inline float remap01n1( float v, float min)
+			{
+				return saturate( (v - min) / (1.0 - min));
+			}
 			fixed4 frag( VertexOutput i) : SV_Target
 			{
-				float4 color = tex2D( _MainTex, i.uv * _MainTex_ST.xy + _MainTex_ST.zw);
-				float2 center = lerp( _Center, i.uv - _Center, _AxisVolume);
+				float4 color = tex2D( _MainTex, i.uv);
+				float2 center = i.uv - _Center;
+				float t = _AnimationSpeed * -_Time.y;
+				float l = length( center);
+			#if _PATTERN_HORIZONTAL
+				float r = center.y;
+			#elif _PATTERN_VERTICAL
+				float r = center.x;
+//			#elif _PATTERN_RING
+//				float r = l;
+			#else
+				float r = atan2( center.x, center.y);
+			#endif
 				float2 v = float2( 
-					(length( center) * _RadialScale * 2.0) + (-_AnimationSpeed * _Time.y), 
-					(atan2( center.x, center.y) * PI2I * _Tiling));
-				float p = _SmoothBorder - _SmoothWidth;
-				float q = _SmoothBorder + _SmoothWidth;
-				float n = (snoise( v) * 0.5 + 0.5) * smoothstep( p, q, length( center));
-				float alpha = n * _Color.a;
-				return lerp( color , float4( n * _Color.rgb, 0.0), 
-					lerp( alpha, step( _ToneBorder, alpha), _ToneVolume));
+					(l * _RadialScale * 2.0) + t, 
+					(r * 0.15915494309189 * _Tiling)); // (1 / 2π)
+				float n = (snoise( v) * 0.5 + 0.5);
+				float b = _SmoothBorder * 0.5;
+				float m = smoothstep( b - _SmoothWidth, b + _SmoothWidth, length( center * _AxisMask));
+				return lerp( color, _Color, remap01n1( pow( n * m, _Sparse), _Remap) * _Color.a);
 			}
 			ENDCG
 		}
-	} 
+	}
 	FallBack Off
 }

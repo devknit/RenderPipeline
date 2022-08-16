@@ -6,6 +6,13 @@ using DG.Tweening;
 
 namespace RenderingPipeline
 {
+	public enum SpeedLineType
+	{
+		Radial,
+		Horizontal,
+		Vertical,
+		// Wave,
+	}
 	[CreateAssetMenu( menuName="RenderPipeline/SpeedLine", fileName="PostProcessSpeedLine", order=1200)]
 	public sealed class SpeedLineSettings : Settings<SpeedLineProperties>
 	{
@@ -35,6 +42,11 @@ namespace RenderingPipeline
 		{
 			get{ return phase; }
 		}
+		public SpeedLineType Type
+		{
+			get{ return type; }
+			set{ type = value; }
+		}
 		public Color Color
 		{
 			get{ return color; }
@@ -45,15 +57,25 @@ namespace RenderingPipeline
 			get{ return center; }
 			set{ center = value; }
 		}
-		public Vector2 AxisVolume
+		public Vector2 AxisMask
 		{
-			get{ return axisVolume; }
-			set{ axisVolume = value; }
+			get{ return axisMask; }
+			set{ axisMask = value; }
 		}
 		public float Tiling
 		{
 			get{ return tiling; }
 			set{ tiling = value; }
+		}
+		public float Sparse
+		{
+			get{ return sparse; }
+			set{ sparse = value; }
+		}
+		public float Remap
+		{
+			get{ return remap; }
+			set{ remap = value; }
 		}
 		public float RadialScale
 		{
@@ -78,13 +100,14 @@ namespace RenderingPipeline
 		public void ClearCache()
 		{
 			cacheEnabled = null;
+			cacheType = null;
 			cacheColor = null;
 			cacheCenter = null;
-			cacheAxisVolume = null;
 			cacheTiling = null;
+			cacheSparse = null;
+			cacheRemap = null;
 			cacheRadialScale = null;
-			cacheToneVolume = null;
-			cacheToneBorder = null;
+			cacheAxisMask = null;
 			cacheSmoothWidth = null;
 			cacheSmoothBorder = null;
 			cacheAnimationSpeed = null;
@@ -101,6 +124,49 @@ namespace RenderingPipeline
 			}
 			if( isEnable != false)
 			{
+				if( cacheType != type)
+				{
+					switch( type)
+					{
+						case SpeedLineType.Horizontal:
+						{
+							if( material.IsKeywordEnabled( kShaderKeywordPatternHorizontal) == false)
+							{
+								material.EnableKeyword( kShaderKeywordPatternHorizontal);
+							}
+							if( material.IsKeywordEnabled( kShaderKeywordPatternVertical) != false)
+							{
+								material.DisableKeyword( kShaderKeywordPatternVertical);
+							}
+							break;
+						}
+						case SpeedLineType.Vertical:
+						{
+							if( material.IsKeywordEnabled( kShaderKeywordPatternHorizontal) != false)
+							{
+								material.DisableKeyword( kShaderKeywordPatternHorizontal);
+							}
+							if( material.IsKeywordEnabled( kShaderKeywordPatternVertical) == false)
+							{
+								material.EnableKeyword( kShaderKeywordPatternVertical);
+							}
+							break;
+						}
+						default:
+						{
+							if( material.IsKeywordEnabled( kShaderKeywordPatternHorizontal) != false)
+							{
+								material.DisableKeyword( kShaderKeywordPatternHorizontal);
+							}
+							if( material.IsKeywordEnabled( kShaderKeywordPatternVertical) != false)
+							{
+								material.DisableKeyword( kShaderKeywordPatternVertical);
+							}
+							break;
+						}
+					}
+					cacheType = type;
+				}
 				if( cacheColor != color)
 				{
 					material.SetColor( kShaderPropertyColor, color);
@@ -111,31 +177,33 @@ namespace RenderingPipeline
 					material.SetVector( kShaderPropertyCenter, center);
 					cacheCenter = center;
 				}
-				if( cacheAxisVolume != axisVolume)
+				if( cacheAxisMask != axisMask)
 				{
-					material.SetVector( kShaderPropertyAxisVolume, axisVolume);
-					cacheAxisVolume = axisVolume;
+					material.SetVector( kShaderPropertyAxisMask, axisMask);
+					cacheAxisMask = axisMask;
 				}
 				if( cacheTiling != tiling)
 				{
 					material.SetFloat( kShaderPropertyTiling, tiling);
 					cacheTiling = tiling;
 				}
+				if( cacheSparse != sparse)
+				{
+					sparse = Mathf.Max( sparse, 0.0f);
+					material.SetFloat( kShaderPropertySparse, sparse);
+					cacheSparse = sparse;
+				}
+				if( cacheRemap != remap)
+				{
+					remap = Mathf.Clamp01( remap);
+					material.SetFloat( kShaderPropertyRemap, remap);
+					cacheRemap = remap;
+				}
 				if( cacheRadialScale != radialScale)
 				{
 					radialScale = Mathf.Clamp( radialScale, 0.0f, 10.0f);
 					material.SetFloat( kShaderPropertyRadialScale, radialScale);
 					cacheRadialScale = radialScale;
-				}
-				if( cacheToneVolume != toneVolume)
-				{
-					material.SetFloat( kShaderPropertyToneVolume, toneVolume);
-					cacheToneVolume = toneVolume;
-				}
-				if( cacheToneBorder != toneBorder)
-				{
-					material.SetFloat( kShaderPropertyToneBorder, toneBorder);
-					cacheToneBorder = toneBorder;
 				}
 				if( cacheSmoothWidth != smoothWidth)
 				{
@@ -155,13 +223,15 @@ namespace RenderingPipeline
 			}
 			return rebuild;
 		}
+		const string kShaderKeywordPatternHorizontal = "_PATTERN_HORIZONTAL";
+		const string kShaderKeywordPatternVertical = "_PATTERN_VERTICAL";
 		static readonly int kShaderPropertyColor = Shader.PropertyToID( "_Color");
 		static readonly int kShaderPropertyCenter = Shader.PropertyToID( "_Center");
-		static readonly int kShaderPropertyAxisVolume = Shader.PropertyToID( "_AxisVolume");
+		static readonly int kShaderPropertyAxisMask = Shader.PropertyToID( "_AxisMask");
 		static readonly int kShaderPropertyTiling = Shader.PropertyToID( "_Tiling");
+		static readonly int kShaderPropertySparse = Shader.PropertyToID( "_Sparse");
+		static readonly int kShaderPropertyRemap = Shader.PropertyToID( "_Remap");
 		static readonly int kShaderPropertyRadialScale = Shader.PropertyToID( "_RadialScale");
-		static readonly int kShaderPropertyToneVolume = Shader.PropertyToID( "_ToneVolume");
-		static readonly int kShaderPropertyToneBorder = Shader.PropertyToID( "_ToneBorder");
 		static readonly int kShaderPropertySmoothWidth = Shader.PropertyToID( "_SmoothWidth");
 		static readonly int kShaderPropertySmoothBorder = Shader.PropertyToID( "_SmoothBorder");
 		static readonly int kShaderPropertyAnimationSpeed = Shader.PropertyToID( "_AnimationSpeed");
@@ -169,42 +239,46 @@ namespace RenderingPipeline
 		[SerializeField]
 		PostProcessEvent phase = PostProcessEvent.PostTransparent;
 		[SerializeField]
+		SpeedLineType type = SpeedLineType.Radial;
+		[SerializeField]
 		Color color = Color.black;
 		[SerializeField]
 		Vector2 center = new Vector2( 0.5f, 0.5f);
 		[SerializeField]
-		Vector2 axisVolume = Vector2.one;
+		Vector2 axisMask = Vector2.one;
 		[SerializeField]
 		float tiling = 200;
-		[SerializeField, Range( 0, 10)]
-		float radialScale = 0.1f;
-		[SerializeField, Range( 0, 1)]
-		float toneVolume = 0;
-		[SerializeField, Range( 0, 1)]
-		float toneBorder = 0.5f;
 		[SerializeField]
-		float smoothWidth = 0.3f;
+		float sparse = 3.0f;
+		[SerializeField, Range( 0, 1)]
+		float remap = 0.5f;
+		[SerializeField, Range( 0, 10)]
+		float radialScale = 0.5f;
+		[SerializeField]
+		float smoothWidth = 0.45f;
 		[SerializeField]
 		float smoothBorder = 0.3f;
 		[SerializeField]
-		float animationSpeed = 3;
+		float animationSpeed = 3.0f;
 		
 		[System.NonSerialized]
-		bool? cacheEnabled;
+		SpeedLineType? cacheType;
 		[System.NonSerialized]
 		Color? cacheColor;
 		[System.NonSerialized]
+		bool? cacheEnabled;
+		[System.NonSerialized]
 		Vector2? cacheCenter;
 		[System.NonSerialized]
-		Vector2? cacheAxisVolume;
+		Vector2? cacheAxisMask;
 		[System.NonSerialized]
 		float? cacheTiling;
 		[System.NonSerialized]
+		float? cacheSparse;
+		[System.NonSerialized]
+		float? cacheRemap;
+		[System.NonSerialized]
 		float? cacheRadialScale;
-		[System.NonSerialized]
-		float? cacheToneVolume;
-		[System.NonSerialized]
-		float? cacheToneBorder;
 		[System.NonSerialized]
 		float? cacheSmoothWidth;
 		[System.NonSerialized]
