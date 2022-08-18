@@ -12,6 +12,9 @@ namespace RenderingPipeline
 	[RequireComponent( typeof( Camera))]
 	public sealed partial class RenderPipeline : MonoBehaviour
 	{
+		public delegate void PreRenderCallback( float t005, float t100, float t200, float t300);
+		public static PreRenderCallback OnPreRenderCallback = null;
+		
 		void Awake()
 		{
 			cacheCamera = GetComponent<Camera>();
@@ -277,6 +280,7 @@ namespace RenderingPipeline
 			smoothTime300 += deltaTime * 3.0f;
 			Shader.SetGlobalVector( kShaderPropertySmoothTimeId, 
 				new Vector4( smoothTime005, smoothTime100, smoothTime200, smoothTime300));
+			OnPreRenderCallback?.Invoke( smoothTime005, smoothTime100, smoothTime200, smoothTime300);
 		}
 		void RemoveCommandBuffers()
 		{
