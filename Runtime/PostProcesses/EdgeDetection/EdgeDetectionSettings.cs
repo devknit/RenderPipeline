@@ -145,7 +145,7 @@ namespace RenderingPipeline
 		PostProcessEvent phase = PostProcessEvent.PostOpaque;
 		[SerializeField]
 		DetectType detectType = DetectType.kThin;
-		[SerializeField]
+		[SerializeField, ColorUsage( true, true)]
 		Color edgeColor = new Color32( 0, 0, 0, 255);
 		[SerializeField, Range( 0, 5)]
 		int sampleDistance = 2;

@@ -58,6 +58,8 @@
 		depthsAxis.z = Linear01Depth( SAMPLE_DEPTH_TEXTURE( _CameraDepthTexture, UnityStereoScreenSpaceUVAdjust( float2( 1, 0) * uvDist + i.uv1, _CameraDepthTexture_ST)));
 		depthsAxis.w = Linear01Depth( SAMPLE_DEPTH_TEXTURE( _CameraDepthTexture, UnityStereoScreenSpaceUVAdjust( i.uv1 - uvDist * float2( 0, 1), _CameraDepthTexture_ST)));
 
+		half4 baseColor = tex2D( _MainTex, UnityStereoScreenSpaceUVAdjust( i.uv0.xy, _MainTex_ST));
+
 		depthsDiag -= centerDepth;
 		depthsAxis /= centerDepth;
 
@@ -66,9 +68,9 @@
 
 		float sobelX = dot( sobelH, kOne4);
 		float sobelY = dot( sobelV, kOne4);
-		float sobel = 1.0 - saturate( sqrt( sobelX * sobelX + sobelY * sobelY));
+		float sobel = 1.0 - saturate( sqrt( sobelX * sobelX + sobelY * sobelY)) * _EdgeColor.a;
 
-		return lerp( _EdgeColor, tex2D( _MainTex, UnityStereoScreenSpaceUVAdjust( i.uv0.xy, _MainTex_ST)), sobel);
+		return half4( lerp( _EdgeColor.rgb, baseColor.rgb, sobel), baseColor.a);
 	}
 	half4 thin( VertexOutput i)
 	{	
@@ -87,7 +89,9 @@
 		depthsAxis.y = Linear01Depth( SAMPLE_DEPTH_TEXTURE( _CameraDepthTexture, UnityStereoScreenSpaceUVAdjust( i.uv1 - uvDist * float2( 1, 0), _CameraDepthTexture_ST)));
 		depthsAxis.z = Linear01Depth( SAMPLE_DEPTH_TEXTURE( _CameraDepthTexture, UnityStereoScreenSpaceUVAdjust( float2( 1, 0) * uvDist + i.uv1, _CameraDepthTexture_ST)));
 		depthsAxis.w = Linear01Depth( SAMPLE_DEPTH_TEXTURE( _CameraDepthTexture, UnityStereoScreenSpaceUVAdjust( i.uv1 - uvDist * float2( 0, 1), _CameraDepthTexture_ST)));
-
+		
+		half4 baseColor = tex2D( _MainTex, UnityStereoScreenSpaceUVAdjust( i.uv0.xy, _MainTex_ST));
+		
 		depthsDiag = (depthsDiag > centerDepth.xxxx) ? depthsDiag : centerDepth.xxxx;
 		depthsAxis = (depthsAxis > centerDepth.xxxx) ? depthsAxis : centerDepth.xxxx;
 
@@ -99,9 +103,9 @@
 
 		float sobelX = dot( sobelH, kOne4);
 		float sobelY = dot( sobelV, kOne4);
-		float sobel = 1.0 - saturate( sqrt( sobelX * sobelX + sobelY * sobelY));
-		
-		return lerp( _EdgeColor, tex2D( _MainTex, UnityStereoScreenSpaceUVAdjust( i.uv0.xy, _MainTex_ST)), sobel);
+		float sobel = 1.0 - saturate( sqrt( sobelX * sobelX + sobelY * sobelY)) * _EdgeColor.a * baseColor.a;
+
+		return half4( lerp( _EdgeColor.rgb, baseColor.rgb, sobel), baseColor.a);
 	}
 	half4 fragCheap( VertexOutput i) : COLOR
 	{
