@@ -27,57 +27,70 @@ namespace RenderingPipeline
 				int temporary = pipeline.GetTemporaryRT();
 				if( nextProcess == null)
 				{
-					commandBuffer.SetRenderTarget( 
-						new RenderTargetIdentifier( temporary), 
-						RenderBufferLoadAction.DontCare,
-						RenderBufferStoreAction.Store,
-						RenderBufferLoadAction.DontCare,
-						RenderBufferStoreAction.DontCare);
-					commandBuffer.SetGlobalTexture( ShaderProperty.MainTex, context.source0);
-					pipeline.SetViewport( commandBuffer, nextProcess);
-					pipeline.DrawCopy( commandBuffer);
+					commandBuffer.Blit( context.source0, temporary);
 					context.SetSource0( temporary);
 				}
 				else
 				{
-					commandBuffer.SetRenderTarget( 
-						new RenderTargetIdentifier( temporary), 
-						RenderBufferLoadAction.DontCare,
-						RenderBufferStoreAction.Store,
-						RenderBufferLoadAction.DontCare,
-						RenderBufferStoreAction.DontCare);
-					commandBuffer.SetGlobalTexture( ShaderProperty.MainTex, context.target0);
-					pipeline.SetViewport( commandBuffer, nextProcess);
-					pipeline.DrawCopy( commandBuffer);
 					context.SetTarget0( temporary);
 				}
+			}
+			if( Properties.StencilCompare != CompareFunction.Always)
+			{
+				RenderTextureFormat maskRenderTextureFormat = RenderTextureFormat.R8;
+				
+				if( SystemInfo.SupportsRenderTextureFormat( maskRenderTextureFormat) == false)
+				{
+					maskRenderTextureFormat = RenderTextureFormat.ARGB32;
+				}
+				var maskTextureDescriptor = new RenderTextureDescriptor(
+					pipeline.ScreenWidth,
+					pipeline.ScreenHeight,
+					maskRenderTextureFormat, 0);
+				maskTextureDescriptor.useMipMap = true;
+				maskTextureDescriptor.autoGenerateMips = true;
+				
+				commandBuffer.GetTemporaryRT( kShaderPropertyMaskTarget, maskTextureDescriptor, FilterMode.Bilinear);
+				var maskTarget = new RenderTargetIdentifier( kShaderPropertyMaskTarget);
+				
+				commandBuffer.SetRenderTarget( 
+					maskTarget, 
+					RenderBufferLoadAction.DontCare,
+					RenderBufferStoreAction.Store,
+					pipeline.DepthStencilBuffer,
+					RenderBufferLoadAction.Load,	
+					RenderBufferStoreAction.DontCare);
+				commandBuffer.ClearRenderTarget( false, true, Color.clear, 0);
+				pipeline.DrawFill( commandBuffer, material, 0);
+				
+				commandBuffer.SetRenderTarget( 
+					context.target0,
+					RenderBufferLoadAction.Load,	
+					RenderBufferStoreAction.Store,
+					RenderBufferLoadAction.DontCare,	
+					RenderBufferStoreAction.DontCare);
+				commandBuffer.SetGlobalTexture( kShaderPropertyMaskTex, maskTarget);
+				commandBuffer.SetGlobalTexture( ShaderProperty.MainTex, context.source0);
+				pipeline.SetViewport( commandBuffer, nextProcess);
+				pipeline.DrawFill( commandBuffer, material, 1);
+				commandBuffer.ReleaseTemporaryRT( kShaderPropertyMaskTarget);
 			}
 			else
 			{
 				commandBuffer.SetRenderTarget( 
-					context.target0, 
-					RenderBufferLoadAction.DontCare,
+					context.target0,
+					RenderBufferLoadAction.Load,	
 					RenderBufferStoreAction.Store,
-					RenderBufferLoadAction.DontCare,
+					RenderBufferLoadAction.DontCare,	
 					RenderBufferStoreAction.DontCare);
 				commandBuffer.SetGlobalTexture( ShaderProperty.MainTex, context.source0);
 				pipeline.SetViewport( commandBuffer, nextProcess);
-				pipeline.DrawCopy( commandBuffer);
+				pipeline.DrawFill( commandBuffer, material, 2);
 			}
-			commandBuffer.SetRenderTarget( 
-				context.target0, 
-				(Properties.StencilCompare != CompareFunction.Always)? 
-					RenderBufferLoadAction.Load    :
-					RenderBufferLoadAction.DontCare,	
-				RenderBufferStoreAction.Store,
-				pipeline.DepthStencilBuffer,
-				RenderBufferLoadAction.Load,	
-				RenderBufferStoreAction.DontCare);
-			commandBuffer.SetGlobalTexture( ShaderProperty.MainTex, context.source0);
-			pipeline.SetViewport( commandBuffer, nextProcess);
-			pipeline.DrawFill( commandBuffer, material, 0);
 			context.duplicated = false;
 			return true;
 		}
+		public static readonly int kShaderPropertyMaskTarget = Shader.PropertyToID( "Mosaic::Mask");
+		static readonly int kShaderPropertyMaskTex = Shader.PropertyToID( "_MaskTex");
 	}
 }

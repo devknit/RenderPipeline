@@ -21,11 +21,6 @@ namespace RenderingPipeline
 		{
 			get{ return phase; }
 		}
-		public int BlockSize
-		{
-			get{ return blockSize; }
-			set{ blockSize = value; }
-		}
 		public int StencilReference
 		{
 			get{ return stencilReference; }
@@ -46,7 +41,7 @@ namespace RenderingPipeline
 			cacheEnabled = null;
 			cacheWidth = null;
 			cacheHeight = null;
-			cacheBlockSize = null;
+			cacheTargetLevel = null;
 			cacheStencilReference = null;
 			cacheStencilReadMask = null;
 			cacheStencilCompare = null;
@@ -64,19 +59,29 @@ namespace RenderingPipeline
 			{
 				if( cacheWidth != pipeline.ScreenWidth
 				||	cacheHeight != pipeline.ScreenHeight
-				||	cacheBlockSize != blockSize)
+				||	cacheTargetLevel != targetLevel)
 				{
-					if( blockSize < 1)
+					if( stencilCompare != CompareFunction.Always)
 					{
-						blockSize = 1;
+						rebuild = true;
 					}
+					int size = Mathf.Min( pipeline.ScreenWidth, pipeline.ScreenHeight);
+					int currentLevel = 12;
+					
+					for( int i0 = 4096; i0 > size; i0 /= 2)
+					{
+						--currentLevel;
+					}
+					int level = Mathf.Clamp( currentLevel - targetLevel, 1, 10);
+					float blockSize = Mathf.Pow( 2, level);
 					float texelWidth = 1.0f / (float)pipeline.ScreenWidth * blockSize;
 					float texelHeight = 1.0f / (float)pipeline.ScreenHeight * blockSize;
 					material.SetVector( kShaderPropertyPixelation, new Vector4(
 						1.0f / texelWidth, 1.0f / texelHeight, texelWidth, texelHeight));
+					material.SetFloat( kShaderPropertyMipmapLevel, level);
 					cacheWidth = pipeline.ScreenWidth;
 					cacheHeight = pipeline.ScreenHeight;
-					cacheBlockSize = blockSize;
+					cacheTargetLevel = targetLevel;
 				}
 				if( cacheStencilReference != stencilReference)
 				{
@@ -115,6 +120,7 @@ namespace RenderingPipeline
 		}
 		
 		static readonly int kShaderPropertyPixelation = Shader.PropertyToID( "_Pixelation");
+		static readonly int kShaderPropertyMipmapLevel = Shader.PropertyToID( "_MipmapLevel");
 		static readonly int kShaderPropertyStencilRef = Shader.PropertyToID( "_StencilRef");
 		static readonly int kShaderPropertyStencilReadMask = Shader.PropertyToID( "_StencilReadMask");
 		static readonly int kShaderPropertyStencilComp = Shader.PropertyToID( "_StencilComp");
@@ -124,7 +130,7 @@ namespace RenderingPipeline
 		[SerializeField]
 		PostProcessEvent phase = PostProcessEvent.PostTransparent;
 		[SerializeField]
-		int blockSize = 16;
+		int targetLevel = 5;
 		[SerializeField, Range(0, 255)]
 		int stencilReference = 0;
 		[SerializeField, Range(0, 255)]
@@ -139,7 +145,7 @@ namespace RenderingPipeline
 		[System.NonSerialized]
 		int? cacheHeight;
 		[System.NonSerialized]
-		int? cacheBlockSize;
+		int? cacheTargetLevel;
 		[System.NonSerialized]
 		int? cacheStencilReference;
 		[System.NonSerialized]

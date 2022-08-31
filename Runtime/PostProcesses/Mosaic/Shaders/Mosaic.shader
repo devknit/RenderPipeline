@@ -12,7 +12,9 @@
 	#include "UnityCG.cginc"
 	
 	sampler2D _MainTex;
+	sampler2D _MaskTex;
 	float4 _Pixelation;
+	float _MipmapLevel;
 	
 	struct VertexOutput
 	{
@@ -24,9 +26,25 @@
 		o.pos = UnityObjectToClipPos( v.vertex);
 		o.uv = v.texcoord.xy;
 	}
-	float4 frag( VertexOutput i) : SV_Target 
+	float4 frag0( VertexOutput i) : SV_Target 
 	{
-		return tex2D( _MainTex, round( i.uv.xy * _Pixelation.xy) * _Pixelation.zw);
+		return fixed4( 1, 1, 1, 1);
+	}
+	inline fixed4 mosaicTex2D( sampler2D mainTex, float2 uv)
+	{
+		return tex2D( mainTex, round( uv * _Pixelation.xy) * _Pixelation.zw);
+	}
+	float4 frag1( VertexOutput i) : SV_Target 
+	{
+		fixed4 baseColor = tex2D( _MainTex, i.uv);
+		fixed4 mosaicColor = mosaicTex2D( _MainTex, i.uv);
+		fixed mask = tex2Dlod( _MaskTex, float4( i.uv, 0, _MipmapLevel)).r;
+		fixed t = 1.0 - step( mask, 0);
+		return lerp( baseColor, mosaicColor, t);
+	}
+	float4 frag2( VertexOutput i) : SV_Target 
+	{
+		return mosaicTex2D( _MainTex, i.uv);
 	}
 	ENDCG
 	
@@ -34,17 +52,31 @@
 	{
 		Cull Off ZWrite Off ZTest Always
 		
-		Stencil
+		Pass
 		{
-			Ref [_StencilRef]
-			ReadMask [_StencilReadMask]
-			Comp [_StencilComp]
+			Stencil
+			{
+				Ref [_StencilRef]
+				ReadMask [_StencilReadMask]
+				Comp [_StencilComp]
+			}
+			CGPROGRAM
+			#pragma vertex vert
+			#pragma fragment frag0
+			ENDCG
 		}
 		Pass
 		{
 			CGPROGRAM
 			#pragma vertex vert
-			#pragma fragment frag
+			#pragma fragment frag1
+			ENDCG
+		}
+		Pass
+		{
+			CGPROGRAM
+			#pragma vertex vert
+			#pragma fragment frag2
 			ENDCG
 		}
 	}
