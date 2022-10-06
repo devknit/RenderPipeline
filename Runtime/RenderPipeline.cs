@@ -798,7 +798,7 @@ namespace RenderingPipeline
 			cacheCamera.forceIntoRenderTexture = forceIntoRenderTexture;
 			isRebuildCommandBuffers = false;
 		}
-		internal bool Capture( PostProcessEvent phase, System.Action<Texture> onComplete)
+		public bool Capture( PostProcessEvent phase, System.Action<Texture> onComplete)
 		{
 			if( phase == PostProcessEvent.PostOpaque)
 			{
