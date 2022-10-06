@@ -798,7 +798,7 @@ namespace RenderingPipeline
 			cacheCamera.forceIntoRenderTexture = forceIntoRenderTexture;
 			isRebuildCommandBuffers = false;
 		}
-		public bool Capture( PostProcessEvent phase, System.Action<Texture> onComplete)
+		public bool Capture( PostProcessEvent phase, System.Action<RenderTexture> onComplete)
 		{
 			if( phase == PostProcessEvent.PostOpaque)
 			{
@@ -831,7 +831,7 @@ namespace RenderingPipeline
 			return false;
 		}
 		void RebuildScreenShotCommandBuffer( string name, ref int phase, ref RenderTexture targetBuffer,
-			CameraEvent cameraEvent, ref CommandBuffer commandBuffer, ref System.Action<Texture> onComplete)
+			CameraEvent cameraEvent, ref CommandBuffer commandBuffer, ref System.Action<RenderTexture> onComplete)
 		{
 			if( (phase & kScreenShotPhaseComplete) != 0)
 			{
@@ -1039,8 +1039,8 @@ namespace RenderingPipeline
 		CommandBuffer commandBufferOpaqueScreenShot;
 		CommandBuffer commandBufferPostScreenShot;
 		
-		System.Action<Texture> onOpaqueScreenShot;
-		System.Action<Texture> onPostScreenShot;
+		System.Action<RenderTexture> onOpaqueScreenShot;
+		System.Action<RenderTexture> onPostScreenShot;
 		int phaseOpaqueScreenShot;
 		int phasePostScreenShot;
 		
