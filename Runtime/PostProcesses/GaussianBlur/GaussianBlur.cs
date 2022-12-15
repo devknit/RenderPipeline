@@ -34,7 +34,11 @@ namespace RenderingPipeline
 		public override bool BuildCommandBuffer( RenderPipeline pipeline,
 			CommandBuffer commandBuffer, TargetContext context, IPostProcess nextProcess)
 		{
-			return m_Resources.BuildCommandBuffer( pipeline, commandBuffer, context, nextProcess, material);
+			if( Properties.Enabled != false && Properties.BlendWeight > 0)
+			{
+				return m_Resources.BuildCommandBuffer( pipeline, commandBuffer, context, nextProcess, material);
+			}
+			return false;
 		}
 		GaussianBlurResources m_Resources;
 	}

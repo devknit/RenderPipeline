@@ -14,8 +14,8 @@ namespace RenderingPipeline
 	{
 		public bool Enabled
 		{
-			get{ return blendWeight > 0; }
-			set{ blendWeight = (value == false)? 0 : 1; }
+			get{ return enabled; }
+			set{ enabled = value; }
 		}
 		public float BlendWeight
 		{
@@ -40,6 +40,7 @@ namespace RenderingPipeline
 		}
 		public void ClearCache()
 		{
+			cacheEnabled = null;
 			cacheBlendWeight = null;
 			cacheSigmaInPixel = null;
 			cacheIntensity = null;
@@ -54,20 +55,18 @@ namespace RenderingPipeline
 		{
 			int updateFlag = kUpdateFlagNone;
 			
-			if( cacheBlendWeight != blendWeight)
+			if( cacheEnabled != enabled)
 			{
-				bool cacheEnabled = cacheBlendWeight > 0;
-				bool enabled = blendWeight > 0;
-				
-				if( cacheEnabled != enabled)
-				{
-					updateFlag |= kUpdateFlagRebuild;
-				}
-				updateFlag |= kUpdateFlagBlendWeight;
-				cacheBlendWeight = blendWeight;
+				updateFlag |= kUpdateFlagRebuild;
+				cacheEnabled = enabled;
 			}
-			if( blendWeight > 0)
+			if( enabled != false)
 			{
+				if( cacheBlendWeight != blendWeight)
+				{
+					updateFlag |= kUpdateFlagBlendWeight;
+					cacheBlendWeight = blendWeight;
+				}
 				if( cacheSigmaInPixel != sigmaInPixel)
 				{
 					updateFlag |= kUpdateFlagSigmaInPixel | kUpdateFlagGaussianBlurMesh | kUpdateFlagRebuild;
@@ -143,6 +142,8 @@ namespace RenderingPipeline
 		PostProcessEvent phase = PostProcessEvent.PreOpaque;
 		[SerializeField]
 		RenderTextureFormat format = RenderTextureFormat.ARGB32;
+		[SerializeField]
+		bool enabled = true;
 		[SerializeField, Range( 0, 1)]
 		float blendWeight = 1.0f;
 		[SerializeField]
@@ -158,6 +159,8 @@ namespace RenderingPipeline
 		[SerializeField, Range( 0, 6)]
 		int combineStartLevel = 0;
 		
+		[System.NonSerialized]
+		bool? cacheEnabled;
 		[System.NonSerialized]
 		float? cacheBlendWeight;
 		[System.NonSerialized]
