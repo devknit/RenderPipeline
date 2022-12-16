@@ -31,14 +31,14 @@ namespace RenderingPipeline
 		{
 			return false;
 		}
+		public override bool Valid()
+		{
+			return base.Valid() && Properties.BlendWeight > 0;
+		}
 		public override bool BuildCommandBuffer( RenderPipeline pipeline,
 			CommandBuffer commandBuffer, TargetContext context, IPostProcess nextProcess)
 		{
-			if( Properties.Enabled != false && Properties.BlendWeight > 0)
-			{
-				return m_Resources.BuildCommandBuffer( pipeline, commandBuffer, context, nextProcess, material);
-			}
-			return false;
+			return m_Resources.BuildCommandBuffer( pipeline, commandBuffer, context, nextProcess, material);
 		}
 		GaussianBlurResources m_Resources;
 	}

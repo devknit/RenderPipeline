@@ -54,18 +54,32 @@ namespace RenderingPipeline
 		public bool UpdateProperties( RenderPipeline pipeline, Material material, GaussianBlurResources resources)
 		{
 			int updateFlag = kUpdateFlagNone;
+			float actualWeight = (enabled == false)? 0 : blendWeight;
+			bool actualEnabled = actualWeight > 0;
+			float cacheActualWeight;
+			bool cacheActualEnabled;
 			
-			if( cacheEnabled != enabled)
+			if( cacheEnabled.HasValue != false && cacheBlendWeight.HasValue != false)
+			{
+				cacheActualWeight = (cacheEnabled.Value == false)? 0 : cacheBlendWeight.Value;
+			}
+			else
+			{
+				cacheActualWeight = -1;
+			}
+			if( cacheActualWeight > 0 != actualEnabled)
 			{
 				updateFlag |= kUpdateFlagRebuild;
+			}
+			if( cacheEnabled != enabled)
+			{
 				cacheEnabled = enabled;
 			}
-			if( enabled != false)
+			if( actualEnabled != false)
 			{
 				if( cacheBlendWeight != blendWeight)
 				{
 					updateFlag |= kUpdateFlagBlendWeight;
-					cacheBlendWeight = blendWeight;
 				}
 				if( cacheSigmaInPixel != sigmaInPixel)
 				{
@@ -107,6 +121,7 @@ namespace RenderingPipeline
 				if( (updateFlag & kUpdateFlagBlendWeight) != 0)
 				{
 					resources.UpdateBlendWeight( material, blendWeight, GaussianBlurResources.BlendMode.Alpha);
+					cacheBlendWeight = blendWeight;
 				}
 				if( (updateFlag & kUpdateFlagSigmaInPixel) != 0)
 				{
