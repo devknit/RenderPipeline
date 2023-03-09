@@ -108,5 +108,6 @@ namespace RenderingPipeline
 		[System.NonSerialized]
 		Rect? cacheRect;
 		[System.NonSerialized]
-		float? cacheSmoothness;	}
+		float? cacheSmoothness;
+	}
 }

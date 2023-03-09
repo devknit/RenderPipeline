@@ -15,7 +15,7 @@ fixed4 RectMask( fixed4 color, float2 uv)
 	float2 rt = 1.0 - (lb + _RectMaskRect.zw);
     float2 uvs = smoothstep( lb - o, lb + o, uv);
 	uvs *= smoothstep( rt - o, rt + o, 1.0 - uv);
-	half vfactor = uvs.x * uvs.y;
-    return fixed4( color.rgb * lerp( _RectMaskColor.rgb, fixed3( 1, 1, 1), vfactor), saturate( color.a + (1.0 - vfactor)));
+	half vfactor = 1.0 - ((1.0 - saturate( uvs.x * uvs.y)) * _RectMaskColor.a);
+    return fixed4( color.rgb * lerp( _RectMaskColor.rgb, fixed3( 1, 1, 1), vfactor), color.a);
 }
 #endif /* __RECTMASK_CGINC__ */
