@@ -20,10 +20,12 @@
 			#pragma multi_compile_local _ _NOISE
 			#pragma multi_compile_local _ _OVERRAY
 			#pragma multi_compile_local _ _VIGNETTE
+			#pragma multi_compile_local _ _RECTMASK
 			#pragma multi_compile_local _ _COLORFILTER
 			#pragma multi_compile_local _ _COLOR_GRADING_LDR_2D
 			#include "../Ubar/LensDistortion/Shaders/LensDistortion.cginc"
 			#include "../Ubar/Vignette/Shaders/Vignette.cginc"
+			#include "../Ubar/RectMask/Shaders/RectMask.cginc"
 			#include "../Ubar/Noise/Shaders/Noise.cginc"
 			#include "../Ubar/Overray/Shaders/Overray.cginc"
 			#include "../Ubar/ColorFilter/Shaders/ColorFilter.cginc"
@@ -112,6 +114,9 @@
 			#endif
 			#if defined(_VIGNETTE)
 				color = Vignette( color, uv);
+			#endif
+			#if defined(_RECTMASK)
+				color = RectMask( color, uv);
 			#endif
 			#if defined(_COLORFILTER)
 				color = ColorFilter( color);
