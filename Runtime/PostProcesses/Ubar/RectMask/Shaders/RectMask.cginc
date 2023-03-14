@@ -10,7 +10,7 @@ float _RectMaskSmoothness;
 
 fixed4 RectMask( fixed4 color, float2 uv)
 {
-	float o = _RectMaskSmoothness;
+	float2 o = _RectMaskSmoothness / _ScreenParams.xy;
 	float2 lb = _RectMaskRect.xy;
 	float2 rt = 1.0 - (lb + _RectMaskRect.zw);
     float2 uvs = smoothstep( lb - o, lb + o, uv);

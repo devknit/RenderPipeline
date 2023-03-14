@@ -73,7 +73,6 @@ namespace RenderingPipeline
 				}
 				if( cacheSmoothness != smoothness)
 				{
-					smoothness = Mathf.Clamp( smoothness, 0.0f, 1.0f);
 					material.SetFloat( kShaderPropertySmoothness, smoothness);
 					cacheSmoothness = smoothness;
 				}
@@ -98,8 +97,8 @@ namespace RenderingPipeline
 		Color color = Color.black;
 		[SerializeField]
 		Rect rect = new Rect( 0, 0, 1, 1);
-		[SerializeField, Range( 0, 1)]
-		float smoothness = 1.0f;
+		[SerializeField]
+		float smoothness = 8.0f;
 		
 		[System.NonSerialized]
 		bool? cacheEnabled;
