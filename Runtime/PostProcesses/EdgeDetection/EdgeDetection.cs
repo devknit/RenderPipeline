@@ -36,15 +36,25 @@ namespace RenderingPipeline
 					context.SetTarget0( temporary);
 				}
 			}
-			commandBuffer.SetRenderTarget( 
-				context.target0, 
-				(Properties.StencilCompare != CompareFunction.Always)? 
-					RenderBufferLoadAction.Load    :
+			if( Properties.StencilCompare != CompareFunction.Always)
+			{
+				commandBuffer.SetRenderTarget( 
+					context.target0, 
+					RenderBufferLoadAction.Load,
+					RenderBufferStoreAction.DontCare,
+					pipeline.DepthStencilBuffer,
+					RenderBufferLoadAction.Load,	
+					RenderBufferStoreAction.DontCare);
+			}
+			else
+			{
+				commandBuffer.SetRenderTarget( 
+					context.target0, 
 					RenderBufferLoadAction.DontCare,
-				RenderBufferStoreAction.Store,
-				pipeline.DepthStencilBuffer,
-				RenderBufferLoadAction.Load,	
-				RenderBufferStoreAction.DontCare);
+					RenderBufferStoreAction.Store,
+					RenderBufferLoadAction.DontCare,	
+					RenderBufferStoreAction.DontCare);
+			}
 			commandBuffer.SetGlobalTexture( ShaderProperty.MainTex, context.source0);
 			pipeline.SetViewport( commandBuffer, nextProcess);
 			pipeline.DrawFill( commandBuffer, material, (int)Properties.DetectType);
