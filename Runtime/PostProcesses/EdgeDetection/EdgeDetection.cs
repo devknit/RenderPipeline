@@ -41,10 +41,14 @@ namespace RenderingPipeline
 				commandBuffer.SetRenderTarget( 
 					context.target0, 
 					RenderBufferLoadAction.Load,
-					RenderBufferStoreAction.DontCare,
+					RenderBufferStoreAction.Store,
 					pipeline.DepthStencilBuffer,
-					RenderBufferLoadAction.Load,	
+					RenderBufferLoadAction.Load,
+				#if UNITY_WEBGL
+					RenderBufferStoreAction.Store);
+				#else
 					RenderBufferStoreAction.DontCare);
+				#endif
 			}
 			else
 			{

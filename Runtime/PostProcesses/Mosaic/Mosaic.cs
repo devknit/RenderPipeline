@@ -58,8 +58,12 @@ namespace RenderingPipeline
 					RenderBufferLoadAction.DontCare,
 					RenderBufferStoreAction.Store,
 					pipeline.DepthStencilBuffer,
-					RenderBufferLoadAction.Load,	
+					RenderBufferLoadAction.Load,
+				#if UNITY_WEBGL
+					RenderBufferStoreAction.Store);
+				#else
 					RenderBufferStoreAction.DontCare);
+				#endif
 				commandBuffer.ClearRenderTarget( false, true, Color.clear, 0);
 				pipeline.DrawFill( commandBuffer, material, 0);
 				
