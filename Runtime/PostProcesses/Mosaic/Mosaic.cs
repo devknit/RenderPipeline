@@ -60,7 +60,7 @@ namespace RenderingPipeline
 					pipeline.DepthStencilBuffer,
 					RenderBufferLoadAction.Load,
 				#if UNITY_WEBGL
-					RenderBufferStoreAction.Store);
+					RenderBufferStoreAction.Resolve);
 				#else
 					RenderBufferStoreAction.DontCare);
 				#endif
